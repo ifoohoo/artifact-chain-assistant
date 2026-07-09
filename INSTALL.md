@@ -19,6 +19,14 @@ Preferred CLI setup for a target project:
 pnpm add -D artifact-graph
 ```
 
+With pnpm 10+, projects that install `artifact-graph` must allow the native `better-sqlite3`
+dependency to build. Add or update `pnpm-workspace.yaml`:
+
+```yaml
+allowBuilds:
+  better-sqlite3: true
+```
+
 If the package is consumed from a private repository or local checkout, use the equivalent package
 manager command or a local development link. The plugin wrappers resolve the CLI in this order:
 
