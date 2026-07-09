@@ -20,7 +20,6 @@
     "test": "pnpm sync:skills:check && pnpm build:adapters:check",
     "test:ci": "pnpm test",
     "typecheck": "node --check scripts/build-adapters.mjs && node --check scripts/doctor.mjs && node --check scripts/install-git-hooks.mjs && node --check scripts/sync-skills.mjs",
-    "prepack": "pnpm run build",
     "sync:skills": "node scripts/sync-skills.mjs",
     "sync:skills:check": "node scripts/sync-skills.mjs --check",
     "build:adapters": "node scripts/build-adapters.mjs",
