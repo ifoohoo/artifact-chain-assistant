@@ -6,6 +6,6 @@
   "author": {
     "name": "Artifact Graph Maintainers"
   },
-  "license": "MIT",
+  "license": "Apache-2.0",
   "keywords": ["artifact-graph", "traceability", "codex", "claude-code"]
 }

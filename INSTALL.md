@@ -27,7 +27,7 @@ manager command or a local development link. The plugin wrappers resolve the CLI
 3. explicit legacy override from `ARTIFACT_GRAPH_LEGACY_CLI`, only when you intentionally point at
    an older checkout.
 
-Do not hard-code a machine-specific path such as `/Users/.../artifact-graph/dist/cli.js` in project
+Do not hard-code a machine-specific path such as `/absolute/path/to/artifact-graph/dist/cli.js` in project
 instructions, hooks, or generated prompts.
 
 ## Install The Plugin

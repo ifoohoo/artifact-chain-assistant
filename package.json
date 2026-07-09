@@ -2,10 +2,22 @@
   "name": "artifact-chain-assistant",
   "version": "0.1.4",
   "description": "Codex and Claude Code assistant plugin for artifact-chain projects",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "type": "module",
+  "packageManager": "pnpm@10.17.1",
+  "keywords": [
+    "codex-plugin",
+    "claude-code",
+    "artifact-chain",
+    "traceability",
+    "agent-tools"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "build": "node scripts/sync-skills.mjs && node scripts/build-adapters.mjs",
+    "test": "pnpm sync:skills:check && pnpm build:adapters:check",
     "prepack": "pnpm run build",
     "sync:skills": "node scripts/sync-skills.mjs",
     "sync:skills:check": "node scripts/sync-skills.mjs --check",
@@ -15,10 +27,23 @@
     "install-git-hooks": "node scripts/install-git-hooks.mjs"
   },
   "files": [
+    "README.md",
+    "README.zh-CN.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "NOTICE",
     "INSTALL.md",
     "adapters",
     "skills-src",
     "templates",
     "scripts"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mzdbxqh/artifact-chain-assistant.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mzdbxqh/artifact-chain-assistant/issues"
+  },
+  "homepage": "https://github.com/mzdbxqh/artifact-chain-assistant#readme"
 }
