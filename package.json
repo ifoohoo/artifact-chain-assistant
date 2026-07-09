@@ -1,7 +1,6 @@
 {
   "name": "artifact-chain-assistant",
   "version": "0.1.4",
-  "private": true,
   "description": "Codex and Claude Code assistant plugin for artifact-chain projects",
   "license": "MIT",
   "type": "module",
