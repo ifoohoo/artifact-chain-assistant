@@ -1,0 +1,25 @@
+{
+  "name": "artifact-chain-assistant",
+  "version": "0.1.4",
+  "private": true,
+  "description": "Codex and Claude Code assistant plugin for artifact-chain projects",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/sync-skills.mjs && node scripts/build-adapters.mjs",
+    "prepack": "pnpm run build",
+    "sync:skills": "node scripts/sync-skills.mjs",
+    "sync:skills:check": "node scripts/sync-skills.mjs --check",
+    "build:adapters": "node scripts/build-adapters.mjs",
+    "build:adapters:check": "node scripts/build-adapters.mjs --check",
+    "doctor": "node scripts/doctor.mjs",
+    "install-git-hooks": "node scripts/install-git-hooks.mjs"
+  },
+  "files": [
+    "INSTALL.md",
+    "adapters",
+    "skills-src",
+    "templates",
+    "scripts"
+  ]
+}
