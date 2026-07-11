@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @scenario S-01 @feature ACA1
 // @scenario S-05 @feature ACA5
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -23,27 +23,43 @@ const hosts = [
   },
 ];
 
-const template = await readFile(join(root, 'skills-src/where-am-i/SKILL.md.tpl'), 'utf-8');
-const maintainer = await readFile(join(root, 'skills-src/artifact-chain-maintainer/SKILL.md'), 'utf-8');
-const bootstrap = await readFile(join(root, 'skills-src/artifact-chain-bootstrap/SKILL.md'), 'utf-8');
+const sources = await discoverSkillSources(root);
 const outputs = [];
 
 for (const host of hosts) {
-  outputs.push({
-    path: join(root, `adapters/${host.id}/skills/where-am-i/SKILL.md`),
-    content: render(template, host),
-  });
-  outputs.push({
-    path: join(root, `adapters/${host.id}/skills/artifact-chain-maintainer/SKILL.md`),
-    content: maintainer,
-  });
-  outputs.push({
-    path: join(root, `adapters/${host.id}/skills/artifact-chain-bootstrap/SKILL.md`),
-    content: bootstrap,
-  });
+  for (const source of sources) {
+    const content = await readFile(source.sourcePath, 'utf-8');
+    outputs.push({
+      path: join(root, `adapters/${host.id}/skills/${source.name}/SKILL.md`),
+      content: source.template ? render(content, host) : content,
+    });
+  }
 }
 
 let drift = false;
+for (const host of hosts) {
+  const expected = new Set(sources.map((source) => source.name));
+  const skillsRoot = join(root, `adapters/${host.id}/skills`);
+  const actual = await skillDirectoryNames(skillsRoot);
+  const missing = [...expected].filter((name) => !actual.has(name));
+  const extra = [...actual].filter((name) => !expected.has(name));
+
+  if (check) {
+    for (const name of missing) {
+      drift = true;
+      console.error(`Generated skill missing: adapters/${host.id}/skills/${name}`);
+    }
+    for (const name of extra) {
+      drift = true;
+      console.error(`Generated skill stale: adapters/${host.id}/skills/${name}`);
+    }
+  } else {
+    for (const name of extra) {
+      await rm(join(skillsRoot, name), { recursive: true, force: true });
+    }
+  }
+}
+
 for (const output of outputs) {
   if (check) {
     let current = '';
@@ -77,4 +93,39 @@ function render(source, vars) {
 
 function relativeToRoot(path) {
   return path.slice(root.length + 1);
+}
+
+export async function discoverSkillSources(root) {
+  const entries = await readdir(join(root, 'skills-src'), { withFileTypes: true });
+  const sources = [];
+  for (const entry of entries.filter((item) => item.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))) {
+    const plain = join(root, 'skills-src', entry.name, 'SKILL.md');
+    const template = join(root, 'skills-src', entry.name, 'SKILL.md.tpl');
+    const sourcePath = await firstExisting([plain, template]);
+    if (!sourcePath) throw new Error(`Missing skill source: ${entry.name}`);
+    sources.push({ name: entry.name, sourcePath, template: sourcePath.endsWith('.tpl') });
+  }
+  return sources;
+}
+
+async function firstExisting(paths) {
+  for (const path of paths) {
+    try {
+      await readFile(path);
+      return path;
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+    }
+  }
+  return null;
+}
+
+async function skillDirectoryNames(skillsRoot) {
+  try {
+    const entries = await readdir(skillsRoot, { withFileTypes: true });
+    return new Set(entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name));
+  } catch (error) {
+    if (error.code === 'ENOENT') return new Set();
+    throw error;
+  }
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // @scenario S-05 @feature ACA5
-import { chmod, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { access, chmod, mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -32,6 +32,14 @@ const shellResolver = `artifact_graph() {
 
 const outputs = [
   {
+    template: 'templates/codex/marketplace.json.tpl',
+    path: '.agents/plugins/marketplace.json',
+  },
+  {
+    template: 'templates/claude/marketplace.json.tpl',
+    path: '.claude-plugin/marketplace.json',
+  },
+  {
     template: 'templates/codex/plugin.json.tpl',
     path: 'adapters/codex/.codex-plugin/plugin.json',
   },
@@ -44,24 +52,8 @@ const outputs = [
     path: 'adapters/claude/hooks/hooks.json',
   },
   {
-    path: 'adapters/codex/commands/version-lock-audit.sh',
-    content: `#!/bin/sh
-set -u
-
-${shellResolver}
-artifact_graph version-lock audit --strict-missing-lock "$@"
-`,
-    executable: true,
-  },
-  {
-    path: 'adapters/codex/commands/version-lock-refresh.sh',
-    content: `#!/bin/sh
-set -u
-
-${shellResolver}
-artifact_graph version-lock refresh --changed-only --staged "$@"
-`,
-    executable: true,
+    path: 'adapters/claude/hooks/version-lock-stop.mjs',
+    content: await readFile(join(root, 'runtime/claude/version-lock-stop.mjs'), 'utf-8'),
   },
   {
     path: 'adapters/claude/bin/version-lock-audit.sh',
@@ -94,6 +86,25 @@ artifact_graph version-lock refresh --changed-only --staged "$@"
 ];
 
 let drift = false;
+const stalePaths = [
+  'adapters/claude/.claude-plugin/marketplace.json',
+  'adapters/codex/commands',
+  'adapters/codex/commands/version-lock-audit.sh',
+  'adapters/codex/commands/version-lock-refresh.sh',
+];
+for (const stalePath of stalePaths) {
+  const target = join(root, stalePath);
+  if (check) {
+    try {
+      await access(target);
+      drift = true;
+      console.error(`Generated adapter stale path: ${stalePath}`);
+    } catch {}
+  } else {
+    await rm(target, { force: true, recursive: stalePath === 'adapters/codex/commands' });
+  }
+}
+
 for (const output of outputs) {
   const target = join(root, output.path);
   const content = output.content ?? render(await readFile(join(root, output.template), 'utf-8'), vars);
@@ -107,6 +118,13 @@ for (const output of outputs) {
     if (current !== content) {
       drift = true;
       console.error(`Generated adapter drift: ${output.path}`);
+    }
+    if (output.executable) {
+      const mode = (await stat(target)).mode;
+      if ((mode & 0o111) === 0) {
+        drift = true;
+        console.error(`Generated adapter mode drift: ${output.path}`);
+      }
     }
   } else {
     await mkdir(dirname(target), { recursive: true });

@@ -1,0 +1,19 @@
+{
+  "name": "artifact-chain-assistant",
+  "owner": {
+    "name": "Artifact Graph Maintainers"
+  },
+  "metadata": {
+    "description": "Artifact-chain intake, diagnostics, hooks, and version-lock maintenance helpers.",
+    "version": "0.2.0"
+  },
+  "plugins": [
+    {
+      "name": "artifact-chain-assistant",
+      "source": "./adapters/claude",
+      "description": "Artifact-chain intake, diagnostics, hooks, and version-lock maintenance helpers.",
+      "category": "productivity",
+      "tags": ["artifact-graph", "traceability", "codex", "claude-code"]
+    }
+  ]
+}
