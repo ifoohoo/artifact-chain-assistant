@@ -462,6 +462,132 @@ artifact-graph version-lock audit --root . --strict-missing-lock
 If `artifact-graph doctor` cannot find the CLI or config, fix the target project setup before
 relying on plugin skills or hooks.
 
+## Agent Method Registry
+
+The plugin includes a deterministic agent-method-registry integration for catalog resolution,
+provider verification, and CLI diagnostics.
+
+### Default Catalog
+
+The default catalog is at `<plugin-root>/agent-methods/catalog.yaml` and registers 8 workflow
+entries across the `prd-feature` and `scenario-script` skill families:
+
+| Ref | Family | Entry |
+|-----|--------|-------|
+| `artifact.prd-feature.default` | prd-feature | Default routing entry |
+| `artifact.prd-feature.author` | prd-feature | Author |
+| `artifact.prd-feature.review` | prd-feature | Review |
+| `artifact.prd-feature.repair` | prd-feature | Repair |
+| `artifact.scenario-script.default` | scenario-script | Default routing entry |
+| `artifact.scenario-script.author` | scenario-script | Author |
+| `artifact.scenario-script.review` | scenario-script | Review |
+| `artifact.scenario-script.repair` | scenario-script | Repair |
+
+### Standalone Install
+
+Install `agent-method-registry@0.1.1` as a separate dependency if you only need the registry
+capabilities:
+
+```bash
+npm install agent-method-registry@0.1.1
+```
+
+The CLI is available as `agent-method-registry` after installation.
+
+### Building the Effective Index
+
+The effective index is built from the catalog plus an optional project overlay. First, locate
+the plugin root:
+
+```bash
+PLUGIN_ROOT=$(node -e "console.log(require.resolve('artifact-chain-assistant/package.json').replace('/package.json',''))")
+```
+
+Then build the index:
+
+```bash
+# Catalog only (no project provider)
+agent-method-registry index \
+  --catalog "$PLUGIN_ROOT/agent-methods/catalog.yaml" \
+  --out .agent-method-registry/effective-index.json
+```
+
+When no project provider file exists, the registry does **not** create an empty overlay file.
+It builds the effective index from the catalog alone. The `--project` flag is only needed when
+the project defines overrides or disables:
+
+```bash
+# Catalog + project overlay
+agent-method-registry index \
+  --catalog "$PLUGIN_ROOT/agent-methods/catalog.yaml" \
+  --project agent-methods/project.yaml \
+  --out .agent-method-registry/effective-index.json
+```
+
+### Project-Level Override
+
+When the target project has its own complete entry definition, place a
+`agent-methods/project.yaml` in the project root. Example -- override the default
+`prd-feature` routing entry to use a project-local skill:
+
+```yaml
+schemaVersion: 1
+overrides:
+  artifact.prd-feature.default:
+    provider:
+      scope: project
+      skill: prd-feature
+```
+
+The project overlay can also add new entries (via `entries`) and disable plugin entries
+(via `disabled`).
+
+### Effective Index Is a Generated Cache
+
+`.agent-method-registry/effective-index.json` is a **generated build artifact**, not a source
+of truth. It is derived from `catalog.yaml` plus the optional `project.yaml` overlay.
+
+- Do not edit it manually.
+- Rebuild it when the catalog or project overlay changes.
+- Do not commit it to version control unless the project explicitly opts in.
+
+### Compact Query for Planners
+
+Use `--format compact` to get a minimal view for planning. Compact queries return only
+`ref`, `kind`, and `summary` -- enough for the planner to select an entry without loading
+full metadata. After selection, use `resolve` to get the provider path:
+
+```bash
+# Compact query: planner sees ref/kind/summary only
+agent-method-registry query \
+  --index .agent-method-registry/effective-index.json \
+  --domain artifact --artifact-type prd-feature \
+  --kind workflow --format compact
+
+# Resolve after selection: get full provider path
+agent-method-registry resolve \
+  --index .agent-method-registry/effective-index.json \
+  --ref artifact.prd-feature.author \
+  --host claude-code \
+  --plugin-root "$PLUGIN_ROOT/adapters/claude/skills"
+```
+
+### Closed-Loop Workflow Entries
+
+All 8 entries have `kind: workflow`. A `workflow` entry is a **closed-loop leaf** -- it
+self-completes its own inspect, compose, review, validate, and repair cycle. The outer
+planner should not schedule separate review or repair steps for a workflow entry.
+
+### Registry Unavailable: Fallback Behavior
+
+When `agent-method-registry` is not installed or the effective index does not exist,
+`where-am-i` follows this fallback:
+
+1. Outputs a `"registry unavailable"` diagnostic.
+2. Falls back to existing project configuration and plugin routing logic (config-driven
+   artifact types, skill routing decision tree).
+3. Does **not** attempt to merge catalogs manually or create an empty effective index.
+
 ## Extended Artifact Types And Profile Expansion
 
 The bootstrap skill selects a minimum viable profile for your project shape. As the project matures,
@@ -507,6 +633,50 @@ The rules for expanding your profile:
 The bootstrap skill's Output Contract requires it to list deferred types with their enablement
 conditions, so you will have this information from the initial setup.
 
+### Custom Type Runtime
+
+Once a type is registered in `artifact-graph.config.yaml`, the runtime provides:
+
+- **Scanning and parsing**: Markdown frontmatter is parsed automatically. Specialized parsers for
+  core types (`feature`, `scenario`, `decision`, `design`, `test`, `e2e_test`) continue to work;
+  all other registered types use the generic frontmatter parser.
+- **ID validation**: `idPatterns` at the config top level define valid IDs per type. Missing or
+  invalid IDs produce diagnostics.
+- **Relations**: `related_<type>` frontmatter fields create graph edges. The suffix must match an
+  exact type name or declared alias. Source/test annotations use `@<type> <ID>` for implementation
+  and verification edges.
+- **Target selector**: `--target <type>:<id>` works with `context`, `packet`, `packet-prompt`, and
+  `audit` commands for any type that has `target: true` in config. The ID may contain colons;
+  only the first colon separates type from ID.
+- **Extra fields**: declare `extraFields` in config to index specific frontmatter fields (string,
+  number, boolean, enum). Undeclared fields remain in raw frontmatter but are not indexed.
+- **Validate and version-lock**: custom types participate in ID pattern checks, dangling relation
+  warnings, orphan artifact warnings, and version-lock freshness checks.
+
+Example config enabling a custom type with target capability and extra fields:
+
+```yaml
+types:
+  api_contract:
+    paths: ["artifacts/contracts/api/**/*.md"]
+    target: true
+    extraFields:
+      - name: version
+        type: string
+      - name: method
+        type: enum
+        enum: [GET, POST, PUT, DELETE, PATCH]
+idPatterns:
+  api_contract: "^API-[0-9]+$"
+```
+
+Usage:
+
+```bash
+artifact-graph context --root . --target api_contract:API-001 --mode implementation
+artifact-graph packet --root . --target api_contract:API-001
+```
+
 ## Maintaining The Artifact Chain
 
 After bootstrap, the artifact chain requires ongoing maintenance:
@@ -514,7 +684,9 @@ After bootstrap, the artifact chain requires ongoing maintenance:
 ### Routine Workflow
 
 - **Before implementing a feature/scenario/decision/design**: get context with
-  `artifact-graph context --root <project-root> --<type> <ID> --mode implementation`.
+  `artifact-graph context --root <project-root> --target <type>:<ID> --mode implementation`.
+  Legacy flags (`--feature`, `--scenario`, `--decision`, `--design`, `--e2e-test`) remain
+  compatible for core types.
 - **After changing artifact files, traceability annotations, or source files**:
   `artifact-graph version-lock refresh --changed-only --worktree --format markdown`.
 - **Before claiming completion**:
@@ -522,6 +694,31 @@ After bootstrap, the artifact chain requires ongoing maintenance:
   artifact-graph validate --root <project-root> --warning-only
   artifact-graph version-lock audit --root <project-root> --strict-missing-lock
   ```
+
+### Using Professional Skill Families
+
+The plugin provides two artifact-bound skill families for specialized authoring:
+
+- **`prd-feature`** — for PRD feature artifacts (requirements documents, feature specifications).
+- **`scenario-script`** — for scenario script artifacts (behavior scripts, acceptance scenarios).
+
+Each family has four public entry points:
+
+| Entry | Purpose |
+|-------|---------|
+| default (e.g., `prd-feature`) | Route based on user intent to author, review, or repair |
+| `author` | Write a new artifact from requirements or outline |
+| `review` | Audit an existing artifact for quality and completeness |
+| `repair` | Fix issues identified by review |
+
+**Closed-loop behavior**: once a flow is entered, it self-completes. The author flow includes its own
+review step; if findings are found, it enters a repair → re-review cycle until a terminal verdict
+(`pass`, `warning`, `BLOCKED`, or `NEEDS_INPUT`). The outer planner does not need to split
+review/repair into separate steps.
+
+**Project priority**: if the target project defines its own `prd-feature` or `scenario-script`
+provider, the project-level provider takes priority over the plugin's default. The plugin defaults
+serve as a fallback.
 
 ### Adding New Artifact Types
 

@@ -1,6 +1,6 @@
 {
   "name": "artifact-chain-assistant",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Codex and Claude Code assistant plugin for artifact-chain projects",
   "license": "Apache-2.0",
   "type": "module",
@@ -17,11 +17,12 @@
   },
   "scripts": {
     "build": "node scripts/sync-skills.mjs && node scripts/build-adapters.mjs && node scripts/build-runtime-bundles.mjs",
-    "test": "pnpm test:node && pnpm sync:skills:check && pnpm build:adapters:check && pnpm build:runtime:check && pnpm check:templates",
+    "test": "pnpm test:node && pnpm sync:skills:check && pnpm build:adapters:check && pnpm build:runtime:check && pnpm check:templates && pnpm check:method-registry",
     "test:node": "node --test test/*.test.mjs",
     "test:ci": "pnpm test",
     "check:templates": "node scripts/check-templates.mjs",
-    "typecheck": "node --check runtime/claude/version-lock-stop.mjs && node --check scripts/build-adapters.mjs && node --check scripts/build-runtime-bundles.mjs && node --check scripts/check-templates.mjs && node --check scripts/doctor.mjs && node --check scripts/install-git-hooks.mjs && node --check scripts/sync-skills.mjs",
+    "check:method-registry": "node scripts/check-method-registry.mjs",
+    "typecheck": "node --check runtime/claude/version-lock-stop.mjs && node --check scripts/build-adapters.mjs && node --check scripts/build-runtime-bundles.mjs && node --check scripts/check-templates.mjs && node --check scripts/doctor.mjs && node --check scripts/install-git-hooks.mjs && node --check scripts/sync-skills.mjs && node --check scripts/check-method-registry.mjs",
     "sync:skills": "node scripts/sync-skills.mjs",
     "sync:skills:check": "node scripts/sync-skills.mjs --check",
     "build:adapters": "node scripts/build-adapters.mjs",
@@ -49,7 +50,8 @@
     "skills-src",
     "templates",
     "scripts",
-    "runtime"
+    "runtime",
+    "agent-methods"
   ],
   "repository": {
     "type": "git",
@@ -58,5 +60,8 @@
   "bugs": {
     "url": "https://github.com/mzdbxqh/artifact-chain-assistant/issues"
   },
-  "homepage": "https://github.com/mzdbxqh/artifact-chain-assistant#readme"
+  "homepage": "https://github.com/mzdbxqh/artifact-chain-assistant#readme",
+  "devDependencies": {
+    "agent-method-registry": "0.1.1"
+  }
 }

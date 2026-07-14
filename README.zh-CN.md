@@ -55,6 +55,173 @@ bootstrap 技能对目标项目进行分类，仅启用具有稳定本地来源�
 `templates/extended/` 为扩展类型提供入门指引。bootstrap 完成后，延迟启用的类型及其
 证据条件会记录在项目的制品目录中，使未来的 profile 扩展成为有据可查的决策，而非临时添加。
 
+### 专业技能族
+
+两个与制品强绑定的技能族提供专业化的编写、审阅和修复工作流：
+
+- **`prd-feature`** — 编写、审阅或修复 PRD 功能特性制品。每个子流程自行完成闭环：
+  一旦进入，由 inspect → compose/review → validate → repair 循环自行终结，不需要
+  上层规划器拆出独立的 review/repair 步骤。
+- **`scenario-script`** — 编写、审阅或修复场景剧本制品。闭环契约与 `prd-feature` 相同。
+
+每个技能族暴露四个公开入口：默认路由入口、`author`、`review` 和 `repair`。
+内部工序资源（`inspect`、`compose`、`validate`）不注册为 catalog method。
+
+目标项目配置和项目级 provider 优先。插件的默认技能族在项目无覆盖 provider 时作为
+fallback 生效。
+
+### Agent Method Registry（代理方法注册表）
+
+插件内置了确定性的 agent-method-registry 集成，用于目录解析、提供者验证和 CLI 诊断。
+
+**默认目录**：`<plugin-root>/agent-methods/catalog.yaml` 注册了 **8 个 workflow 入口**，
+覆盖 `prd-feature` 和 `scenario-script` 两个技能族：
+
+| Ref | 技能族 | 入口 |
+|-----|--------|------|
+| `artifact.prd-feature.default` | prd-feature | 默认路由入口 |
+| `artifact.prd-feature.author` | prd-feature | 编写 |
+| `artifact.prd-feature.review` | prd-feature | 审阅 |
+| `artifact.prd-feature.repair` | prd-feature | 修复 |
+| `artifact.scenario-script.default` | scenario-script | 默认路由入口 |
+| `artifact.scenario-script.author` | scenario-script | 编写 |
+| `artifact.scenario-script.review` | scenario-script | 审阅 |
+| `artifact.scenario-script.repair` | scenario-script | 修复 |
+
+#### 单独安装
+
+如果只需要注册表能力，可以单独安装 `agent-method-registry@0.1.1`：
+
+```bash
+npm install agent-method-registry@0.1.1
+```
+
+安装后 CLI 可用为 `agent-method-registry`：
+
+```bash
+# 首先定位插件根目录
+PLUGIN_ROOT=$(node -e "console.log(require.resolve('artifact-chain-assistant/package.json').replace('/package.json',''))")
+
+# 验证目录
+npx agent-method-registry validate --catalog "$PLUGIN_ROOT/agent-methods/catalog.yaml"
+
+# 构建有效索引（无项目覆盖层）
+npx agent-method-registry index \
+  --catalog "$PLUGIN_ROOT/agent-methods/catalog.yaml" \
+  --out .agent-method-registry/effective-index.json
+
+# 查询索引
+npx agent-method-registry query --index .agent-method-registry/effective-index.json
+```
+
+#### 构建有效索引
+
+有效索引由目录加上可选的项目覆盖层构建：
+
+```bash
+# 仅目录（无项目 provider）
+agent-method-registry index \
+  --catalog "$PLUGIN_ROOT/agent-methods/catalog.yaml" \
+  --out .agent-method-registry/effective-index.json
+```
+
+当项目没有 provider 文件时，注册表**不会**创建空的覆盖层文件，仅从目录构建有效索引。
+只有项目定义了覆盖或禁用时才需要 `--project` 参数：
+
+```bash
+# 目录 + 项目覆盖层
+agent-method-registry index \
+  --catalog "$PLUGIN_ROOT/agent-methods/catalog.yaml" \
+  --project agent-methods/project.yaml \
+  --out .agent-method-registry/effective-index.json
+```
+
+#### 项目级覆盖
+
+当目标项目有完整的入口定义时，在项目根目录放置 `agent-methods/project.yaml`。
+示例 -- 将默认的 `prd-feature` 路由入口覆盖为项目本地技能：
+
+```yaml
+schemaVersion: 1
+overrides:
+  artifact.prd-feature.default:
+    provider:
+      scope: project
+      skill: prd-feature
+```
+
+项目覆盖层还可以通过 `entries` 添加新入口，通过 `disabled` 禁用插件入口。
+
+#### 有效索引是生成缓存
+
+`.agent-method-registry/effective-index.json` 是**生成的构建产物**，不是事实来源。
+它由 `catalog.yaml` 加上可选的 `project.yaml` 覆盖层派生而来。
+
+- 不要手动编辑。
+- 目录或项目覆盖层变更时需重新构建。
+- 除非项目明确选择，否则不要提交到版本控制。
+
+#### 面向规划器的紧凑查询
+
+使用 `--format compact` 获取最小视图用于规划。紧凑查询只返回 `ref`、`kind` 和
+`summary` -- 足够规划器选择入口而不加载完整元数据。选定后再用 `resolve` 获取提供者路径：
+
+```bash
+# 紧凑查询：规划器只看到 ref/kind/summary
+agent-method-registry query \
+  --index .agent-method-registry/effective-index.json \
+  --domain artifact --artifact-type prd-feature \
+  --kind workflow --format compact
+
+# 选定后解析：获取完整提供者路径
+agent-method-registry resolve \
+  --index .agent-method-registry/effective-index.json \
+  --ref artifact.prd-feature.author \
+  --host claude-code \
+  --plugin-root <plugin-root>/adapters/claude/skills
+```
+
+#### 闭环 workflow 入口
+
+所有 8 个入口的 `kind` 均为 `workflow`。`workflow` 入口是**闭环叶子** -- 它自行完成
+inspect、compose、review、validate 和 repair 循环。外层规划器不应为 workflow 入口
+另行安排独立的 review 或 repair 步骤。
+
+#### Registry 不可用时的 fallback 行为
+
+当 `agent-method-registry` 未安装或有效索引不存在时，`where-am-i` 按以下流程回退：
+
+1. 输出 `"registry unavailable"` 诊断信息。
+2. 回退到现有项目配置与插件路由逻辑（基于配置的制品类型、技能路由决策树）。
+3. **不会**尝试手动合并目录或创建空的有效索引。
+
+#### 定位插件根目录
+
+从已安装的包中查找插件根目录：
+
+```bash
+# npm / pnpm：解析包目录
+PLUGIN_ROOT=$(node -e "console.log(require.resolve('artifact-chain-assistant/package.json').replace('/package.json',''))")
+```
+
+然后用于 resolve 命令：
+
+```bash
+# Codex
+agent-method-registry resolve \
+  --index .agent-method-registry/effective-index.json \
+  --ref artifact.prd-feature.author \
+  --host codex \
+  --plugin-root "$PLUGIN_ROOT/adapters/codex/skills"
+
+# Claude Code
+agent-method-registry resolve \
+  --index .agent-method-registry/effective-index.json \
+  --ref artifact.prd-feature.author \
+  --host claude-code \
+  --plugin-root "$PLUGIN_ROOT/adapters/claude/skills"
+```
+
 ### 其他资产
 
 - **Codex** 仅暴露 `.codex-plugin/plugin.json` 和 `skills/**`，不暴露插件命令、hooks 或 settings。

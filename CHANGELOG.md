@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## 0.3.0
+
+### Added
+
+- **Agent method registry integration**: deterministic catalog resolution, provider verification, and CLI diagnostics via `agent-method-registry@0.1.1`. Ships with default catalog of 8 workflow entries across `prd-feature` and `scenario-script` skill families.
+- **Professional skill families**: `prd-feature` and `scenario-script` each provide default entry, author, review, and repair closed-loop flows. Internal inspect/compose/validate workflows are not exposed as catalog methods.
+- **Custom type runtime support**: `artifact-graph` now provides config-driven scanning, relation building, context/packet, validate, and version-lock for any registered Markdown type via `artifact-graph.config.yaml`.
+- **Dynamic `--target` selector**: unified `--target <type>:<id>` for context, packet, packet-prompt, and audit commands; legacy `--feature`, `--scenario`, `--decision`, `--design`, `--e2e-test` flags remain compatible.
+- **Generic Markdown frontmatter parser**: registered custom types (e.g., `api_contract`, `data_contract`, `db_migration`) are parsed from frontmatter with config-declared `extraFields` (string, number, boolean, enum).
+
+### Changed
+
+- Scenario-PRD validation (`--include scenario-prd-links`) is now opt-in instead of unconditionally executed.
+- Sync skills script now recursively copies all `skills-src/**` SKILL.md files instead of only the three original skills.
+
 ## 0.2.0
 
 ### Added

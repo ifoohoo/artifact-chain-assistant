@@ -91,8 +91,8 @@ function render(source, vars) {
   }).trimEnd()}\n`;
 }
 
-function relativeToRoot(path) {
-  return path.slice(root.length + 1);
+function relativeToRoot(filePath) {
+  return filePath.startsWith(root) ? filePath.slice(root.length + 1) : filePath;
 }
 
 export async function discoverSkillSources(root) {

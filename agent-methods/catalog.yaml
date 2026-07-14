@@ -1,0 +1,148 @@
+schemaVersion: 1
+catalog:
+  id: artifact-chain-assistant
+  version: "0.3.0"
+entries:
+  - ref: artifact.prd-feature.default
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: prd-feature
+    kind: workflow
+    summary: "PRD feature 默认路由入口，按意图分派到 author/review/repair"
+    match:
+      domains: [artifact]
+      artifactTypes: [prd-feature]
+      intents: [route]
+    accepts:
+      - "用户需求描述或 PRD 制品变更请求"
+    produces:
+      - "PRD feature 制品草稿、审阅报告或修复补丁"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.prd-feature.author
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: prd-feature/author
+    kind: workflow
+    summary: "PRD feature 制作入口，从需求描述生成 PRD feature 草稿"
+    match:
+      domains: [artifact]
+      artifactTypes: [prd-feature]
+      intents: [author]
+    accepts:
+      - "用户需求描述"
+    produces:
+      - "PRD feature 制品草稿"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.prd-feature.review
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: prd-feature/review
+    kind: workflow
+    summary: "PRD feature 审阅入口，检查制品完整性、追溯性和一致性"
+    match:
+      domains: [artifact]
+      artifactTypes: [prd-feature]
+      intents: [review]
+    accepts:
+      - "PRD feature 制品"
+    produces:
+      - "审阅报告"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.prd-feature.repair
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: prd-feature/repair
+    kind: workflow
+    summary: "PRD feature 修复入口，根据审阅报告修复制品问题"
+    match:
+      domains: [artifact]
+      artifactTypes: [prd-feature]
+      intents: [repair]
+    accepts:
+      - "审阅报告和待修复的 PRD feature 制品"
+    produces:
+      - "修复后的 PRD feature 制品"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.scenario-script.default
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: scenario-script
+    kind: workflow
+    summary: "场景剧本默认路由入口，按意图分派到 author/review/repair"
+    match:
+      domains: [artifact]
+      artifactTypes: [scenario-script]
+      intents: [route]
+    accepts:
+      - "需求描述或场景剧本变更请求"
+    produces:
+      - "场景剧本草稿、审阅报告或修复补丁"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.scenario-script.author
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: scenario-script/author
+    kind: workflow
+    summary: "场景剧作入口，从需求描述生成场景剧本草稿"
+    match:
+      domains: [artifact]
+      artifactTypes: [scenario-script]
+      intents: [author]
+    accepts:
+      - "需求描述"
+    produces:
+      - "场景剧本草稿"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.scenario-script.review
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: scenario-script/review
+    kind: workflow
+    summary: "场景剧本审阅入口，检查剧本完整性、场景覆盖和追溯关系"
+    match:
+      domains: [artifact]
+      artifactTypes: [scenario-script]
+      intents: [review]
+    accepts:
+      - "场景剧本"
+    produces:
+      - "审阅报告"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.scenario-script.repair
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: scenario-script/repair
+    kind: workflow
+    summary: "场景剧本修复入口，根据审阅报告修复剧本问题"
+    match:
+      domains: [artifact]
+      artifactTypes: [scenario-script]
+      intents: [repair]
+    accepts:
+      - "审阅报告和待修复的场景剧本"
+    produces:
+      - "修复后的场景剧本"
+    sideEffects:
+      - write-project-artifacts

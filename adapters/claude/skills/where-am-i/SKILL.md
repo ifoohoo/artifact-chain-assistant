@@ -3,6 +3,8 @@ name: where-am-i
 description: 面向任意 artifact-graph 项目的搜索优先需求分诊技能。用于用户用自然语言提出模糊需求、询问接下来做什么、确认某个功能/规格/设计/契约/测试是否已存在，或从 PRD、场景、API/IPC/数据/报告/UI 契约、原型/样式问题、测试想法、规则纠偏、产品缺口进入开发前，帮助 Claude Code 根据当前项目配置自动检索现有制品并判断应使用哪条 artifact-graph context/packet 命令和后续技能。
 ---
 
+<!-- @feature ACA12 @scenario S-39 -->
+
 # where-am-i
 
 <!-- @scenario S-01 @feature ACA1 -->
@@ -19,6 +21,25 @@ description: 面向任意 artifact-graph 项目的搜索优先需求分诊技能
 2. 读取项目级说明文件，例如 `AGENTS.md`、`CLAUDE.md`、`README.md`、`artifact-graph.config.yaml`、制品链规范、制品类型注册表或等价文件。
 3. 运行或查看 `artifact-graph --help`，确认当前项目支持的命令和 context 目标类型。如果项目使用本地 CLI 路径，按项目说明替换。
 4. 从 `artifact-graph.config.yaml` 或等价配置中提取制品类型、路径、别名、层级和可作为目标的类型。不要把任何单一项目的类型集合当作通用事实。
+
+## Method Registry 消费
+
+<!-- @scenario S-39 @feature ACA12 -->
+
+在完成项目发现后，检查是否有 `agent-method-registry` 可用于专业制品入口解析。
+
+1. **查找 effective index**：检查 `<project>/.agent-method-registry/effective-index.json` 是否存在。
+2. **检查 registry CLI**：检查 `agent-method-registry` 是否在 PATH 或项目的 `node_modules/.bin/` 中可用。
+3. **如果两者都可用**：
+   - 运行 compact query 获取匹配当前制品类型和意图的入口元数据（只返回 `ref`、`kind`、`summary`）。
+   - 只推荐 effective provider，不同时列出插件默认和项目覆盖两份候选。
+   - 如果匹配入口的 `kind: workflow`，将其视为闭环叶子——不建议外围 review/repair 阶段。
+   - 选定入口后才运行 `agent-method-registry resolve` 获取 provider 路径并加载 `SKILL.md`。
+4. **如果不可用**：
+   - 输出 "registry unavailable" 诊断信息。
+   - 回退到现有项目配置与插件路由逻辑（下方的标准流程）。
+   - 不自行合并 catalog 和 overlay，不猜测合并结果。
+   - 不自动创建空 overlay 或空 effective index。
 
 ## 必须执行的流程
 
