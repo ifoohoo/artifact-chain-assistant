@@ -99,18 +99,8 @@ npm install agent-method-registry@0.1.1
 安装后 CLI 可用为 `agent-method-registry`：
 
 ```bash
-# 首先定位插件根目录
-PLUGIN_ROOT=$(node -e "console.log(require.resolve('artifact-chain-assistant/package.json').replace('/package.json',''))")
-
-# 验证目录
+# 通过宿主 CLI 定位已安装的插件根目录（见下方"定位插件根目录"）
 npx agent-method-registry validate --catalog "$PLUGIN_ROOT/agent-methods/catalog.yaml"
-
-# 构建有效索引（无项目覆盖层）
-npx agent-method-registry index \
-  --catalog "$PLUGIN_ROOT/agent-methods/catalog.yaml" \
-  --out .agent-method-registry/effective-index.json
-
-# 查询索引
 npx agent-method-registry query --index .agent-method-registry/effective-index.json
 ```
 
@@ -178,7 +168,7 @@ agent-method-registry resolve \
   --index .agent-method-registry/effective-index.json \
   --ref artifact.prd-feature.author \
   --host claude-code \
-  --plugin-root <plugin-root>/adapters/claude/skills
+  --plugin-root "$PLUGIN_ROOT/skills"
 ```
 
 #### 闭环 workflow 入口
@@ -197,29 +187,51 @@ inspect、compose、review、validate 和 repair 循环。外层规划器不应�
 
 #### 定位插件根目录
 
-从已安装的包中查找插件根目录：
+通过宿主 CLI 查找已安装的插件根目录。**不要**使用 `require.resolve` —— marketplace 安装不会
+将插件放入目标项目的 `node_modules`。
+
+**Codex**：
 
 ```bash
-# npm / pnpm：解析包目录
-PLUGIN_ROOT=$(node -e "console.log(require.resolve('artifact-chain-assistant/package.json').replace('/package.json',''))")
+export CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
+PLUGIN_ROOT=$(codex plugin list --json 2>/dev/null \
+  | node -e "
+    let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+      const data=JSON.parse(d);
+      const p=data.installed.find(x=>x.pluginId==='artifact-chain-assistant@artifact-chain-assistant');
+      if(!p||!p.installed||!p.enabled||!p.marketplaceName||!p.name||!p.version){process.stderr.write('plugin record incomplete\n');process.exit(1);}
+      console.log(require('path').join(process.env.CODEX_HOME,'plugins','cache',p.marketplaceName,p.name,p.version));
+    });
+  ")
+```
+
+**Claude Code**：
+
+```bash
+PLUGIN_ROOT=$(claude plugin list --json 2>/dev/null \
+  | node -e "
+    let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+      const p=JSON.parse(d).find(x=>x.id==='artifact-chain-assistant@artifact-chain-assistant');
+      if(!p||!p.enabled||!p.installPath){process.stderr.write('plugin not found, not enabled, or installPath missing\n');process.exit(1);}
+      console.log(p.installPath);
+    });
+  ")
 ```
 
 然后用于 resolve 命令：
 
 ```bash
-# Codex
 agent-method-registry resolve \
   --index .agent-method-registry/effective-index.json \
   --ref artifact.prd-feature.author \
   --host codex \
-  --plugin-root "$PLUGIN_ROOT/adapters/codex/skills"
+  --plugin-root "$PLUGIN_ROOT/skills"
 
-# Claude Code
 agent-method-registry resolve \
   --index .agent-method-registry/effective-index.json \
   --ref artifact.prd-feature.author \
   --host claude-code \
-  --plugin-root "$PLUGIN_ROOT/adapters/claude/skills"
+  --plugin-root "$PLUGIN_ROOT/skills"
 ```
 
 ### 其他资产
@@ -230,9 +242,13 @@ agent-method-registry resolve \
 - Git hook 模板和安装器不依赖宿主。Git hooks 与 CI 才是 hard gate；各宿主的 skills 和 hooks 仅提供
   assistant guidance。
 
-## 安装
+## 兼容矩阵
 
-当前 npm registry 尚未发布该包，请从公开 GitHub 仓库安装：
+| 插件 | 运行时 | 安装 |
+| --- | --- | --- |
+| `artifact-chain-assistant` 0.3.1 | `artifact-graph` 0.3.1 | `pnpm add -D artifact-graph@0.3.1` |
+
+## 安装
 
 ```bash
 # Codex
@@ -244,18 +260,33 @@ claude plugin marketplace add https://github.com/mzdbxqh/artifact-chain-assistan
 claude plugin install artifact-chain-assistant@artifact-chain-assistant --scope user
 ```
 
-完成 registry 发布后，npm 安装可以成为首选 package 路径。
-
-Codex / Claude Code 插件设置、目标项目准备和引导流程请参阅完整指南：
+完整的安装指南、快速开始、Agent 提示词和团队 clone onboarding 请参阅
 [INSTALL.md](INSTALL.md)。
 
-每个目标项目都保留自己的 `artifact-graph.config.yaml`、`artifacts/**`、
-`artifacts/traceability-version-lock.json`、`AGENTS.md`，以及可选的 `CLAUDE.md`。
+## 快速开始
 
-## 相关项目
+1. 安装插件 0.3.1（见上方）和运行时：`pnpm add -D artifact-graph@0.3.1`。
+2. 运行 `artifact-graph doctor --root . --format json` 验证运行时。
+3. 首次使用，进入 bootstrap 技能。
+4. 日常工作，进入 maintainer 技能。
+5. 团队成员接入，请参阅 [INSTALL.md 中的 Clone Onboarding 段落](INSTALL.md#clone-onboarding-second-developer-setup)。
 
-在使用插件做硬性校验之前，请先在目标项目中安装
-[`artifact-graph`](https://github.com/mzdbxqh/artifact-graph)。
+## Agent 提示词
+
+```text
+请使用 artifact-chain-bootstrap，为当前项目初始化制品链。
+先检查现有配置和制品，不要覆盖已有项目规则，也不要自动执行 bootstrap --force。
+```
+
+```text
+请使用 where-am-i 分析这个需求在当前制品链中的位置。
+先检索已有制品，再推荐应加载的 context/packet 和后续入口技能。
+```
+
+```text
+请使用 artifact-chain-maintainer 检查本次变更影响的制品关系，
+执行 changed-only refresh，并用 strict-missing-lock 审计；如果锁文件变化，先让我审阅。
+```
 
 ## 开源协议
 

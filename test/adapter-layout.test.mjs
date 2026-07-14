@@ -159,6 +159,38 @@ test('builds self-contained host runtime bundles', async () => {
   await runNode(root, 'scripts/build-runtime-bundles.mjs', ['--check']);
 });
 
+test('builds self-contained host runtime bundles with agent-methods catalog', async () => {
+  const root = await tempPlugin('runtime-bundles-catalog');
+  for (const host of ['codex', 'claude']) {
+    await rm(join(root, `adapters/${host}/agent-methods`), { recursive: true, force: true });
+  }
+  await runNode(root, 'scripts/build-runtime-bundles.mjs');
+  for (const host of ['codex', 'claude']) {
+    await access(join(root, `adapters/${host}/agent-methods/catalog.yaml`));
+  }
+  const rootCatalog = await readFile(join(root, 'agent-methods/catalog.yaml'), 'utf8');
+  for (const host of ['codex', 'claude']) {
+    const adapterCatalog = await readFile(join(root, `adapters/${host}/agent-methods/catalog.yaml`), 'utf8');
+    assert.equal(adapterCatalog, rootCatalog, `${host} adapter catalog should match root catalog`);
+  }
+  await runNode(root, 'scripts/build-runtime-bundles.mjs', ['--check']);
+});
+
+test('runtime bundle check detects agent-methods catalog content drift', async () => {
+  const root = await tempPlugin('runtime-bundle-catalog-drift');
+  await runNode(root, 'scripts/build-runtime-bundles.mjs');
+  const catalogPath = join(root, 'adapters/codex/agent-methods/catalog.yaml');
+  await writeFile(catalogPath, 'schemaVersion: 1\ncatalog:\n  id: drifted\n  version: "0.0.0"\nentries: []\n');
+
+  await assert.rejects(
+    runNode(root, 'scripts/build-runtime-bundles.mjs', ['--check']),
+    (error) => {
+      assert.match(error.stderr, /Runtime bundle drift: adapters\/codex\/agent-methods\/catalog\.yaml/);
+      return true;
+    },
+  );
+});
+
 test('runtime bundle check detects managed file and template drift', async () => {
   const root = await tempPlugin('runtime-bundle-drift');
   const catalog = join(root, 'adapters/codex/EXTENDED-ARTIFACT-CATALOG.md');

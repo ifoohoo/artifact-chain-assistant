@@ -13,15 +13,31 @@ instructions.
 ## Prerequisites
 
 - Node.js `>=22.0.0`.
-- An `artifact-graph` CLI available to the target project.
+- `artifact-graph` 0.3.1 installed in the target project.
 
-Install the CLI from its public GitHub repository while the npm registry package is unavailable:
+### Runtime Compatibility Matrix
+
+| Plugin | Verified Runtime | Install |
+| --- | --- | --- |
+| `artifact-chain-assistant` 0.3.1 | `artifact-graph` 0.3.1 | `pnpm add -D artifact-graph@0.3.1` |
+
+### Install The Runtime
+
+The default installation path uses the npm registry with a precise version:
 
 ```bash
-pnpm add -D github:mzdbxqh/artifact-graph
+pnpm add -D artifact-graph@0.3.1
 ```
 
-After registry publication, `pnpm add -D artifact-graph` can become the preferred route.
+If the npm registry is unavailable, use the explicit GitHub fallback pinned to the verified tag:
+
+```bash
+pnpm add -D github:mzdbxqh/artifact-graph#artifact-graph-v0.3.1
+```
+
+> **Never** install with an unlocked range (`artifact-graph`, `artifact-graph@latest`,
+> `artifact-graph@^0.3.1`) or an unpinned GitHub URL (`github:mzdbxqh/artifact-graph`).
+> Unlocked installs produce non-reproducible dependency trees and break version-lock audit.
 
 With pnpm 10+, projects that install `artifact-graph` must allow the native `better-sqlite3`
 dependency to build. Add or update `pnpm-workspace.yaml`:
@@ -31,10 +47,15 @@ allowBuilds:
   better-sqlite3: true
 ```
 
-If the package is consumed from a local checkout, use the equivalent package-manager command or a
-local development link. The Claude command wrappers resolve the CLI in this order:
+The plugin's `doctor` command validates the installed runtime version before running any
+diagnostic. If it detects a version mismatch or missing CLI, it reports the exact remediation
+command (`pnpm add -D artifact-graph@0.3.1`) and exits non-zero.
 
-1. `./node_modules/.bin/artifact-graph`;
+### CLI Resolution Order
+
+The Claude command wrappers and plugin doctor resolve the CLI in this order:
+
+1. `./node_modules/.bin/artifact-graph` (project-local, preferred);
 2. `artifact-graph` from `PATH`;
 3. explicit legacy override from `ARTIFACT_GRAPH_LEGACY_CLI`, only when you intentionally point at
    an older checkout.
@@ -114,7 +135,7 @@ The plugin should not move these files into the plugin repository.
 
 For a first-time setup, the end-to-end sequence is:
 
-1. **Install the CLI** — `pnpm add -D github:mzdbxqh/artifact-graph` (see Prerequisites above).
+1. **Install the CLI** — `pnpm add -D artifact-graph@0.3.1` (see Prerequisites above).
 2. **Install the plugin** — follow the Codex or Claude Code section above.
 3. **Run bootstrap** — ask the assistant to use the `artifact-chain-bootstrap` skill (see prompt
    below). The skill will:
@@ -497,11 +518,41 @@ The CLI is available as `agent-method-registry` after installation.
 ### Building the Effective Index
 
 The effective index is built from the catalog plus an optional project overlay. First, locate
-the plugin root:
+the installed plugin root from the host CLI. Do **not** use `require.resolve` — marketplace
+installations do not place the plugin into the target project's `node_modules`.
+
+**Codex** — use `codex plugin list --json` and the `CODEX_HOME` cache layout:
 
 ```bash
-PLUGIN_ROOT=$(node -e "console.log(require.resolve('artifact-chain-assistant/package.json').replace('/package.json',''))")
+export CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
+PLUGIN_ROOT=$(codex plugin list --json 2>/dev/null \
+  | node -e "
+    let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+      const data=JSON.parse(d);
+      const p=data.installed.find(x=>x.pluginId==='artifact-chain-assistant@artifact-chain-assistant');
+      if(!p||!p.installed||!p.enabled||!p.marketplaceName||!p.name||!p.version){process.stderr.write('artifact-chain-assistant record incomplete\n');process.exit(1);}
+      console.log(require('path').join(process.env.CODEX_HOME,'plugins','cache',p.marketplaceName,p.name,p.version));
+    });
+  ")
+[ -f "$PLUGIN_ROOT/agent-methods/catalog.yaml" ] || { echo "catalog not found at $PLUGIN_ROOT"; exit 1; }
 ```
+
+**Claude Code** — use `claude plugin list --json` and `installPath` directly:
+
+```bash
+PLUGIN_ROOT=$(claude plugin list --json 2>/dev/null \
+  | node -e "
+    let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+      const p=JSON.parse(d).find(x=>x.id==='artifact-chain-assistant@artifact-chain-assistant');
+      if(!p||!p.enabled||!p.installPath){process.stderr.write('artifact-chain-assistant not found, not enabled, or installPath missing\n');process.exit(1);}
+      console.log(p.installPath);
+    });
+  ")
+[ -f "$PLUGIN_ROOT/agent-methods/catalog.yaml" ] || { echo "catalog not found at $PLUGIN_ROOT"; exit 1; }
+```
+
+> For monorepo development only, the source checkout plugin root is `plugins/artifact-chain-assistant`.
+> Marketplace users must use the host CLI discovery above.
 
 Then build the index:
 
@@ -569,7 +620,7 @@ agent-method-registry resolve \
   --index .agent-method-registry/effective-index.json \
   --ref artifact.prd-feature.author \
   --host claude-code \
-  --plugin-root "$PLUGIN_ROOT/adapters/claude/skills"
+  --plugin-root "$PLUGIN_ROOT/skills"
 ```
 
 ### Closed-Loop Workflow Entries
@@ -735,6 +786,102 @@ When the project grows a new category of artifacts (e.g., you add API contracts)
 - Do not run `artifact-graph version-lock bootstrap --force` unless you explicitly accept the
   current tree as the new traceability baseline.
 - If the lock is stale, prefer `version-lock refresh --all` over `bootstrap --force`.
+
+## Clone Onboarding: Second Developer Setup
+
+When a teammate clones an already-initialized project, the goal is to restore the exact toolchain
+state without rebuilding the traceability baseline.
+
+### State Ownership
+
+| Git-tracked (authoritative) | Local-only (derived, per-machine) |
+| --- | --- |
+| `artifacts/**` | `node_modules/` |
+| `artifact-graph.config.yaml` | Codex/Claude Code plugin installation & host caches |
+| `artifacts/traceability-version-lock.json` | `.artifact-graph/index.json`, `.artifact-graph/graph.sqlite` |
+| `AGENTS.md`, optional `CLAUDE.md` | `.agent-method-registry/effective-index.json` |
+| Project-level skills, templates, workflow rules | `.git/hooks/*` |
+| `package.json`, package manager lockfile | Other machine-specific caches and CLI resolution state |
+| CI and hook installation strategy | Optional Git hooks actual installation result |
+
+The target project's `.gitignore` must ignore `.artifact-graph/`. If the project uses agent method
+registry effective-index cache, also ignore `.agent-method-registry/`. Both directories are derived
+state and must never be committed as authoritative project state. Bootstrap patches `.gitignore`
+with append-only behavior; it does not overwrite local rules.
+
+### Recovery Steps
+
+```bash
+# 1. Install dependencies from lockfile (gets artifact-graph@0.3.1)
+pnpm install --frozen-lockfile
+
+# 2. Install plugin per your host (Codex / Claude Code)
+#    Each machine must install the plugin separately if the host
+#    does not auto-restore from project declarations.
+```
+
+**Codex** — discover `PLUGIN_ROOT` from the installed plugin cache:
+
+```bash
+export CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
+PLUGIN_ROOT=$(codex plugin list --json 2>/dev/null \
+  | node -e "
+    let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+      const data=JSON.parse(d);
+      const p=data.installed.find(x=>x.pluginId==='artifact-chain-assistant@artifact-chain-assistant');
+      if(!p||!p.installed||!p.enabled||!p.marketplaceName||!p.name||!p.version){process.stderr.write('artifact-chain-assistant record incomplete\n');process.exit(1);}
+      console.log(require('path').join(process.env.CODEX_HOME,'plugins','cache',p.marketplaceName,p.name,p.version));
+    });
+  ")
+[ -f "$PLUGIN_ROOT/scripts/doctor.mjs" ] || { echo "doctor not found at $PLUGIN_ROOT"; exit 1; }
+
+# 3. Run plugin compatibility pre-check (forwards to artifact-graph doctor)
+node "$PLUGIN_ROOT/scripts/doctor.mjs" --root . --format json
+```
+
+**Claude Code** — discover `PLUGIN_ROOT` from the installed plugin cache:
+
+```bash
+PLUGIN_ROOT=$(claude plugin list --json 2>/dev/null \
+  | node -e "
+    let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+      const p=JSON.parse(d).find(x=>x.id==='artifact-chain-assistant@artifact-chain-assistant');
+      if(!p||!p.enabled||!p.installPath){process.stderr.write('artifact-chain-assistant not found, not enabled, or installPath missing\n');process.exit(1);}
+      console.log(p.installPath);
+    });
+  ")
+[ -f "$PLUGIN_ROOT/scripts/doctor.mjs" ] || { echo "doctor not found at $PLUGIN_ROOT"; exit 1; }
+
+# 3. Run plugin compatibility pre-check (forwards to artifact-graph doctor)
+node "$PLUGIN_ROOT/scripts/doctor.mjs" --root . --format json
+```
+
+After the host-specific plugin doctor above, run the remaining steps from the project root:
+
+```bash
+# 4. Validate artifact chain integrity
+pnpm exec artifact-graph validate --root . --warning-only
+
+# 5. Strict version-lock audit (proves lock matches committed artifacts)
+pnpm exec artifact-graph version-lock audit --root . --strict-missing-lock
+
+# 6. Rebuild local index cache (not committed)
+pnpm exec artifact-graph scan --root .
+
+# 7. Reinstall Git hooks per project policy
+pnpm exec artifact-graph hooks install-git --hook all
+```
+
+> **Do not** run `artifact-graph version-lock bootstrap` after cloning. The project already has
+> a committed version lock. The strict audit proves local artifacts match the committed lock;
+> the local SQLite database does not participate in consistency decisions.
+
+### Enterprise Mirror
+
+If the corporate environment cannot access the public npm registry or GitHub, mirror both
+`artifact-graph@0.3.1` and the plugin marketplace repository on an internal registry. The mirror
+does not change the state ownership model: Git-tracked files remain authoritative, local caches
+remain derived.
 
 ## Upgrading The Plugin
 

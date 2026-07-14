@@ -11,8 +11,10 @@ const sharedFiles = [
   'EXTENDED-ARTIFACT-CATALOG.md',
   'EXTENDED-ARTIFACT-CATALOG.zh-CN.md',
   'templates/README.md',
+  'compatibility.json',
+  'scripts/doctor.mjs',
 ];
-const sharedDirectories = ['templates/core', 'templates/extended'];
+const sharedDirectories = ['templates/core', 'templates/extended', 'scripts/lib', 'agent-methods'];
 
 let drift = false;
 

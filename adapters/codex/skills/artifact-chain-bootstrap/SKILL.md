@@ -25,8 +25,12 @@ initialization, migration, or repair of project setup, not for routine feature w
 1. Find the project root with `git rev-parse --show-toplevel` or the user's explicit path.
 2. Read `../../INSTALL.md` relative to this `SKILL.md`.
 3. Inspect existing `AGENTS.md`, `CLAUDE.md`, `README.md`, `artifact-graph.config.yaml`, `artifacts/**`, `src/**`, `test/**`, and package/workspace files.
-4. Run `artifact-graph --help` and `artifact-graph doctor --root <root> --format json` if the CLI is available.
-5. Classify the project shape before writing config. For extended type decisions, read
+4. Run compatibility pre-check: `node <plugin-root>/scripts/doctor.mjs --root <project-root> --format json`。
+   - Locate `compatibility.json` and `scripts/doctor.mjs` relative to this `SKILL.md` (`../../compatibility.json`, `../../scripts/doctor.mjs`).
+   - Do not hardcode machine-local absolute paths; always resolve from the skill's plugin root.
+   - If doctor reports `cli_not_found` or `version_mismatch`, fix the dependency before proceeding.
+5. Run `artifact-graph --help` and `artifact-graph doctor --root <root> --format json` if the CLI is available.
+6. Classify the project shape before writing config. For extended type decisions, read
    `../../EXTENDED-ARTIFACT-CATALOG.md` and only copy templates from `../../templates/extended/**`.
 
 ## Project Shape And Trimming Rules

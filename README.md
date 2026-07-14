@@ -106,8 +106,7 @@ npm install agent-method-registry@0.1.1
 The CLI is available as `agent-method-registry` after installation:
 
 ```bash
-PLUGIN_ROOT=$(node -e "console.log(require.resolve('artifact-chain-assistant/package.json').replace('/package.json',''))")
-
+# Locate the installed plugin root via your host CLI (see "Locating the Plugin Root" below)
 npx agent-method-registry validate --catalog "$PLUGIN_ROOT/agent-methods/catalog.yaml"
 npx agent-method-registry query --index .agent-method-registry/effective-index.json
 ```
@@ -131,7 +130,7 @@ the project defines overrides or disables:
 # Catalog + project overlay
 agent-method-registry index \
   --catalog "$PLUGIN_ROOT/agent-methods/catalog.yaml" \
-  --project "$PLUGIN_ROOT/agent-methods/project.yaml" \
+  --project agent-methods/project.yaml \
   --out .agent-method-registry/effective-index.json
 ```
 
@@ -180,7 +179,7 @@ agent-method-registry resolve \
   --index .agent-method-registry/effective-index.json \
   --ref artifact.prd-feature.author \
   --host claude-code \
-  --plugin-root <plugin-root>/adapters/claude/skills
+  --plugin-root "$PLUGIN_ROOT/skills"
 ```
 
 #### Closed-Loop Workflow Entries
@@ -201,29 +200,51 @@ When `agent-method-registry` is not installed or the effective index does not ex
 
 #### Locating the Plugin Root
 
-To find the plugin root from an installed package:
+To find the installed plugin root, use your host CLI. Do **not** use `require.resolve` —
+marketplace installations do not place the plugin into the target project's `node_modules`.
+
+**Codex**:
 
 ```bash
-# npm / pnpm: resolve the package directory
-PLUGIN_ROOT=$(node -e "console.log(require.resolve('artifact-chain-assistant/package.json').replace('/package.json',''))")
+export CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
+PLUGIN_ROOT=$(codex plugin list --json 2>/dev/null \
+  | node -e "
+    let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+      const data=JSON.parse(d);
+      const p=data.installed.find(x=>x.pluginId==='artifact-chain-assistant@artifact-chain-assistant');
+      if(!p||!p.installed||!p.enabled||!p.marketplaceName||!p.name||!p.version){process.stderr.write('plugin record incomplete\n');process.exit(1);}
+      console.log(require('path').join(process.env.CODEX_HOME,'plugins','cache',p.marketplaceName,p.name,p.version));
+    });
+  ")
+```
+
+**Claude Code**:
+
+```bash
+PLUGIN_ROOT=$(claude plugin list --json 2>/dev/null \
+  | node -e "
+    let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+      const p=JSON.parse(d).find(x=>x.id==='artifact-chain-assistant@artifact-chain-assistant');
+      if(!p||!p.enabled||!p.installPath){process.stderr.write('plugin not found, not enabled, or installPath missing\n');process.exit(1);}
+      console.log(p.installPath);
+    });
+  ")
 ```
 
 Then use it in resolve commands:
 
 ```bash
-# Codex
 agent-method-registry resolve \
   --index .agent-method-registry/effective-index.json \
   --ref artifact.prd-feature.author \
   --host codex \
-  --plugin-root "$PLUGIN_ROOT/adapters/codex/skills"
+  --plugin-root "$PLUGIN_ROOT/skills"
 
-# Claude Code
 agent-method-registry resolve \
   --index .agent-method-registry/effective-index.json \
   --ref artifact.prd-feature.author \
   --host claude-code \
-  --plugin-root "$PLUGIN_ROOT/adapters/claude/skills"
+  --plugin-root "$PLUGIN_ROOT/skills"
 ```
 
 ### Other Assets
@@ -235,9 +256,13 @@ agent-method-registry resolve \
 - Git hook templates and installers are host-independent. Git hooks and CI are the hard gates;
   host-specific skills and hooks only provide assistant guidance.
 
-## Install
+## Compatibility
 
-The npm registry package is not published yet. Install from the public GitHub repository today:
+| Plugin | Runtime | Install |
+| --- | --- | --- |
+| `artifact-chain-assistant` 0.3.1 | `artifact-graph` 0.3.1 | `pnpm add -D artifact-graph@0.3.1` |
+
+## Install
 
 ```bash
 # Codex
@@ -249,18 +274,33 @@ claude plugin marketplace add https://github.com/mzdbxqh/artifact-chain-assistan
 claude plugin install artifact-chain-assistant@artifact-chain-assistant --scope user
 ```
 
-After registry publication, npm installation can become the preferred package route.
+For the full installation guide, quick start, Agent prompts, and clone onboarding, see
+[INSTALL.md](INSTALL.md).
 
-For Codex/Claude Code plugin setup, target project preparation, and bootstrap flow, read the full
-guide: [INSTALL.md](INSTALL.md).
+## Quick Start
 
-Each target project keeps its own `artifact-graph.config.yaml`, `artifacts/**`,
-`artifacts/traceability-version-lock.json`, `AGENTS.md`, and optional `CLAUDE.md`.
+1. Install plugin 0.3.1 (above) and runtime: `pnpm add -D artifact-graph@0.3.1`.
+2. Run `artifact-graph doctor --root . --format json` to verify the runtime.
+3. For first-time setup, use the bootstrap skill.
+4. For daily work, use the maintainer skill.
+5. For teammate onboarding, see [Clone Onboarding in INSTALL.md](INSTALL.md#clone-onboarding-second-developer-setup).
 
-## Related Project
+## Agent Prompts
 
-Install [`artifact-graph`](https://github.com/mzdbxqh/artifact-graph) in each target project before
-using the plugin for hard validation gates.
+```text
+请使用 artifact-chain-bootstrap，为当前项目初始化制品链。
+先检查现有配置和制品，不要覆盖已有项目规则，也不要自动执行 bootstrap --force。
+```
+
+```text
+请使用 where-am-i 分析这个需求在当前制品链中的位置。
+先检索已有制品，再推荐应加载的 context/packet 和后续入口技能。
+```
+
+```text
+请使用 artifact-chain-maintainer 检查本次变更影响的制品关系，
+执行 changed-only refresh，并用 strict-missing-lock 审计；如果锁文件变化，先让我审阅。
+```
 
 ## License
 

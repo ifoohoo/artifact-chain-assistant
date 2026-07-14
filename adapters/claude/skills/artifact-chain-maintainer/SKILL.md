@@ -61,11 +61,14 @@ description: 维护 artifact-graph 项目的制品链版本锁、诊断、hook �
 
 ## 推荐流程
 
-1. 运行 `artifact-graph doctor --format json` 确认 CLI、Node、配置和 lock 路径。
-2. 对 staged 变更运行 `artifact-graph version-lock refresh --changed-only --staged --format markdown`。
-3. 运行 `artifact-graph version-lock audit --strict-missing-lock`。
-4. 如果配置文件变化，改用 `artifact-graph version-lock refresh --all`。
-5. 如果出现 orphan lock，默认保留并让人审阅；只有明确清理时才加 `--remove-orphans`。
+1. 运行插件兼容诊断：`node <plugin-root>/scripts/doctor.mjs --root <project-root> --format json`。
+   - 从当前 SKILL.md 所在插件根定位 `scripts/doctor.mjs` 和 `compatibility.json`，不硬编码机器绝对路径。
+   - 诊断不通过时先修复依赖，再继续后续步骤。
+2. 运行 `artifact-graph doctor --format json` 确认 CLI、Node、配置和 lock 路径。
+3. 对 staged 变更运行 `artifact-graph version-lock refresh --changed-only --staged --format markdown`。
+4. 运行 `artifact-graph version-lock audit --strict-missing-lock`。
+5. 如果配置文件变化，改用 `artifact-graph version-lock refresh --all`。
+6. 如果出现 orphan lock，默认保留并让人审阅；只有明确清理时才加 `--remove-orphans`。
 
 ## 技能协作边界
 

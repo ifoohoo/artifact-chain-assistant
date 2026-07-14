@@ -220,43 +220,46 @@ bootstrap 仅在当地文件或目录存在时才启用扩展制品类型：
 
 ## artifact-graph 对自定义类型的运行时支持
 
-扩展制品目录当前分为两个成熟度层级：
+从 `artifact-graph` 0.3.0 起，配置驱动的自定义类型已获得完整的运行时支持。扩展制品目录
+分为两个层次：
 
 1. **已在 artifact-chain-assistant 实现**：starter 模板、审查清单、bootstrap 推荐和按证据采用指导。
-2. **artifact-graph runtime 路线图**：任意自定义类型的配置驱动一等索引、图遍历、`context`、`packet`、
-   `validate`、`version-lock` 和 `extraFields` 支持。
+2. **已在 artifact-graph 0.3.0+ 实现**：任意注册自定义类型的配置驱动索引、图遍历、`context`、
+   `packet`、`validate`、`version-lock` 和 `extraFields` 支持。
 
-目前 `artifact-graph` 命令仍以核心制品类型为中心。在 runtime 路线图落地前，不要假设
-`artifact-graph context --{type} {ID}`、`artifact-graph packet --{type} {ID}`，或针对所有自定义
-类型的严格验证已经可用。
+### 运行时为自定义类型提供的能力
 
-预期的未来 runtime 行为是：
+在 `artifact-graph.config.yaml` 中注册类型（`paths` 和可选 `idPatterns`）后，运行时提供：
 
-1. **索引**：读取 `artifact-graph.config.yaml` 的 `types.{type}.paths`，扫描匹配文件，解析
-   frontmatter 提取 `id`、`title`、`status` 等标准字段。
-2. **图边建立**：让自定义类型通过 `related_*` frontmatter 字段、追溯注释和显式关系字段参与图遍历。
-3. **context 组装**：为已注册自定义类型组装上游和下游上下文。
-4. **packet 生成**：为已注册自定义类型生成任务包。
-5. **验证和锁**：将已声明自定义类型纳入追溯验证和版本锁检查。
+1. **扫描与 frontmatter 解析**：读取 `types.{type}.paths`，扫描匹配文件，解析 frontmatter 提取
+   `id`、`title`、`status` 等标准字段。未配置路径的类型不被索引。
+2. **图边建立**：自定义类型通过 `related_<type>` frontmatter 字段、`@<type> <ID>` 追溯注释和
+   显式关系字段参与图遍历。
+3. **Target 选择器**：`--target <type>:<id>` 可用于 `context`、`packet`、`packet-prompt` 和 `audit`
+   命令，适用于 config 中 `target: true` 的任意类型。ID 可包含冒号；仅第一个冒号分隔类型和 ID。
+   **没有**动态 `--{type}` flag；`--target` 是通用入口。
+4. **额外字段**：在 config 中声明 `extraFields` 以索引特定 frontmatter 字段（string、number、
+   boolean、enum）。未声明的字段保留在原始 frontmatter 中但不被索引。
+5. **验证**：自定义类型参与 ID 模式检查、悬空关系警告、孤立制品警告和版本锁新鲜度检查。
+6. **版本锁**：自定义类型制品及其追溯边纳入 version-lock refresh、audit 和 bootstrap。
 
 ### 能力矩阵
 
 | 能力 | 核心类型 | 扩展类型 | 说明 |
 |------|---------|---------|------|
-| 文件索引和 ID 解析 | 已实现 | 路线图 | 扩展类型应写入 config，但任意类型一等索引尚未实现 |
-| 图遍历（上游/下游） | 已实现 | 路线图 | 未来行为取决于追溯注释密度 |
-| context/packet 组装 | 核心命令 flag 已实现 | 路线图 | 通用 `--{type}` flag 尚不可用 |
-| validate | 当前图模型已实现 | 任意自定义类型覆盖是路线图 | 不要依赖严格自定义类型覆盖 |
-| version-lock | 当前 implementation edges 已实现 | 任意自定义类型覆盖是路线图 | 自定义类型锁覆盖依赖未来图能力 |
+| 文件索引和 ID 解析 | 已实现 | 通过 config `paths` + `idPatterns` 实现 | 未配置路径的类型不被索引 |
+| 图遍历（上游/下游） | 已实现 | 通过 `related_<type>` 字段和追溯注释实现 | 强度取决于追溯注释密度 |
+| context/packet 组装 | 已实现（`--target <type>:<id>`） | 已实现（`--target <type>:<id>`） | `--target` 是通用入口；没有动态 `--{type}` flag |
+| validate | 已实现 | 已实现 | ID 模式检查、悬空关系、孤立制品、锁新鲜度 |
+| version-lock | 已实现 | 已实现 | 自定义类型边纳入 refresh/audit/bootstrap |
 | 制品内容质量判断 | 不做 | 不做 | artifact-graph 不判断"好 PRD"或"好契约" |
 | 内置边规则 | 不做 | 不做 | 所有边规则来自制品内容，不来自类型元数据 |
 
 ### 已知限制
 
-- **运行时支持尚未完整**：扩展模板今天已经可用，但任意自定义类型还没有一等
-  `context`/`packet`/`validate`/`version-lock` 覆盖。
-- **追溯注释稀疏**：runtime 支持落地后，如果自定义制品缺少 `related_*` frontmatter 字段或实现文件缺少
-  追溯注释，图遍历仍会产生较弱关系。缓解措施：项目本地审查应要求追溯字段。
+- **内容质量不判断**：artifact-graph 验证结构和追溯性，不判断制品内容是否写得好或完整。
+- **追溯注释稀疏**：如果自定义制品缺少 `related_*` frontmatter 字段或实现文件缺少追溯注释，
+  图遍历仍会产生较弱关系。缓解措施：项目本地审查应要求追溯字段。
 - **ID 模式冲突**：多个类型使用相同的 ID 模式可能导致歧义图边。缓解措施：每个类型使用
   不同的 ID 前缀（如 `API-`、`CLI-`）。
 - **路径重叠**：多个类型的路径 glob 匹配相同文件会创建重复图节点。缓解措施：使用互斥的

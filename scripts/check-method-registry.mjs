@@ -9,6 +9,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const catalogPath = join(root, 'agent-methods', 'catalog.yaml');
+const codexCatalogPath = join(root, 'adapters', 'codex', 'agent-methods', 'catalog.yaml');
+const claudeCatalogPath = join(root, 'adapters', 'claude', 'agent-methods', 'catalog.yaml');
 const codexSkillsDir = join(root, 'adapters', 'codex', 'skills');
 const claudeSkillsDir = join(root, 'adapters', 'claude', 'skills');
 
@@ -69,6 +71,25 @@ try {
   // ── 1. Schema validation ──
   const validation = runRegistry(['validate', '--catalog', catalogPath]);
   assert(validation.ok === true, 'catalog schema validation should pass');
+
+  // ── 1b. Adapter catalog consistency ──
+  const rootCatalogContent = readFileSync(catalogPath, 'utf-8');
+  assert(existsSync(codexCatalogPath), 'codex adapter should have agent-methods/catalog.yaml');
+  assert(existsSync(claudeCatalogPath), 'claude adapter should have agent-methods/catalog.yaml');
+  assert(
+    readFileSync(codexCatalogPath, 'utf-8') === rootCatalogContent,
+    'codex adapter catalog should match root catalog',
+  );
+  assert(
+    readFileSync(claudeCatalogPath, 'utf-8') === rootCatalogContent,
+    'claude adapter catalog should match root catalog',
+  );
+
+  // ── 1c. Validate adapter catalogs ──
+  const codexValidation = runRegistry(['validate', '--catalog', codexCatalogPath]);
+  assert(codexValidation.ok === true, 'codex adapter catalog schema validation should pass');
+  const claudeValidation = runRegistry(['validate', '--catalog', claudeCatalogPath]);
+  assert(claudeValidation.ok === true, 'claude adapter catalog schema validation should pass');
 
   // ── 2. Build effective index from catalog only ──
   const indexPath = join(tmpDir, 'effective-index.json');
@@ -165,28 +186,34 @@ try {
     `scenario review query should return exactly artifact.scenario-script.review`
   );
 
-  // ── 10. Resolve all 8 entries for Codex host ──
+  // ── 10. Resolve all 8 entries for Codex host (using adapter catalog) ──
+  const codexIndexPath = join(tmpDir, 'codex-effective-index.json');
+  const codexIndexResult = runRegistry(['index', '--catalog', codexCatalogPath, '--out', codexIndexPath]);
+  assert(codexIndexResult.ok === true, 'codex adapter index build should succeed');
   for (const ref of expectedRefs) {
     const result = runRegistry([
-      'resolve', '--index', indexPath,
+      'resolve', '--index', codexIndexPath,
       '--ref', ref, '--host', 'codex',
       '--plugin-root', codexSkillsDir,
     ]);
-    assert(result.ok === true, `resolve ${ref} for codex should succeed`);
+    assert(result.ok === true, `resolve ${ref} for codex from adapter catalog should succeed`);
     assert(
       result.data?.verification?.status === 'verified',
       `resolve ${ref} for codex should be verified, got ${result.data?.verification?.status}`
     );
   }
 
-  // ── 11. Resolve all 8 entries for Claude host ──
+  // ── 11. Resolve all 8 entries for Claude host (using adapter catalog) ──
+  const claudeIndexPath = join(tmpDir, 'claude-effective-index.json');
+  const claudeIndexResult = runRegistry(['index', '--catalog', claudeCatalogPath, '--out', claudeIndexPath]);
+  assert(claudeIndexResult.ok === true, 'claude adapter index build should succeed');
   for (const ref of expectedRefs) {
     const result = runRegistry([
-      'resolve', '--index', indexPath,
+      'resolve', '--index', claudeIndexPath,
       '--ref', ref, '--host', 'claude-code',
       '--plugin-root', claudeSkillsDir,
     ]);
-    assert(result.ok === true, `resolve ${ref} for claude-code should succeed`);
+    assert(result.ok === true, `resolve ${ref} for claude-code from adapter catalog should succeed`);
     assert(
       result.data?.verification?.status === 'verified',
       `resolve ${ref} for claude-code should be verified, got ${result.data?.verification?.status}`

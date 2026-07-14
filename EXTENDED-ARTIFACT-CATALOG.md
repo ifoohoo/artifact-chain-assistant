@@ -232,48 +232,54 @@ template.
 
 ## artifact-graph Runtime Support for Custom Types
 
-The extended catalog currently has two maturity levels:
+Starting with `artifact-graph` 0.3.0, config-driven custom types have full runtime support.
+The extended catalog has two layers:
 
 1. **Implemented in artifact-chain-assistant**: starter templates, review checklists, bootstrap
    recommendations, and evidence-based adoption guidance.
-2. **Roadmap for artifact-graph runtime**: config-driven first-class indexing, graph traversal,
-   `context`, `packet`, `validate`, `version-lock`, and `extraFields` support for arbitrary custom
-   types.
+2. **Implemented in artifact-graph 0.3.0+**: config-driven indexing, graph traversal, `context`,
+   `packet`, `validate`, `version-lock`, and `extraFields` for any registered custom type.
 
-Today, `artifact-graph` commands are still centered on the core artifact types. Do not assume
-`artifact-graph context --{type} {ID}`, `artifact-graph packet --{type} {ID}`, or strict validation
-for every custom type is available until the runtime roadmap lands.
+### What the Runtime Provides for Custom Types
 
-The intended future runtime behavior is:
+Once a type is registered in `artifact-graph.config.yaml` with `paths` and optionally
+`idPatterns`, the runtime delivers:
 
-1. **Indexing**: Read `types.{type}.paths` from config; scan matching files; parse frontmatter for
-   `id`, `title`, `status` and other standard fields.
-2. **Graph edges**: Let custom types participate in graph traversal through `related_*`
-   frontmatter fields, traceability comments, and explicit relationship fields.
-3. **Context assembly**: Assemble upstream and downstream context for registered custom types.
-4. **Packet generation**: Generate task packets for registered custom types.
-5. **Validation and locks**: Include declared custom types in traceability validation and
-   version-lock checks.
+1. **Scanning and frontmatter parsing**: Read `types.{type}.paths` from config; scan matching
+   files; parse frontmatter for `id`, `title`, `status` and other standard fields. Types without
+   configured paths are not indexed.
+2. **Graph edges**: Custom types participate in graph traversal through `related_<type>`
+   frontmatter fields, `@<type> <ID>` traceability comments, and explicit relationship fields.
+3. **Target selector**: `--target <type>:<id>` works with `context`, `packet`, `packet-prompt`,
+   and `audit` for any type that has `target: true` in config. The ID may contain colons; only the
+   first colon separates type from ID. There is **no** dynamic `--{type}` flag; `--target` is the
+   universal entry point.
+4. **Extra fields**: Declare `extraFields` in config to index specific frontmatter fields (string,
+   number, boolean, enum). Undeclared fields remain in raw frontmatter but are not indexed.
+5. **Validation**: Custom types participate in ID pattern checks, dangling relation warnings, orphan
+   artifact warnings, and version-lock freshness checks.
+6. **Version-lock**: Custom type artifacts and their traceability edges are included in
+   version-lock refresh, audit, and bootstrap.
 
 ### Capability Matrix
 
 | Capability | Core Types | Extended Types | Notes |
 | --- | --- | --- | --- |
-| File indexing and ID parsing | Implemented | Roadmap | Extended types should be declared in config, but arbitrary type indexing is not first-class yet |
-| Graph traversal (upstream/downstream) | Implemented | Roadmap | Future behavior depends on traceability annotation density |
-| context/packet assembly | Implemented for core command flags | Roadmap | Generic `--{type}` flags are not available yet |
-| validate | Implemented for current graph model | Roadmap for arbitrary custom types | Do not rely on strict custom-type coverage yet |
-| version-lock | Implemented for current implementation edges | Roadmap for arbitrary custom types | Custom-type lock coverage depends on future graph support |
+| File indexing and ID parsing | Implemented | Implemented via config `paths` + `idPatterns` | Types without configured paths are not indexed |
+| Graph traversal (upstream/downstream) | Implemented | Implemented via `related_<type>` fields and traceability comments | Strength depends on traceability annotation density |
+| context/packet assembly | Implemented (`--target <type>:<id>`) | Implemented (`--target <type>:<id>`) | `--target` is the universal entry; no dynamic `--{type}` flags |
+| validate | Implemented | Implemented | ID pattern checks, dangling relations, orphan warnings, lock freshness |
+| version-lock | Implemented | Implemented | Custom type edges included in refresh/audit/bootstrap |
 | Artifact content quality judgment | No | No | artifact-graph does not judge "good PRD" or "good contract" |
 | Built-in edge rules | No | No | All edge rules come from artifact content, not type metadata |
 
 ### Known Limitations
 
-- **Runtime support is not complete**: Extended templates are usable today, but arbitrary custom
-  types do not yet have first-class `context`/`packet`/`validate`/`version-lock` coverage.
-- **Sparse traceability annotations**: Once runtime support lands, custom artifacts without
-  `related_*` frontmatter fields or implementation traceability comments will produce weak graph
-  relationships. Mitigation: project-local review should require traceability fields.
+- **Content quality not judged**: artifact-graph validates structure and traceability, not whether
+  an artifact's content is well-written or complete.
+- **Sparse traceability annotations**: Custom artifacts without `related_*` frontmatter fields or
+  implementation traceability comments will produce weak graph relationships. Mitigation:
+  project-local review should require traceability fields.
 - **ID pattern collisions**: Multiple types using the same ID pattern can cause ambiguous graph
   edges. Mitigation: use distinct ID prefixes per type (e.g., `API-`, `CLI-`).
 - **Path overlaps**: Multiple types whose path globs match the same files create duplicate graph

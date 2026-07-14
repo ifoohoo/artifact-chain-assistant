@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+## 0.3.1
+
+### Added
+
+- **Precise runtime compatibility**: `artifact-chain-assistant` 0.3.1 verifies `artifact-graph@0.3.1` exactly. `compatibility.json` is the machine-readable single source of truth for the plugin/runtime version combination.
+- **Compatibility checker**: `check-compatibility.mjs` validates plugin version consistency across `package.json`, marketplace manifests, adapter manifests, and prevents forbidden unlocked install patterns in public documentation.
+- **Doctor version diagnosis**: plugin `doctor` inspects the target project's locally installed `artifact-graph` version before forwarding to the underlying CLI. Reports `cli_not_found`, `version_mismatch`, `version_unresolved` with exact remediation commands (`pnpm add -D artifact-graph@0.3.1`).
+- **Installation documentation governance**: `docs/public/artifact-chain-assistant/INSTALL.md` is the parent authoring source of truth; plugin and adapter `INSTALL.md` are generated copies. npm registry is the default install path with GitHub tag fallback.
+- **Human quick start**: step-by-step guide covering plugin install, runtime install, doctor verification, bootstrap, where-am-i, and maintainer.
+- **Agent prompts**: copy-paste prompts for Codex/Claude Code to enter bootstrap, where-am-i, and maintainer skills.
+- **Clone onboarding**: second-developer recovery path with frozen lockfile install, doctor validation, strict audit, local index rebuild, and per-machine hook installation. Git-tracked files are authoritative; `.artifact-graph/` and `.agent-method-registry/` are derived caches.
+- **Runtime compatibility matrix**: README and INSTALL document the exact plugin 0.3.1 / `artifact-graph` 0.3.1 verified combination.
+- **Version guardrail**: compatibility policy enforces precise version pinning; bare `artifact-graph`, `@latest`, `@^0.3.1`, and unpinned GitHub URLs are rejected in fenced install commands.
+
+### Changed
+
+- Default runtime install path changed from GitHub (`github:mzdbxqh/artifact-graph`) to npm registry (`pnpm add -D artifact-graph@0.3.1`).
+- `doctor.mjs` now performs version pre-check before forwarding to underlying `artifact-graph doctor`.
+- Bootstrap and maintainer skills now run compatibility diagnosis before first-time adoption, upgrade, and daily operations.
+- `check:compatibility` added to plugin test gate.
+
 ## 0.3.0
 
 ### Added
