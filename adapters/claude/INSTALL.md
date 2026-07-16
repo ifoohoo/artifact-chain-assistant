@@ -13,30 +13,30 @@ instructions.
 ## Prerequisites
 
 - Node.js `>=22.0.0`.
-- `artifact-graph` 0.3.1 installed in the target project.
+- `artifact-graph` 0.4.0 installed in the target project.
 
 ### Runtime Compatibility Matrix
 
 | Plugin | Verified Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.3.1 | `artifact-graph` 0.3.1 | `pnpm add -D artifact-graph@0.3.1` |
+| `artifact-chain-assistant` 0.4.0 | `artifact-graph` 0.4.0 | `pnpm add -D artifact-graph@0.4.0` |
 
 ### Install The Runtime
 
 The default installation path uses the npm registry with a precise version:
 
 ```bash
-pnpm add -D artifact-graph@0.3.1
+pnpm add -D artifact-graph@0.4.0
 ```
 
 If the npm registry is unavailable, use the explicit GitHub fallback pinned to the verified tag:
 
 ```bash
-pnpm add -D github:mzdbxqh/artifact-graph#artifact-graph-v0.3.1
+pnpm add -D github:mzdbxqh/artifact-graph#artifact-graph-v0.4.0
 ```
 
 > **Never** install with an unlocked range (`artifact-graph`, `artifact-graph@latest`,
-> `artifact-graph@^0.3.1`) or an unpinned GitHub URL (`github:mzdbxqh/artifact-graph`).
+> `artifact-graph@^0.4.0`) or an unpinned GitHub URL (`github:mzdbxqh/artifact-graph`).
 > Unlocked installs produce non-reproducible dependency trees and break version-lock audit.
 
 With pnpm 10+, projects that install `artifact-graph` must allow the native `better-sqlite3`
@@ -49,7 +49,7 @@ allowBuilds:
 
 The plugin's `doctor` command validates the installed runtime version before running any
 diagnostic. If it detects a version mismatch or missing CLI, it reports the exact remediation
-command (`pnpm add -D artifact-graph@0.3.1`) and exits non-zero.
+command (`pnpm add -D artifact-graph@0.4.0`) and exits non-zero.
 
 ### CLI Resolution Order
 
@@ -135,7 +135,7 @@ The plugin should not move these files into the plugin repository.
 
 For a first-time setup, the end-to-end sequence is:
 
-1. **Install the CLI** — `pnpm add -D artifact-graph@0.3.1` (see Prerequisites above).
+1. **Install the CLI** — `pnpm add -D artifact-graph@0.4.0` (see Prerequisites above).
 2. **Install the plugin** — follow the Codex or Claude Code section above.
 3. **Run bootstrap** — ask the assistant to use the `artifact-chain-bootstrap` skill (see prompt
    below). The skill will:
@@ -490,8 +490,10 @@ provider verification, and CLI diagnostics.
 
 ### Default Catalog
 
-The default catalog is at `<plugin-root>/agent-methods/catalog.yaml` and registers 8 workflow
-entries across the `prd-feature` and `scenario-script` skill families:
+The default catalog is at `<plugin-root>/agent-methods/catalog.yaml` and registers 12 workflow
+entries: 8 specialized entries across the `prd-feature` and `scenario-script` families, plus 4
+generic review, repair, batch, and audit entries. Generic entries exclude PRD/scenario types, so
+every supported type+intent query remains unique.
 
 | Ref | Family | Entry |
 |-----|--------|-------|
@@ -503,6 +505,10 @@ entries across the `prd-feature` and `scenario-script` skill families:
 | `artifact.scenario-script.author` | scenario-script | Author |
 | `artifact.scenario-script.review` | scenario-script | Review |
 | `artifact.scenario-script.repair` | scenario-script | Repair |
+| `artifact.review` | artifact-review | Review |
+| `artifact.repair` | artifact-repair | Repair |
+| `artifact.batch` | artifact-batch | Batch |
+| `artifact.audit` | artifact-audit | Audit / health |
 
 ### Standalone Install
 
@@ -553,6 +559,17 @@ PLUGIN_ROOT=$(claude plugin list --json 2>/dev/null \
 
 > For monorepo development only, the source checkout plugin root is `plugins/artifact-chain-assistant`.
 > Marketplace users must use the host CLI discovery above.
+
+After resolving `PLUGIN_ROOT`, verify the target project before running a generic workflow. This
+check is read-only:
+
+```bash
+node "$PLUGIN_ROOT/scripts/check-workflow-profile.mjs" \
+  --root . --action review --domain design-spec --format json
+```
+
+Exit code 0 means the required project marker and worker mapping exist. Exit code 2 returns
+`NEEDS_INPUT`; add the missing project profile or worker instead of claiming workflow success.
 
 Then build the index:
 
@@ -625,7 +642,7 @@ agent-method-registry resolve \
 
 ### Closed-Loop Workflow Entries
 
-All 8 entries have `kind: workflow`. A `workflow` entry is a **closed-loop leaf** -- it
+All 8 specialized entries have `kind: workflow`. A `workflow` entry is a **closed-loop leaf** -- it
 self-completes its own inspect, compose, review, validate, and repair cycle. The outer
 planner should not schedule separate review or repair steps for a workflow entry.
 
@@ -812,7 +829,7 @@ with append-only behavior; it does not overwrite local rules.
 ### Recovery Steps
 
 ```bash
-# 1. Install dependencies from lockfile (gets artifact-graph@0.3.1)
+# 1. Install dependencies from lockfile (gets artifact-graph@0.4.0)
 pnpm install --frozen-lockfile
 
 # 2. Install plugin per your host (Codex / Claude Code)
@@ -879,7 +896,7 @@ pnpm exec artifact-graph hooks install-git --hook all
 ### Enterprise Mirror
 
 If the corporate environment cannot access the public npm registry or GitHub, mirror both
-`artifact-graph@0.3.1` and the plugin marketplace repository on an internal registry. The mirror
+`artifact-graph@0.4.0` and the plugin marketplace repository on an internal registry. The mirror
 does not change the state ownership model: Git-tracked files remain authoritative, local caches
 remain derived.
 

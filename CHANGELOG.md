@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 0.4.0
+
+### Added
+
+- Add `artifact-review`, `artifact-repair`, `artifact-batch`, and `artifact-audit` for non-PRD,
+  non-scenario artifacts, with Codex and Claude Code adapters.
+- Add Review Result Protocol v1.0 integration, deterministic batch split/merge scripts, and
+  read-only profile/worker readiness checks that fail closed with `NEEDS_INPUT`.
+- Expand the method catalog to 12 non-overlapping workflow entries and test type+intent uniqueness.
+
 ## 0.3.1
 
 ### Added

@@ -99,8 +99,8 @@ try {
 
   const index = JSON.parse(readFileSync(indexPath, 'utf-8'));
 
-  // ── 3. Exactly 8 entries, all workflow ──
-  assert(index.entries.length === 8, `expected 8 entries, got ${index.entries.length}`);
+  // ── 3. Exactly 12 entries, all workflow ──
+  assert(index.entries.length === 12, `expected 12 entries, got ${index.entries.length}`);
   for (const entry of index.entries) {
     assert(entry.kind === 'workflow', `entry ${entry.ref} should be workflow, got ${entry.kind}`);
   }
@@ -115,6 +115,10 @@ try {
     'artifact.scenario-script.author',
     'artifact.scenario-script.review',
     'artifact.scenario-script.repair',
+    'artifact.review',
+    'artifact.repair',
+    'artifact.batch',
+    'artifact.audit',
   ];
   const actualRefs = index.entries.map(e => e.ref).sort();
   const sortedExpected = [...expectedRefs].sort();
@@ -160,6 +164,61 @@ try {
     `scenario query should return 4 results, got ${scenarioQuery.data?.entries?.length}`
   );
 
+  // ── 7b. Query: generic review intent = 1 unique ──
+  const genericReviewQuery = runRegistry([
+    'query', '--index', indexPath,
+    '--domain', 'artifact',
+    '--intent', 'review',
+  ]);
+  assert(genericReviewQuery.ok === true, 'generic review query should succeed');
+  // Should find at least the generic review entry
+  const hasGenericReview = genericReviewQuery.data?.entries?.some(e => e.ref === 'artifact.review');
+  assert(hasGenericReview, 'generic review query should include artifact.review');
+
+  // ── 7c. Query: generic audit intent = 1 unique ──
+  const genericAuditQuery = runRegistry([
+    'query', '--index', indexPath,
+    '--domain', 'artifact',
+    '--intent', 'audit',
+  ]);
+  assert(genericAuditQuery.ok === true, 'generic audit query should succeed');
+  const hasGenericAudit = genericAuditQuery.data?.entries?.some(e => e.ref === 'artifact.audit');
+  assert(hasGenericAudit, 'generic audit query should include artifact.audit');
+
+  // ── 7d. Per generic artifact-type: each intent resolves to exactly one unique ref ──
+  const genericTypes = ['design-spec', 'link', 'e2e', 'domain', 'contract', 'blueprint', 'verification'];
+  const genericIntentToRef = {
+    review: 'artifact.review',
+    repair: 'artifact.repair',
+    batch: 'artifact.batch',
+    audit: 'artifact.audit',
+    health: 'artifact.audit',
+  };
+
+  for (const artifactType of genericTypes) {
+    for (const [intent, expectedRef] of Object.entries(genericIntentToRef)) {
+      const query = runRegistry([
+        'query', '--index', indexPath,
+        '--domain', 'artifact',
+        '--artifact-type', artifactType,
+        '--intent', intent,
+      ]);
+      assert(
+        query.ok === true,
+        `query ${artifactType}/${intent} should succeed`,
+      );
+      const entries = query.data?.entries ?? [];
+      assert(
+        entries.length === 1,
+        `query ${artifactType}/${intent} should return exactly 1 entry, got ${entries.length}`,
+      );
+      assert(
+        entries[0]?.ref === expectedRef,
+        `query ${artifactType}/${intent} should resolve to ${expectedRef}, got ${entries[0]?.ref}`,
+      );
+    }
+  }
+
   // ── 8. Query: intent author for PRD = 1 unique ──
   const authorQuery = runRegistry([
     'query', '--index', indexPath,
@@ -186,7 +245,7 @@ try {
     `scenario review query should return exactly artifact.scenario-script.review`
   );
 
-  // ── 10. Resolve all 8 entries for Codex host (using adapter catalog) ──
+  // ── 10. Resolve all 12 entries for Codex host (using adapter catalog) ──
   const codexIndexPath = join(tmpDir, 'codex-effective-index.json');
   const codexIndexResult = runRegistry(['index', '--catalog', codexCatalogPath, '--out', codexIndexPath]);
   assert(codexIndexResult.ok === true, 'codex adapter index build should succeed');
@@ -203,7 +262,7 @@ try {
     );
   }
 
-  // ── 11. Resolve all 8 entries for Claude host (using adapter catalog) ──
+  // ── 11. Resolve all 12 entries for Claude host (using adapter catalog) ──
   const claudeIndexPath = join(tmpDir, 'claude-effective-index.json');
   const claudeIndexResult = runRegistry(['index', '--catalog', claudeCatalogPath, '--out', claudeIndexPath]);
   assert(claudeIndexResult.ok === true, 'claude adapter index build should succeed');
@@ -370,5 +429,5 @@ if (issues.length > 0) {
   }
   process.exit(1);
 } else {
-  console.log('Method registry check passed: 8 workflow entries, schema/query/resolve/overlay all verified.');
+  console.log('Method registry check passed: 12 workflow entries, schema/query/resolve/overlay all verified.');
 }

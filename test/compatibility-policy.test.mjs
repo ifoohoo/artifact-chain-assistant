@@ -9,11 +9,11 @@ import test from 'node:test';
 
 const VALID_POLICY = {
   schemaVersion: '1.0',
-  pluginVersion: '0.3.1',
+  pluginVersion: '0.4.0',
   artifactGraph: {
-    verifiedVersion: '0.3.1',
-    installSpec: 'artifact-graph@0.3.1',
-    githubFallbackSpec: 'github:mzdbxqh/artifact-graph#artifact-graph-v0.3.1',
+    verifiedVersion: '0.4.0',
+    installSpec: 'artifact-graph@0.4.0',
+    githubFallbackSpec: 'github:mzdbxqh/artifact-graph#artifact-graph-v0.4.0',
   },
 };
 
@@ -37,7 +37,7 @@ const VALID_POLICY = {
  */
 async function createFixture(overrides = {}) {
   const dir = await mkdtemp(join(tmpdir(), 'compat-policy-'));
-  const pv = overrides.pluginVersion ?? '0.3.1';
+  const pv = overrides.pluginVersion ?? '0.4.0';
 
   // --- root compatibility.json ---
   const policy = {
@@ -185,9 +185,9 @@ test('loadCompatibilityPolicy loads and freezes valid policy', async () => {
   try {
     const policy = await loadCompatibilityPolicy(dir);
     assert.equal(policy.schemaVersion, '1.0');
-    assert.equal(policy.pluginVersion, '0.3.1');
-    assert.equal(policy.artifactGraph.verifiedVersion, '0.3.1');
-    assert.equal(policy.artifactGraph.installSpec, 'artifact-graph@0.3.1');
+    assert.equal(policy.pluginVersion, '0.4.0');
+    assert.equal(policy.artifactGraph.verifiedVersion, '0.4.0');
+    assert.equal(policy.artifactGraph.installSpec, 'artifact-graph@0.4.0');
     assert.ok(Object.isFrozen(policy));
     assert.ok(Object.isFrozen(policy.artifactGraph));
   } finally {
@@ -299,7 +299,7 @@ test('validateCompatibilityPolicy detects Codex marketplace plugin source path m
 test('validateCompatibilityPolicy detects non-precise installSpec', async () => {
   const { validateCompatibilityPolicy } = await import('../scripts/lib/compatibility-policy.mjs');
   const dir = await createFixture({
-    artifactGraph: { installSpec: 'artifact-graph@^0.3.1' },
+    artifactGraph: { installSpec: 'artifact-graph@^0.4.0' },
   });
   try {
     const issues = await validateCompatibilityPolicy(dir);
@@ -448,7 +448,7 @@ test('detects forbidden caret range in adapter INSTALL.md', async () => {
   try {
     await writeFile(
       join(dir, 'adapters', 'claude', 'INSTALL.md'),
-      '# Install\n\n```bash\npnpm add -D artifact-graph@^0.3.1\n```\n',
+      '# Install\n\n```bash\npnpm add -D artifact-graph@^0.4.0\n```\n',
     );
     const issues = await validateCompatibilityPolicy(dir);
     assert.ok(issues.some((i) => i.includes('INSTALL.md') && i.includes('mismatch')));
@@ -464,7 +464,7 @@ test('detects forbidden unlocked GitHub install across multiple files without la
     // First file is clean, second file has forbidden pattern — tests g flag lastIndex bug
     await writeFile(
       join(dir, 'INSTALL.md'),
-      '# Install\n\n```bash\npnpm add -D artifact-graph@0.3.1\n```\n',
+      '# Install\n\n```bash\npnpm add -D artifact-graph@0.4.0\n```\n',
     );
     await writeFile(
       join(dir, 'adapters', 'codex', 'INSTALL.md'),
@@ -595,8 +595,8 @@ const FORBIDDEN_INSTALL_SPECS = [
   { cmd: 'pnpm add artifact-graph', forbidden: true, label: 'pnpm add artifact-graph' },
   { cmd: 'pnpm add -D artifact-graph@latest', forbidden: true, label: 'pnpm add -D artifact-graph@latest' },
   { cmd: 'pnpm add artifact-graph@latest', forbidden: true, label: 'pnpm add artifact-graph@latest' },
-  { cmd: 'pnpm add -D artifact-graph@^0.3.1', forbidden: true, label: 'pnpm add -D artifact-graph@^0.3.1' },
-  { cmd: 'pnpm add artifact-graph@^0.3.1', forbidden: true, label: 'pnpm add artifact-graph@^0.3.1' },
+  { cmd: 'pnpm add -D artifact-graph@^0.4.0', forbidden: true, label: 'pnpm add -D artifact-graph@^0.4.0' },
+  { cmd: 'pnpm add artifact-graph@^0.4.0', forbidden: true, label: 'pnpm add artifact-graph@^0.4.0' },
   // ── npm install variants ──
   { cmd: 'npm install -D artifact-graph', forbidden: true, label: 'npm install -D artifact-graph' },
   { cmd: 'npm install artifact-graph', forbidden: true, label: 'npm install artifact-graph' },
@@ -606,15 +606,15 @@ const FORBIDDEN_INSTALL_SPECS = [
   { cmd: 'npm install artifact-graph@latest', forbidden: true, label: 'npm install artifact-graph@latest' },
   { cmd: 'npm i -D artifact-graph@latest', forbidden: true, label: 'npm i -D artifact-graph@latest' },
   { cmd: 'npm i artifact-graph@latest', forbidden: true, label: 'npm i artifact-graph@latest' },
-  { cmd: 'npm install -D artifact-graph@^0.3.1', forbidden: true, label: 'npm install -D artifact-graph@^0.3.1' },
-  { cmd: 'npm install artifact-graph@^0.3.1', forbidden: true, label: 'npm install artifact-graph@^0.3.1' },
-  { cmd: 'npm i -D artifact-graph@^0.3.1', forbidden: true, label: 'npm i -D artifact-graph@^0.3.1' },
-  { cmd: 'npm i artifact-graph@^0.3.1', forbidden: true, label: 'npm i artifact-graph@^0.3.1' },
+  { cmd: 'npm install -D artifact-graph@^0.4.0', forbidden: true, label: 'npm install -D artifact-graph@^0.4.0' },
+  { cmd: 'npm install artifact-graph@^0.4.0', forbidden: true, label: 'npm install artifact-graph@^0.4.0' },
+  { cmd: 'npm i -D artifact-graph@^0.4.0', forbidden: true, label: 'npm i -D artifact-graph@^0.4.0' },
+  { cmd: 'npm i artifact-graph@^0.4.0', forbidden: true, label: 'npm i artifact-graph@^0.4.0' },
   // ── GitHub spec ──
   { cmd: 'github:mzdbxqh/artifact-graph', forbidden: true, label: 'unlocked github:mzdbxqh/artifact-graph' },
   // ── NEW: wrong exact version, tilde, wildcard, dist-tag ──
   { cmd: 'npm install artifact-graph@0.2.0 -D', forbidden: true, label: 'npm install artifact-graph@0.2.0 -D (wrong exact version)' },
-  { cmd: 'pnpm add artifact-graph@~0.3.1', forbidden: true, label: 'pnpm add artifact-graph@~0.3.1 (tilde range)' },
+  { cmd: 'pnpm add artifact-graph@~0.4.0', forbidden: true, label: 'pnpm add artifact-graph@~0.4.0 (tilde range)' },
   { cmd: 'pnpm add artifact-graph@*', forbidden: true, label: 'pnpm add artifact-graph@* (wildcard)' },
   { cmd: 'npm i artifact-graph@next', forbidden: true, label: 'npm i artifact-graph@next (dist-tag)' },
   // ── NEW: standalone wrong GitHub tag ──
@@ -624,14 +624,14 @@ const FORBIDDEN_INSTALL_SPECS = [
   { cmd: 'npm install artifact-graph -D', forbidden: true, label: 'npm install artifact-graph -D (spec before flag)' },
   { cmd: 'npm install --save-dev artifact-graph', forbidden: true, label: 'npm install --save-dev artifact-graph (long flag before spec)' },
   { cmd: 'npm i --save-dev artifact-graph@latest', forbidden: true, label: 'npm i --save-dev artifact-graph@latest (long flag before spec+tag)' },
-  { cmd: 'pnpm add artifact-graph@^0.3.1 --save-dev', forbidden: true, label: 'pnpm add artifact-graph@^0.3.1 --save-dev (spec+caret before flag)' },
+  { cmd: 'pnpm add artifact-graph@^0.4.0 --save-dev', forbidden: true, label: 'pnpm add artifact-graph@^0.4.0 --save-dev (spec+caret before flag)' },
   { cmd: 'pnpm add github:mzdbxqh/artifact-graph --save-dev', forbidden: true, label: 'pnpm add github:mzdbxqh/artifact-graph --save-dev (github before flag)' },
   // ── Allowed: pinned version (any argument order) ──
-  { cmd: 'npm install artifact-graph@0.3.1 -D', forbidden: false, label: 'npm install artifact-graph@0.3.1 -D (pinned, spec before flag)' },
-  { cmd: 'pnpm add --save-dev github:mzdbxqh/artifact-graph#artifact-graph-v0.3.1', forbidden: false, label: 'pnpm add --save-dev github:mzdbxqh/artifact-graph#artifact-graph-v0.3.1 (tagged github)' },
+  { cmd: 'npm install artifact-graph@0.4.0 -D', forbidden: false, label: 'npm install artifact-graph@0.4.0 -D (pinned, spec before flag)' },
+  { cmd: 'pnpm add --save-dev github:mzdbxqh/artifact-graph#artifact-graph-v0.4.0', forbidden: false, label: 'pnpm add --save-dev github:mzdbxqh/artifact-graph#artifact-graph-v0.4.0 (tagged github)' },
   // ── Allowed: pinned version (original order) ──
-  { cmd: 'pnpm add -D artifact-graph@0.3.1', forbidden: false, label: 'pnpm add -D artifact-graph@0.3.1 (pinned)' },
-  { cmd: 'npm install -D artifact-graph@0.3.1', forbidden: false, label: 'npm install -D artifact-graph@0.3.1 (pinned)' },
+  { cmd: 'pnpm add -D artifact-graph@0.4.0', forbidden: false, label: 'pnpm add -D artifact-graph@0.4.0 (pinned)' },
+  { cmd: 'npm install -D artifact-graph@0.4.0', forbidden: false, label: 'npm install -D artifact-graph@0.4.0 (pinned)' },
 ];
 
 for (const { cmd, forbidden, label } of FORBIDDEN_INSTALL_SPECS) {

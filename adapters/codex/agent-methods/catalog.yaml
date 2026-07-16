@@ -146,3 +146,77 @@ entries:
       - "修复后的场景剧本"
     sideEffects:
       - write-project-artifacts
+
+  # ── 通用跨类型入口 ──────────────────────────────────────────────────────
+
+  - ref: artifact.review
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: artifact-review
+    kind: workflow
+    summary: "通用制品审阅路由，按 domain 分派到类型专用 worker"
+    match:
+      domains: [artifact]
+      artifactTypes: [design-spec, link, e2e, domain, contract, blueprint, verification]
+      intents: [review]
+    accepts:
+      - "制品文件或目录路径"
+    produces:
+      - "Review Result Protocol v1.0 审阅结果"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.repair
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: artifact-repair
+    kind: workflow
+    summary: "通用制品修复入口，根据审阅结果修复 open findings"
+    match:
+      domains: [artifact]
+      artifactTypes: [design-spec, link, e2e, domain, contract, blueprint, verification]
+      intents: [repair]
+    accepts:
+      - "审阅结果 JSON 和待修复制品"
+    produces:
+      - "Review Result Protocol v1.0 修复结果"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.batch
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: artifact-batch
+    kind: workflow
+    summary: "通用批处理编排，确定性切分与合并 Review Result"
+    match:
+      domains: [artifact]
+      artifactTypes: [design-spec, link, e2e, domain, contract, blueprint, verification]
+      intents: [batch]
+    accepts:
+      - "制品目录和批处理参数"
+    produces:
+      - "Review Result Protocol v1.0 批次汇总"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.audit
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: artifact-audit
+    kind: workflow
+    summary: "制品链健康检查与能力审计"
+    match:
+      domains: [artifact]
+      artifactTypes: [design-spec, link, e2e, domain, contract, blueprint, verification]
+      intents: [audit, health]
+    accepts:
+      - "项目根路径"
+    produces:
+      - "健康检查报告或能力审计结果"
+    sideEffects:
+      - write-project-artifacts

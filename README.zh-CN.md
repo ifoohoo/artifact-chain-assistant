@@ -70,12 +70,26 @@ bootstrap 技能对目标项目进行分类，仅启用具有稳定本地来源�
 目标项目配置和项目级 provider 优先。插件的默认技能族在项目无覆盖 provider 时作为
 fallback 生效。
 
+### 通用审阅工作流
+
+四个项目中立入口服务于 PRD/场景之外的制品：
+
+- **`artifact-review`** — 解析项目审阅 worker，并输出 Review Result Protocol v1.0。
+- **`artifact-repair`** — 处理全部 open findings，并要求 re-review 证据。
+- **`artifact-batch`** — 确定性切分输入并合并通过协议校验的批次结果。
+- **`artifact-audit`** — 只读执行 health 与 release gate 诊断。
+
+按安装章节为当前宿主解析 `PLUGIN_ROOT` 后，执行
+`node "$PLUGIN_ROOT/scripts/check-workflow-profile.mjs"`。缺少项目标记或 worker 映射时返回
+`NEEDS_INPUT`；检查器不会创建文件，也不会伪报成功。
+
 ### Agent Method Registry（代理方法注册表）
 
 插件内置了确定性的 agent-method-registry 集成，用于目录解析、提供者验证和 CLI 诊断。
 
-**默认目录**：`<plugin-root>/agent-methods/catalog.yaml` 注册了 **8 个 workflow 入口**，
-覆盖 `prd-feature` 和 `scenario-script` 两个技能族：
+**默认目录**：`<plugin-root>/agent-methods/catalog.yaml` 注册 **12 个 workflow 入口**：
+`prd-feature` 和 `scenario-script` 的 8 个专业入口，加上 review、repair、batch、audit
+四个通用入口。通用入口排除 PRD/场景类型，保证每个受支持的 type+intent 查询唯一。
 
 | Ref | 技能族 | 入口 |
 |-----|--------|------|
@@ -87,6 +101,10 @@ fallback 生效。
 | `artifact.scenario-script.author` | scenario-script | 编写 |
 | `artifact.scenario-script.review` | scenario-script | 审阅 |
 | `artifact.scenario-script.repair` | scenario-script | 修复 |
+| `artifact.review` | artifact-review | 审阅 |
+| `artifact.repair` | artifact-repair | 修复 |
+| `artifact.batch` | artifact-batch | 批处理 |
+| `artifact.audit` | artifact-audit | 审计 / health |
 
 #### 单独安装
 
@@ -173,7 +191,7 @@ agent-method-registry resolve \
 
 #### 闭环 workflow 入口
 
-所有 8 个入口的 `kind` 均为 `workflow`。`workflow` 入口是**闭环叶子** -- 它自行完成
+8 个专业入口的 `kind` 均为 `workflow`。`workflow` 入口是**闭环叶子** -- 它自行完成
 inspect、compose、review、validate 和 repair 循环。外层规划器不应为 workflow 入口
 另行安排独立的 review 或 repair 步骤。
 
@@ -246,7 +264,7 @@ agent-method-registry resolve \
 
 | 插件 | 运行时 | 安装 |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.3.1 | `artifact-graph` 0.3.1 | `pnpm add -D artifact-graph@0.3.1` |
+| `artifact-chain-assistant` 0.4.0 | `artifact-graph` 0.4.0 | `pnpm add -D artifact-graph@0.4.0` |
 
 ## 安装
 
@@ -265,7 +283,7 @@ claude plugin install artifact-chain-assistant@artifact-chain-assistant --scope 
 
 ## 快速开始
 
-1. 安装插件 0.3.1（见上方）和运行时：`pnpm add -D artifact-graph@0.3.1`。
+1. 安装插件 0.4.0（见上方）和运行时：`pnpm add -D artifact-graph@0.4.0`。
 2. 运行 `artifact-graph doctor --root . --format json` 验证运行时。
 3. 首次使用，进入 bootstrap 技能。
 4. 日常工作，进入 maintainer 技能。

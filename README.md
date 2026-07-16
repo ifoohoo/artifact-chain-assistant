@@ -75,13 +75,28 @@ Internal workflow resources (`inspect`, `compose`, `validate`) are not registere
 Project-level configuration and project-local providers take priority. The plugin's default skill
 families serve as fallback when the project has no overriding provider.
 
+### Generic Review Workflows
+
+Four project-neutral entries cover non-PRD, non-scenario artifacts:
+
+- **`artifact-review`** — resolve a project review worker and emit Review Result Protocol v1.0.
+- **`artifact-repair`** — repair all open findings and require re-review evidence.
+- **`artifact-batch`** — deterministically split inputs and merge validated batch results.
+- **`artifact-audit`** — run read-only health and release-gate diagnostics.
+
+After resolving `PLUGIN_ROOT` for the active host as shown in the installation section, run
+`node "$PLUGIN_ROOT/scripts/check-workflow-profile.mjs"`. Missing project markers or worker
+mappings return `NEEDS_INPUT`; the checker does not create files or claim success.
+
 ### Agent Method Registry
 
 The plugin ships with a deterministic agent-method-registry integration for catalog resolution,
 provider verification, and CLI diagnostics.
 
-**Default catalog**: `<plugin-root>/agent-methods/catalog.yaml` registers **8 workflow entries**
-across the `prd-feature` and `scenario-script` skill families:
+**Default catalog**: `<plugin-root>/agent-methods/catalog.yaml` registers **12 workflow entries**:
+8 specialized entries across the `prd-feature` and `scenario-script` families plus 4 generic
+review, repair, batch, and audit entries. Generic entries exclude PRD/scenario types, so every
+supported type+intent query remains unique.
 
 | Ref | Family | Entry |
 |-----|--------|-------|
@@ -93,6 +108,10 @@ across the `prd-feature` and `scenario-script` skill families:
 | `artifact.scenario-script.author` | scenario-script | Author |
 | `artifact.scenario-script.review` | scenario-script | Review |
 | `artifact.scenario-script.repair` | scenario-script | Repair |
+| `artifact.review` | artifact-review | Review |
+| `artifact.repair` | artifact-repair | Repair |
+| `artifact.batch` | artifact-batch | Batch |
+| `artifact.audit` | artifact-audit | Audit / health |
 
 #### Standalone Install
 
@@ -184,7 +203,7 @@ agent-method-registry resolve \
 
 #### Closed-Loop Workflow Entries
 
-All 8 entries have `kind: workflow`. A `workflow` entry is a **closed-loop leaf** -- it
+All 8 specialized entries have `kind: workflow`. A `workflow` entry is a **closed-loop leaf** -- it
 self-completes its own inspect, compose, review, validate, and repair cycle. The outer
 planner should not schedule separate review or repair steps for a workflow entry.
 
@@ -260,7 +279,7 @@ agent-method-registry resolve \
 
 | Plugin | Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.3.1 | `artifact-graph` 0.3.1 | `pnpm add -D artifact-graph@0.3.1` |
+| `artifact-chain-assistant` 0.4.0 | `artifact-graph` 0.4.0 | `pnpm add -D artifact-graph@0.4.0` |
 
 ## Install
 
@@ -279,7 +298,7 @@ For the full installation guide, quick start, Agent prompts, and clone onboardin
 
 ## Quick Start
 
-1. Install plugin 0.3.1 (above) and runtime: `pnpm add -D artifact-graph@0.3.1`.
+1. Install plugin 0.4.0 (above) and runtime: `pnpm add -D artifact-graph@0.4.0`.
 2. Run `artifact-graph doctor --root . --format json` to verify the runtime.
 3. For first-time setup, use the bootstrap skill.
 4. For daily work, use the maintainer skill.
