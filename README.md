@@ -268,10 +268,12 @@ agent-method-registry resolve \
 
 ### Other Assets
 
-- **Codex** exposes `.codex-plugin/plugin.json` and `skills/**`. It does not expose plugin commands,
-  hooks, or settings.
-- **Claude Code** exposes `.claude-plugin/plugin.json`, `skills/**`, slash command wrappers, and a
-  Stop-hook guardrail.
+- **Codex** exposes `.codex-plugin/plugin.json`, `skills/**`, and managed scripts
+  (`doctor.mjs`, `check-workflow-profile.mjs`, `batch-split.mjs`, `batch-merge.mjs`). It does not
+  expose plugin commands, hooks, or settings.
+- **Claude Code** exposes `.claude-plugin/plugin.json`, `skills/**`, managed scripts
+  (`doctor.mjs`, `check-workflow-profile.mjs`, `batch-split.mjs`, `batch-merge.mjs`), slash command
+  wrappers, and a Stop-hook guardrail.
 - Git hook templates and installers are host-independent. Git hooks and CI are the hard gates;
   host-specific skills and hooks only provide assistant guidance.
 
@@ -279,7 +281,7 @@ agent-method-registry resolve \
 
 | Plugin | Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.4.0 | `artifact-graph` 0.4.0 | `pnpm add -D artifact-graph@0.4.0` |
+| `artifact-chain-assistant` 0.4.1 | `artifact-graph` 0.4.1 | `pnpm add -D artifact-graph@0.4.1` |
 
 ## Install
 
@@ -298,7 +300,7 @@ For the full installation guide, quick start, Agent prompts, and clone onboardin
 
 ## Quick Start
 
-1. Install plugin 0.4.0 (above) and runtime: `pnpm add -D artifact-graph@0.4.0`.
+1. Install plugin 0.4.1 (above) and runtime: `pnpm add -D artifact-graph@0.4.1`.
 2. Run `artifact-graph doctor --root . --format json` to verify the runtime.
 3. For first-time setup, use the bootstrap skill.
 4. For daily work, use the maintainer skill.

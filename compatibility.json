@@ -1,9 +1,9 @@
 {
   "schemaVersion": "1.0",
-  "pluginVersion": "0.4.0",
+  "pluginVersion": "0.4.1",
   "artifactGraph": {
-    "verifiedVersion": "0.4.0",
-    "installSpec": "artifact-graph@0.4.0",
-    "githubFallbackSpec": "github:mzdbxqh/artifact-graph#artifact-graph-v0.4.0"
+    "verifiedVersion": "0.4.1",
+    "installSpec": "artifact-graph@0.4.1",
+    "githubFallbackSpec": "github:mzdbxqh/artifact-graph#artifact-graph-v0.4.1"
   }
 }

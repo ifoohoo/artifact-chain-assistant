@@ -254,9 +254,12 @@ agent-method-registry resolve \
 
 ### 其他资产
 
-- **Codex** 仅暴露 `.codex-plugin/plugin.json` 和 `skills/**`，不暴露插件命令、hooks 或 settings。
-- **Claude Code** 暴露 `.claude-plugin/plugin.json`、`skills/**`、slash command wrappers 和 Stop hook
-  guardrail。
+- **Codex** 暴露 `.codex-plugin/plugin.json`、`skills/**` 和受管脚本（`doctor.mjs`、
+  `check-workflow-profile.mjs`、`batch-split.mjs`、`batch-merge.mjs`），不暴露插件命令、hooks 或
+  settings。
+- **Claude Code** 暴露 `.claude-plugin/plugin.json`、`skills/**`、受管脚本（`doctor.mjs`、
+  `check-workflow-profile.mjs`、`batch-split.mjs`、`batch-merge.mjs`）、slash command wrappers 和
+  Stop hook guardrail。
 - Git hook 模板和安装器不依赖宿主。Git hooks 与 CI 才是 hard gate；各宿主的 skills 和 hooks 仅提供
   assistant guidance。
 
@@ -264,7 +267,7 @@ agent-method-registry resolve \
 
 | 插件 | 运行时 | 安装 |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.4.0 | `artifact-graph` 0.4.0 | `pnpm add -D artifact-graph@0.4.0` |
+| `artifact-chain-assistant` 0.4.1 | `artifact-graph` 0.4.1 | `pnpm add -D artifact-graph@0.4.1` |
 
 ## 安装
 
@@ -283,7 +286,7 @@ claude plugin install artifact-chain-assistant@artifact-chain-assistant --scope 
 
 ## 快速开始
 
-1. 安装插件 0.4.0（见上方）和运行时：`pnpm add -D artifact-graph@0.4.0`。
+1. 安装插件 0.4.1（见上方）和运行时：`pnpm add -D artifact-graph@0.4.1`。
 2. 运行 `artifact-graph doctor --root . --format json` 验证运行时。
 3. 首次使用，进入 bootstrap 技能。
 4. 日常工作，进入 maintainer 技能。

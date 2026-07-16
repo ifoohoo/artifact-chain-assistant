@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.4.1
+
+### Fixed
+
+- **Adapter runtime bundle completeness**: add `check-workflow-profile.mjs`, `batch-split.mjs`, and `batch-merge.mjs` to the managed file list in `build-runtime-bundles.mjs`, so both Codex and Claude Code adapter roots include all scripts referenced by the four generic artifact workflow skills. Previously only `scripts/doctor.mjs` was synced, leaving skill script references unresolvable from installed adapter paths.
+- **Batch skill path correction**: fix `artifact-batch` skill CLI examples from bare `node scripts/batch-*.mjs` (which resolves from the target project cwd) to `node "$PLUGIN_ROOT/scripts/batch-*.mjs"`. Remove unreliable `import.meta.dirname` root derivation and `pathToFileURL` dynamic import tutorials (YAGNI for agent workflows). Deterministic script section now directs agents to resolve `PLUGIN_ROOT` via the installed adapter's INSTALL.md host discovery and returns `NEEDS_INPUT` when scripts are missing. INSTALL.md and README adapter surface descriptions updated to include managed scripts alongside skills.
+
 ## 0.4.0
 
 ### Added

@@ -13,30 +13,30 @@ instructions.
 ## Prerequisites
 
 - Node.js `>=22.0.0`.
-- `artifact-graph` 0.4.0 installed in the target project.
+- `artifact-graph` 0.4.1 installed in the target project.
 
 ### Runtime Compatibility Matrix
 
 | Plugin | Verified Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.4.0 | `artifact-graph` 0.4.0 | `pnpm add -D artifact-graph@0.4.0` |
+| `artifact-chain-assistant` 0.4.1 | `artifact-graph` 0.4.1 | `pnpm add -D artifact-graph@0.4.1` |
 
 ### Install The Runtime
 
 The default installation path uses the npm registry with a precise version:
 
 ```bash
-pnpm add -D artifact-graph@0.4.0
+pnpm add -D artifact-graph@0.4.1
 ```
 
 If the npm registry is unavailable, use the explicit GitHub fallback pinned to the verified tag:
 
 ```bash
-pnpm add -D github:mzdbxqh/artifact-graph#artifact-graph-v0.4.0
+pnpm add -D github:mzdbxqh/artifact-graph#artifact-graph-v0.4.1
 ```
 
 > **Never** install with an unlocked range (`artifact-graph`, `artifact-graph@latest`,
-> `artifact-graph@^0.4.0`) or an unpinned GitHub URL (`github:mzdbxqh/artifact-graph`).
+> `artifact-graph@^0.4.1`) or an unpinned GitHub URL (`github:mzdbxqh/artifact-graph`).
 > Unlocked installs produce non-reproducible dependency trees and break version-lock audit.
 
 With pnpm 10+, projects that install `artifact-graph` must allow the native `better-sqlite3`
@@ -49,7 +49,7 @@ allowBuilds:
 
 The plugin's `doctor` command validates the installed runtime version before running any
 diagnostic. If it detects a version mismatch or missing CLI, it reports the exact remediation
-command (`pnpm add -D artifact-graph@0.4.0`) and exits non-zero.
+command (`pnpm add -D artifact-graph@0.4.1`) and exits non-zero.
 
 ### CLI Resolution Order
 
@@ -87,8 +87,9 @@ For local monorepo development, the plugin root is:
 plugins/artifact-chain-assistant
 ```
 
-The public marketplace selects the Codex adapter. Its runtime surface is limited to the plugin
-manifest and skills; use `artifact-chain-maintainer` to guide version-lock CLI operations.
+The public marketplace selects the Codex adapter. Its runtime surface includes the plugin manifest,
+skills, and managed scripts (`doctor.mjs`, `check-workflow-profile.mjs`, `batch-split.mjs`,
+`batch-merge.mjs`); use `artifact-chain-maintainer` to guide version-lock CLI operations.
 
 ### Claude Code
 
@@ -114,8 +115,9 @@ For a monorepo checkout, register the plugin root:
 plugins/artifact-chain-assistant
 ```
 
-The public marketplace selects the Claude Code adapter, including its slash command wrappers and
-Stop-hook guardrail. These assistant controls do not replace Git hooks or CI.
+The public marketplace selects the Claude Code adapter, including its skills, managed scripts
+(`doctor.mjs`, `check-workflow-profile.mjs`, `batch-split.mjs`, `batch-merge.mjs`), slash command
+wrappers, and Stop-hook guardrail. These assistant controls do not replace Git hooks or CI.
 
 ## Prepare A Target Project
 
@@ -135,7 +137,7 @@ The plugin should not move these files into the plugin repository.
 
 For a first-time setup, the end-to-end sequence is:
 
-1. **Install the CLI** — `pnpm add -D artifact-graph@0.4.0` (see Prerequisites above).
+1. **Install the CLI** — `pnpm add -D artifact-graph@0.4.1` (see Prerequisites above).
 2. **Install the plugin** — follow the Codex or Claude Code section above.
 3. **Run bootstrap** — ask the assistant to use the `artifact-chain-bootstrap` skill (see prompt
    below). The skill will:
@@ -571,6 +573,16 @@ node "$PLUGIN_ROOT/scripts/check-workflow-profile.mjs" \
 Exit code 0 means the required project marker and worker mapping exist. Exit code 2 returns
 `NEEDS_INPUT`; add the missing project profile or worker instead of claiming workflow success.
 
+For batch operations, use the split and merge scripts from the same resolved plugin root:
+
+```bash
+# Split artifacts into batches (JSON array to stdout)
+node "$PLUGIN_ROOT/scripts/batch-split.mjs" ./artifacts/design --batch-size 40000
+
+# Merge batch results from a results directory (merged JSON to stdout)
+node "$PLUGIN_ROOT/scripts/batch-merge.mjs" ./batch-results --run-id my-run
+```
+
 Then build the index:
 
 ```bash
@@ -829,7 +841,7 @@ with append-only behavior; it does not overwrite local rules.
 ### Recovery Steps
 
 ```bash
-# 1. Install dependencies from lockfile (gets artifact-graph@0.4.0)
+# 1. Install dependencies from lockfile (gets artifact-graph@0.4.1)
 pnpm install --frozen-lockfile
 
 # 2. Install plugin per your host (Codex / Claude Code)
@@ -896,7 +908,7 @@ pnpm exec artifact-graph hooks install-git --hook all
 ### Enterprise Mirror
 
 If the corporate environment cannot access the public npm registry or GitHub, mirror both
-`artifact-graph@0.4.0` and the plugin marketplace repository on an internal registry. The mirror
+`artifact-graph@0.4.1` and the plugin marketplace repository on an internal registry. The mirror
 does not change the state ownership model: Git-tracked files remain authoritative, local caches
 remain derived.
 

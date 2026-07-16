@@ -37,29 +37,29 @@ argument-hint: "<action> <domain> <target-path> [--batch-size N] [--max-concurre
 
 ## 确定性脚本
 
-批次切分和结果合并由确定性脚本提供，支持 CLI 和 import 两种消费方式。
+批次切分和结果合并由确定性脚本提供，通过 CLI 消费。
 
-用 `node <plugin-root>/scripts/check-workflow-profile.mjs --root <project-root> --action batch --domain <domain>` 做只读环境检查。执行 review/repair worker 前仍分别运行对应 action 的 checker；任何 `NEEDS_INPUT` 都停止当前批次。
+> **Fail-closed 前置**：消费脚本前，按已安装 adapter 的 INSTALL.md 宿主发现流程解析并 export `PLUGIN_ROOT`。若变量未定义或 `check-workflow-profile.mjs`、`batch-split.mjs`、`batch-merge.mjs` 任一脚本缺失，则返回 `NEEDS_INPUT` 并停止当前批次。
+
+用 `node "$PLUGIN_ROOT/scripts/check-workflow-profile.mjs" --root <project-root> --action batch --domain <domain>` 做只读环境检查。执行 review/repair worker 前仍分别运行对应 action 的 checker；任何 `NEEDS_INPUT` 都停止当前批次。
 
 ### batch-split.mjs
 
 ```bash
-node scripts/batch-split.mjs <target-dir> [--batch-size N]
+node "$PLUGIN_ROOT/scripts/batch-split.mjs" <target-dir> [--batch-size N]
 ```
 
 - 输出：JSON array to stdout，每项 `{ id, files, chars }`
 - 默认 batch-size: 40000 字符
-- 可 import: `import { batchSplit } from './scripts/batch-split.mjs'`
 
 ### batch-merge.mjs
 
 ```bash
-node scripts/batch-merge.mjs <results-dir> [--run-id <id>]
+node "$PLUGIN_ROOT/scripts/batch-merge.mjs" <results-dir> [--run-id <id>]
 ```
 
 - 输入：results-dir 下每个 `*.json` 是一个批次的 Review Result Protocol v1.0
 - 输出：合并后的 Review Result Protocol v1.0 JSON to stdout
-- 可 import: `import { batchMerge } from './scripts/batch-merge.mjs'`
 
 ## 批次切分规则
 
