@@ -2,6 +2,51 @@
 
 ## Unreleased
 
+## 0.5.0
+
+### Added
+
+- **Workflow Profile schema and validation**: add `artifact-workflow-profile.schema.json` to `schemas/` and
+  `scripts/lib/workflow-profile.mjs` shared library for project workflow profile validation. Both are
+  synced to Codex and Claude Code adapter roots via runtime bundles.
+- **Generate entry in agent-method catalog**: add `artifact.generate` workflow entry for generic
+  non-PRD/non-scenario artifact generation from templates and profile configuration. Catalog version
+  bumped to 0.5.0; total workflow entries now 13.
+- **Adapter layout test coverage**: adapter-layout tests verify `schemas/artifact-workflow-profile.schema.json`
+  exists in each host adapter root; adapter-resource-scripts tests verify `scripts/lib/workflow-profile.mjs`
+  presence and executable mode parity.
+
+### Changed
+
+- **AGENTS.md dispatch rules**: replace local skill names (`goal-workflow-planner`, `loop-run-generator`,
+  `claude-code-loop`) with unified global FQN `loop-agent` for long-task planning and L0~L3 loop management.
+- **Package required paths**: add `schemas/artifact-workflow-profile.schema.json` and
+  `scripts/lib/workflow-profile.mjs` (plus adapter copies) to required package paths for both Codex and
+  Claude Code adapter surfaces.
+- **Single resolver and real validator execution**: route public, dedicated, audit, project, and legacy
+  profiles through `scripts/lib/workflow-profile.mjs`; execute validators in order and fail closed with
+  structured evidence.
+- **Recursive skill synchronization**: synchronize nested PRD/scenario author, review, and repair skills
+  to both adapters and make both drift checks reject nested changes.
+- **Review Result consumer contract**: repair workflows now consume only validated protocol fields,
+  reject unknown top-level fields, require `attempt` to be 1–3, require producer identity for successful
+  PASS decisions, reject PASS with open block findings, and reject acceptance/self-acceptance violations by
+  stable `executor + name`. This is an intentional Review Result v1.0 consumption-compatibility tightening:
+  migrate legacy top-level fields into protocol sections and run
+  `artifact-graph validate-review-result --file <result.json> --format json` before supplying a result.
+
+- `.artifact-review.json` remains read-only compatible in 0.5.x and is planned for removal in 0.6.0;
+  `artifact-profiles/project.yaml` is the canonical format.
+- `@tc` remains a compatibility alias for `e2e_test` but now emits `E2E-TRACE-007`; use
+  `@e2e_test` in new and migrated code comments.
+
+### Fixed
+
+- Public workers now resolve from the installed source/adapter root, missing workflow domains no longer
+  pass, `@tc` maps to `e2e_test` with a warning, and unknown unregistered trace tags are ignored.
+- Pre-commit refresh switches to `--all` whenever `artifact-graph.config.yaml` is staged, so config
+  path/type changes cannot leave a false-fresh changed-only lock.
+
 ## 0.4.1
 
 ### Fixed
@@ -26,7 +71,7 @@
 - **Precise runtime compatibility**: `artifact-chain-assistant` 0.3.1 verifies `artifact-graph@0.3.1` exactly. `compatibility.json` is the machine-readable single source of truth for the plugin/runtime version combination.
 - **Compatibility checker**: `check-compatibility.mjs` validates plugin version consistency across `package.json`, marketplace manifests, adapter manifests, and prevents forbidden unlocked install patterns in public documentation.
 - **Doctor version diagnosis**: plugin `doctor` inspects the target project's locally installed `artifact-graph` version before forwarding to the underlying CLI. Reports `cli_not_found`, `version_mismatch`, `version_unresolved` with exact remediation commands (`pnpm add -D artifact-graph@0.3.1`).
-- **Installation documentation governance**: `docs/public/artifact-chain-assistant/INSTALL.md` is the parent authoring source of truth; plugin and adapter `INSTALL.md` are generated copies. npm registry is the default install path with GitHub tag fallback.
+- **Installation documentation governance**: `INSTALL.md` is the authoritative installation guide; plugin and adapter copies are generated from it to ensure consistency. npm registry is the default install path with GitHub tag fallback.
 - **Human quick start**: step-by-step guide covering plugin install, runtime install, doctor verification, bootstrap, where-am-i, and maintainer.
 - **Agent prompts**: copy-paste prompts for Codex/Claude Code to enter bootstrap, where-am-i, and maintainer skills.
 - **Clone onboarding**: second-developer recovery path with frozen lockfile install, doctor validation, strict audit, local index rebuild, and per-machine hook installation. Git-tracked files are authoritative; `.artifact-graph/` and `.agent-method-registry/` are derived caches.

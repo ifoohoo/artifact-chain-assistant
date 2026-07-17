@@ -1,7 +1,7 @@
 schemaVersion: 1
 catalog:
   id: artifact-chain-assistant
-  version: "0.3.0"
+  version: "0.5.0"
 entries:
   - ref: artifact.prd-feature.default
     provider:
@@ -218,5 +218,23 @@ entries:
       - "项目根路径"
     produces:
       - "健康检查报告或能力审计结果"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.generate
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: artifact-generate
+    kind: workflow
+    summary: "通用制品生成入口，从模板和 profile 配置生成非 PRD/scenario 类型制品"
+    match:
+      domains: [artifact]
+      artifactTypes: [design-spec, link, e2e, domain, contract, blueprint, verification]
+      intents: [generate]
+    accepts:
+      - "制品类型、目标路径和模板配置"
+    produces:
+      - "从模板生成的制品文件"
     sideEffects:
       - write-project-artifacts

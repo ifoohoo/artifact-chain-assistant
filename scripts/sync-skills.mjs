@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 // @scenario S-01 @feature ACA1
 // @scenario S-05 @feature ACA5
+// @feature ACA17
+// @scenario S-56
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -40,7 +42,7 @@ let drift = false;
 for (const host of hosts) {
   const expected = new Set(sources.map((source) => source.name));
   const skillsRoot = join(root, `adapters/${host.id}/skills`);
-  const actual = await skillDirectoryNames(skillsRoot);
+  const actual = await skillNames(skillsRoot);
   const missing = [...expected].filter((name) => !actual.has(name));
   const extra = [...actual].filter((name) => !expected.has(name));
 
@@ -96,16 +98,24 @@ function relativeToRoot(filePath) {
 }
 
 export async function discoverSkillSources(root) {
-  const entries = await readdir(join(root, 'skills-src'), { withFileTypes: true });
+  const skillsRoot = join(root, 'skills-src');
   const sources = [];
-  for (const entry of entries.filter((item) => item.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))) {
-    const plain = join(root, 'skills-src', entry.name, 'SKILL.md');
-    const template = join(root, 'skills-src', entry.name, 'SKILL.md.tpl');
+  async function visit(directory) {
+    const entries = await readdir(directory, { withFileTypes: true });
+    const plain = join(directory, 'SKILL.md');
+    const template = join(directory, 'SKILL.md.tpl');
     const sourcePath = await firstExisting([plain, template]);
-    if (!sourcePath) throw new Error(`Missing skill source: ${entry.name}`);
-    sources.push({ name: entry.name, sourcePath, template: sourcePath.endsWith('.tpl') });
+    if (sourcePath) {
+      const name = relative(skillsRoot, directory).split(sep).join('/');
+      if (!name) throw new Error('skills-src root cannot itself be a skill');
+      sources.push({ name, sourcePath, template: sourcePath.endsWith('.tpl') });
+    }
+    for (const entry of entries.filter(item => item.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))) {
+      await visit(join(directory, entry.name));
+    }
   }
-  return sources;
+  await visit(skillsRoot);
+  return sources.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 async function firstExisting(paths) {
@@ -120,10 +130,18 @@ async function firstExisting(paths) {
   return null;
 }
 
-async function skillDirectoryNames(skillsRoot) {
+async function skillNames(skillsRoot) {
+  const names = new Set();
+  async function visit(directory) {
+    const entries = await readdir(directory, { withFileTypes: true });
+    if (entries.some(entry => entry.isFile() && entry.name === 'SKILL.md')) {
+      names.add(relative(skillsRoot, directory).split(sep).join('/'));
+    }
+    for (const entry of entries.filter(item => item.isDirectory())) await visit(join(directory, entry.name));
+  }
   try {
-    const entries = await readdir(skillsRoot, { withFileTypes: true });
-    return new Set(entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name));
+    await visit(skillsRoot);
+    return names;
   } catch (error) {
     if (error.code === 'ENOENT') return new Set();
     throw error;

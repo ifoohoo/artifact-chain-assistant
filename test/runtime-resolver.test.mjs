@@ -16,7 +16,7 @@ const RUNTIME_MODULE = join(import.meta.dirname, '..', 'scripts', 'lib', 'artifa
  * Create a fake artifact-graph CLI with a proper package structure
  * so resolvePackageVersion can find version.
  */
-async function createFakeCli(dir, { version = '0.4.1', executable = true } = {}) {
+async function createFakeCli(dir, { version = '0.5.0', executable = true } = {}) {
   await mkdir(join(dir, 'node_modules', 'artifact-graph', 'bin'), { recursive: true });
   await mkdir(join(dir, 'node_modules', '.bin'), { recursive: true });
 
@@ -42,7 +42,7 @@ if (process.argv[2] === '--version') { process.stdout.write('${version}\\n'); pr
 /**
  * Create a bare CLI on PATH (no package structure) for PATH lookup testing.
  */
-async function createBareCli(dir, { version = '0.4.1', executable = true } = {}) {
+async function createBareCli(dir, { version = '0.5.0', executable = true } = {}) {
   await mkdir(dir, { recursive: true });
   const cliPath = join(dir, 'artifact-graph');
   const content = `#!/usr/bin/env node
@@ -61,7 +61,7 @@ test('prefers project-local .bin over PATH', async () => {
   const pathDir = await mkdtemp(join(tmpdir(), 'rt-path-'));
   try {
     // Create local .bin with correct version and proper package structure
-    await createFakeCli(projectRoot, { version: '0.4.1' });
+    await createFakeCli(projectRoot, { version: '0.5.0' });
     // Create a CLI on PATH with wrong version (also needs package structure for version resolution)
     await createFakeCli(pathDir, { version: '0.2.0' });
 
@@ -70,7 +70,7 @@ test('prefers project-local .bin over PATH', async () => {
       env: { PATH: `${join(pathDir, 'node_modules', '.bin')}:${CLEAN_PATH}` },
     });
     assert.equal(result.ok, true);
-    assert.equal(result.actualVersion, '0.4.1');
+    assert.equal(result.actualVersion, '0.5.0');
     assert.ok(result.cliPath.includes('node_modules'));
   } finally {
     await rm(projectRoot, { recursive: true, force: true });
@@ -87,7 +87,7 @@ test('prefers PATH over ARTIFACT_GRAPH_LEGACY_CLI', async () => {
     await mkdir(join(projectRoot, 'node_modules'), { recursive: true });
 
     // PATH has correct version
-    await createFakeCli(pathDir, { version: '0.4.1' });
+    await createFakeCli(pathDir, { version: '0.5.0' });
     // Legacy has wrong version
     await createFakeCli(legacyDir, { version: '0.2.0' });
     const legacyCli = join(legacyDir, 'node_modules', '.bin', 'artifact-graph');
@@ -100,7 +100,7 @@ test('prefers PATH over ARTIFACT_GRAPH_LEGACY_CLI', async () => {
       },
     });
     assert.equal(result.ok, true);
-    assert.equal(result.actualVersion, '0.4.1');
+    assert.equal(result.actualVersion, '0.5.0');
     assert.ok(result.cliPath.includes(pathDir));
   } finally {
     await rm(projectRoot, { recursive: true, force: true });
@@ -115,7 +115,7 @@ test('falls back to ARTIFACT_GRAPH_LEGACY_CLI when PATH has no match', async () 
   const legacyDir = await mkdtemp(join(tmpdir(), 'rt-legacy-'));
   try {
     await mkdir(join(projectRoot, 'node_modules'), { recursive: true });
-    await createFakeCli(legacyDir, { version: '0.4.1' });
+    await createFakeCli(legacyDir, { version: '0.5.0' });
     const legacyCli = join(legacyDir, 'node_modules', '.bin', 'artifact-graph');
 
     const result = await inspectArtifactGraphRuntime({
@@ -126,7 +126,7 @@ test('falls back to ARTIFACT_GRAPH_LEGACY_CLI when PATH has no match', async () 
       },
     });
     assert.equal(result.ok, true);
-    assert.equal(result.actualVersion, '0.4.1');
+    assert.equal(result.actualVersion, '0.5.0');
     assert.ok(result.cliPath.includes(legacyDir));
   } finally {
     await rm(projectRoot, { recursive: true, force: true });
@@ -143,7 +143,7 @@ test('rejects non-executable file even if it exists', async () => {
   try {
     await mkdir(join(projectRoot, 'node_modules'), { recursive: true });
     // Create a non-executable file on PATH
-    await createFakeCli(pathDir, { version: '0.4.1', executable: false });
+    await createFakeCli(pathDir, { version: '0.5.0', executable: false });
 
     const result = await inspectArtifactGraphRuntime({
       projectRoot,
@@ -163,14 +163,14 @@ test('resolves executable file when it has correct permissions', async () => {
   const pathDir = await mkdtemp(join(tmpdir(), 'rt-path-'));
   try {
     await mkdir(join(projectRoot, 'node_modules'), { recursive: true });
-    await createFakeCli(pathDir, { version: '0.4.1', executable: true });
+    await createFakeCli(pathDir, { version: '0.5.0', executable: true });
 
     const result = await inspectArtifactGraphRuntime({
       projectRoot,
       env: { PATH: `${join(pathDir, 'node_modules', '.bin')}:${CLEAN_PATH}` },
     });
     assert.equal(result.ok, true);
-    assert.equal(result.actualVersion, '0.4.1');
+    assert.equal(result.actualVersion, '0.5.0');
   } finally {
     await rm(projectRoot, { recursive: true, force: true });
     await rm(pathDir, { recursive: true, force: true });
@@ -183,7 +183,7 @@ test('uses platform PATH delimiter', async () => {
   const { findOnPath } = await import(RUNTIME_MODULE);
   const pathDir = await mkdtemp(join(tmpdir(), 'rt-delim-'));
   try {
-    await createBareCli(pathDir, { version: '0.4.1' });
+    await createBareCli(pathDir, { version: '0.5.0' });
     const path = await import('node:path');
     const delim = path.delimiter;
     const result = await findOnPath({

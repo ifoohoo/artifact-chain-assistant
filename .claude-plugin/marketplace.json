@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Artifact-chain intake, diagnostics, hooks, and version-lock maintenance helpers.",
-    "version": "0.4.1"
+    "version": "0.5.0"
   },
   "plugins": [
     {

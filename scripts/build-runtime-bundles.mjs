@@ -14,10 +14,11 @@ const sharedFiles = [
   'compatibility.json',
   'scripts/doctor.mjs',
   'scripts/check-workflow-profile.mjs',
+  'scripts/run-artifact-workflow.mjs',
   'scripts/batch-split.mjs',
   'scripts/batch-merge.mjs',
 ];
-const sharedDirectories = ['templates/core', 'templates/extended', 'scripts/lib', 'agent-methods'];
+const sharedDirectories = ['templates/core', 'templates/extended', 'scripts/lib', 'schemas', 'agent-methods'];
 
 let drift = false;
 

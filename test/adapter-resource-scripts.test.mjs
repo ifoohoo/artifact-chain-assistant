@@ -1,4 +1,6 @@
 // @feature ACA16 @scenario S-49 @scenario S-50
+// @feature ACA17
+// @scenario S-56
 // Adapter resource completeness: verify that check-workflow-profile.mjs,
 // batch-split.mjs, and batch-merge.mjs are present and executable from
 // each host adapter root (codex, claude).
@@ -6,7 +8,7 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import {
-  access, chmod, cp, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile,
+  access, chmod, cp, mkdir, mkdtemp, readFile, readdir, rm, stat, symlink, writeFile,
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -17,14 +19,33 @@ import { promisify } from 'node:util';
 const execFileAsync = promisify(execFile);
 const PLUGIN_ROOT = resolve(dirname(import.meta.dirname));
 const NODE = execPath;
+const PARENT_ARTIFACT_GRAPH_CLI = resolve(PLUGIN_ROOT, '..', '..', 'node_modules/.bin/artifact-graph');
+const hasParentArtifactGraphCli = await access(PARENT_ARTIFACT_GRAPH_CLI).then(() => true, () => false);
+const installedRunnerTest = hasParentArtifactGraphCli
+  ? test
+  : (name, fn) => test.skip(`${name} [requires parent artifact-graph CLI]`, fn);
 
 const MANAGED_SCRIPTS = [
   'scripts/check-workflow-profile.mjs',
+  'scripts/run-artifact-workflow.mjs',
   'scripts/batch-split.mjs',
   'scripts/batch-merge.mjs',
+  'scripts/lib/inline-yaml-parser.mjs',
+  'scripts/lib/workflow-profile.mjs',
 ];
 
 const HOSTS = ['codex', 'claude'];
+
+async function runChecker(adapterRoot, projectRoot, action, domain) {
+  const args = ['scripts/check-workflow-profile.mjs', '--root', projectRoot, '--action', action, '--format', 'json'];
+  if (domain !== undefined) args.push('--domain', domain);
+  try {
+    const { stdout } = await execFileAsync(NODE, args, { cwd: adapterRoot });
+    return JSON.parse(stdout);
+  } catch (error) {
+    return JSON.parse(error.stdout);
+  }
+}
 
 // ── existence & executability ─────────────────────────────────────────
 
@@ -56,19 +77,129 @@ for (const host of HOSTS) {
 // ── check-workflow-profile.mjs from adapter root ─────────────────────
 
 for (const host of HOSTS) {
-  test(`${host}: check-workflow-profile reports OK for project with conventional worker`, async () => {
+  test(`${host}: adapter fails closed for damaged profile, worker, resource, action, domain and prototype config`, async () => {
+    const adapterRoot = join(PLUGIN_ROOT, 'adapters', host);
+
+    const danglingProfile = await mkdtemp(join(tmpdir(), `adapter-dangling-profile-${host}-`));
+    const danglingWorker = await mkdtemp(join(tmpdir(), `adapter-dangling-worker-${host}-`));
+    const danglingResource = await mkdtemp(join(tmpdir(), `adapter-dangling-resource-${host}-`));
+    const prototypeProfile = await mkdtemp(join(tmpdir(), `adapter-prototype-${host}-`));
+    const externalEmptyRoot = await mkdtemp(join(tmpdir(), `adapter-external-empty-root-${host}-`));
+    const danglingSkillsRoot = await mkdtemp(join(tmpdir(), `adapter-dangling-skills-root-${host}-`));
+    const dangerousLegacy = await mkdtemp(join(tmpdir(), `adapter-dangerous-legacy-${host}-`));
+    const emptyRelease = await mkdtemp(join(tmpdir(), `adapter-release-${host}-`));
+    try {
+      await mkdir(join(danglingProfile, 'artifact-profiles'), { recursive: true });
+      await symlink(join(danglingProfile, 'missing.yaml'), join(danglingProfile, 'artifact-profiles/project.yaml'));
+      await writeFile(join(danglingProfile, '.artifact-review.json'), '{"workers":{"review":{}}}\n');
+      assert.equal((await runChecker(adapterRoot, danglingProfile, 'review', 'design-spec')).status, 'BLOCKED');
+
+      await mkdir(join(danglingWorker, 'artifact-profiles'), { recursive: true });
+      await mkdir(join(danglingWorker, 'artifacts/checklists'), { recursive: true });
+      await mkdir(join(danglingWorker, '.agents/skills/project-review'), { recursive: true });
+      await mkdir(join(danglingWorker, '.claude/skills/project-review'), { recursive: true });
+      await writeFile(join(danglingWorker, 'artifacts/checklists/review.md'), '# Review\n');
+      await writeFile(join(danglingWorker, '.agents/skills/project-review/SKILL.md'), '---\nname: project-review\n---\n');
+      await symlink(join(danglingWorker, 'missing-worker.md'), join(danglingWorker, '.claude/skills/project-review/SKILL.md'));
+      await writeFile(join(danglingWorker, 'artifact-profiles/project.yaml'), `schema_version: 1
+project:
+  id: test-proj
+  language: typescript
+workflows:
+  review:
+    design-spec:
+      checklists:
+        - artifacts/checklists/review.md
+      worker:
+        skill: project-review
+`);
+      assert.equal((await runChecker(adapterRoot, danglingWorker, 'review', 'design-spec')).status, 'BLOCKED');
+
+      await mkdir(join(danglingResource, 'artifact-profiles'), { recursive: true });
+      await mkdir(join(danglingResource, 'artifacts/checklists'), { recursive: true });
+      await symlink(join(danglingResource, 'missing.md'), join(danglingResource, 'artifacts/checklists/review.md'));
+      await writeFile(join(danglingResource, 'artifact-profiles/project.yaml'), `schema_version: 1
+project:
+  id: test-proj
+  language: typescript
+workflows:
+  review:
+    design-spec:
+      checklists:
+        - artifacts/checklists/review.md
+`);
+      assert.equal((await runChecker(adapterRoot, danglingResource, 'review', 'design-spec')).status, 'BLOCKED');
+      assert.equal((await runChecker(adapterRoot, danglingResource, 'deploy', 'design-spec')).status, 'BLOCKED');
+      assert.equal((await runChecker(adapterRoot, danglingResource, 'review', undefined)).status, 'BLOCKED');
+
+      await mkdir(join(prototypeProfile, 'artifact-profiles'), { recursive: true });
+      await writeFile(join(prototypeProfile, 'artifact-profiles/project.yaml'), `schema_version: 1
+project:
+  id: test-proj
+  language: typescript
+  __proto__: polluted
+workflows: {}
+`);
+      assert.equal((await runChecker(adapterRoot, prototypeProfile, 'review', 'design-spec')).status, 'BLOCKED');
+
+      const outside = await mkdtemp(join(tmpdir(), `adapter-outside-empty-skills-${host}-`));
+      await mkdir(join(outside, 'skills'), { recursive: true });
+      await mkdir(join(externalEmptyRoot, '.agents'), { recursive: true });
+      await symlink(join(outside, 'skills'), join(externalEmptyRoot, '.agents/skills'));
+      await mkdir(join(externalEmptyRoot, '.claude/skills/project-review'), { recursive: true });
+      await writeFile(join(externalEmptyRoot, '.claude/skills/project-review/SKILL.md'), '---\nname: project-review\n---\n');
+      await writeFile(join(externalEmptyRoot, '.artifact-review.json'), '{"workers":{"review":{"design-spec":"project-review"}}}\n');
+      assert.equal((await runChecker(adapterRoot, externalEmptyRoot, 'review', 'design-spec')).status, 'BLOCKED');
+      await rm(outside, { recursive: true, force: true });
+
+      await mkdir(join(danglingSkillsRoot, '.agents'), { recursive: true });
+      await symlink(join(danglingSkillsRoot, 'missing-skills'), join(danglingSkillsRoot, '.agents/skills'));
+      await mkdir(join(danglingSkillsRoot, '.claude/skills/project-review'), { recursive: true });
+      await writeFile(join(danglingSkillsRoot, '.claude/skills/project-review/SKILL.md'), '---\nname: project-review\n---\n');
+      await writeFile(join(danglingSkillsRoot, '.artifact-review.json'), '{"workers":{"review":{"design-spec":"project-review"}}}\n');
+      assert.equal((await runChecker(adapterRoot, danglingSkillsRoot, 'review', 'design-spec')).status, 'BLOCKED');
+
+      await writeFile(join(dangerousLegacy, '.artifact-review.json'), '{"workflows":{"review":{"design-spec":{"checklists":[],"constructor":{"polluted":true}}}}}\n');
+      assert.equal((await runChecker(adapterRoot, dangerousLegacy, 'review', 'design-spec')).status, 'BLOCKED');
+
+      await mkdir(join(emptyRelease, 'artifact-profiles'), { recursive: true });
+      await mkdir(join(emptyRelease, 'artifacts'), { recursive: true });
+      await writeFile(join(emptyRelease, 'artifact-graph.config.yaml'), 'artifactTypes: {}\n');
+      await writeFile(join(emptyRelease, 'artifact-profiles/project.yaml'), `schema_version: 1
+project:
+  id: test-proj
+  language: typescript
+workflows:
+  audit:
+    release-gate: {}
+`);
+      assert.equal((await runChecker(adapterRoot, emptyRelease, 'audit', 'release-gate')).status, 'NEEDS_INPUT');
+    } finally {
+      await Promise.all([danglingProfile, danglingWorker, danglingResource, prototypeProfile, externalEmptyRoot, danglingSkillsRoot, dangerousLegacy, emptyRelease]
+        .map((path) => rm(path, { recursive: true, force: true })));
+    }
+  });
+
+  test(`${host}: check-workflow-profile reports OK for project with project worker`, async () => {
     const adapterRoot = join(PLUGIN_ROOT, 'adapters', host);
     const projectRoot = await mkdtemp(join(tmpdir(), `profile-ok-${host}-`));
     try {
       await mkdir(join(projectRoot, 'artifacts/design'), { recursive: true });
+      await mkdir(join(projectRoot, 'artifacts/checklists'), { recursive: true });
+      await writeFile(join(projectRoot, 'artifacts/checklists/design-review.md'), '# Review');
       await writeFile(
         join(projectRoot, 'artifact-graph.config.yaml'),
         'artifactTypes: {}\n',
       );
-      await mkdir(join(projectRoot, '.claude/skills/artifact-review-design'), { recursive: true });
+      await mkdir(join(projectRoot, '.claude/skills/project-review-design'), { recursive: true });
       await writeFile(
-        join(projectRoot, '.claude/skills/artifact-review-design/SKILL.md'),
-        '---\nname: artifact-review-design\n---\n',
+        join(projectRoot, '.claude/skills/project-review-design/SKILL.md'),
+        '---\nname: project-review-design\n---\n',
+      );
+      await mkdir(join(projectRoot, 'artifact-profiles'), { recursive: true });
+      await writeFile(
+        join(projectRoot, 'artifact-profiles/project.yaml'),
+        'schema_version: 1\nproject:\n  id: test-proj\n  language: typescript\nworkflows:\n  review:\n    design-spec:\n      checklists:\n        - artifacts/checklists/design-review.md\n      worker:\n        skill: project-review-design\n',
       );
 
       const { stdout } = await execFileAsync(NODE, [
@@ -81,7 +212,8 @@ for (const host of HOSTS) {
 
       const result = JSON.parse(stdout);
       assert.equal(result.status, 'OK');
-      assert.equal(result.worker, 'artifact-review-design');
+      assert.equal(result.execution_mode, 'project-worker');
+      assert.ok(result.worker_path);
     } finally {
       await rm(projectRoot, { recursive: true, force: true });
     }
@@ -111,6 +243,193 @@ for (const host of HOSTS) {
         const result = JSON.parse(error.stdout);
         assert.equal(result.status, 'NEEDS_INPUT');
       }
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  test(`${host}: adapter public worker executes a zero validator from the project`, async () => {
+    const adapterRoot = join(PLUGIN_ROOT, 'adapters', host);
+    const projectRoot = await mkdtemp(join(tmpdir(), `profile-validator-ok-${host}-`));
+    try {
+      await mkdir(join(projectRoot, 'artifacts/checklists'), { recursive: true });
+      await mkdir(join(projectRoot, 'artifact-profiles'), { recursive: true });
+      await mkdir(join(projectRoot, 'scripts'), { recursive: true });
+      await writeFile(join(projectRoot, 'artifact-graph.config.yaml'), 'artifactTypes: {}\n');
+      await writeFile(join(projectRoot, 'artifacts/checklists/review.md'), '# Review\n');
+      await writeFile(join(projectRoot, 'scripts/validate.mjs'), `process.stdout.write(process.env.ARTIFACT_WORKFLOW_DOMAIN ?? '')`);
+      await writeFile(join(projectRoot, 'artifact-profiles/project.yaml'), `schema_version: 1
+project:
+  id: test-proj
+  language: typescript
+workflows:
+  review:
+    design-spec:
+      checklists:
+        - artifacts/checklists/review.md
+      validators:
+        - scripts/validate.mjs
+`);
+      const { stdout } = await execFileAsync(NODE, [
+        'scripts/check-workflow-profile.mjs', '--root', projectRoot,
+        '--action', 'review', '--domain', 'design-spec', '--format', 'json',
+      ], { cwd: adapterRoot });
+      const result = JSON.parse(stdout);
+      assert.equal(result.status, 'OK');
+      assert.equal(result.worker_path, join(adapterRoot, 'skills/artifact-workflow-worker/SKILL.md'));
+      assert.equal(result.validators[0].exit_code, 0);
+      assert.equal(result.validators[0].stdout, 'design-spec');
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  test(`${host}: adapter blocks a non-zero validator and returns execution evidence`, async () => {
+    const adapterRoot = join(PLUGIN_ROOT, 'adapters', host);
+    const projectRoot = await mkdtemp(join(tmpdir(), `profile-validator-fail-${host}-`));
+    try {
+      await mkdir(join(projectRoot, 'artifacts/checklists'), { recursive: true });
+      await mkdir(join(projectRoot, 'artifact-profiles'), { recursive: true });
+      await mkdir(join(projectRoot, 'scripts'), { recursive: true });
+      await writeFile(join(projectRoot, 'artifact-graph.config.yaml'), 'artifactTypes: {}\n');
+      await writeFile(join(projectRoot, 'artifacts/checklists/review.md'), '# Review\n');
+      await writeFile(join(projectRoot, 'scripts/fail.cjs'), `process.stderr.write('untrusted'); process.exit(6)`);
+      await writeFile(join(projectRoot, 'artifact-profiles/project.yaml'), `schema_version: 1
+project:
+  id: test-proj
+  language: typescript
+workflows:
+  review:
+    design-spec:
+      checklists:
+        - artifacts/checklists/review.md
+      validators:
+        - scripts/fail.cjs
+`);
+      await assert.rejects(execFileAsync(NODE, [
+        'scripts/check-workflow-profile.mjs', '--root', projectRoot,
+        '--action', 'review', '--domain', 'design-spec', '--format', 'json',
+      ], { cwd: adapterRoot }), error => {
+        const result = JSON.parse(error.stdout);
+        assert.equal(result.status, 'BLOCKED');
+        assert.equal(result.validators[0].exit_code, 6);
+        assert.equal(result.validators[0].stderr, 'untrusted');
+        return true;
+      });
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  test(`${host}: adapter returns NEEDS_INPUT for validator exit 2 instead of BLOCKED`, async () => {
+    const adapterRoot = join(PLUGIN_ROOT, 'adapters', host);
+    const projectRoot = await mkdtemp(join(tmpdir(), `profile-validator-needs-${host}-`));
+    try {
+      await mkdir(join(projectRoot, 'artifacts/checklists'), { recursive: true });
+      await mkdir(join(projectRoot, 'artifact-profiles'), { recursive: true });
+      await mkdir(join(projectRoot, 'scripts'), { recursive: true });
+      await writeFile(join(projectRoot, 'artifact-graph.config.yaml'), 'artifactTypes: {}\n');
+      await writeFile(join(projectRoot, 'artifacts/checklists/review.md'), '# Review\n');
+      await writeFile(join(projectRoot, 'scripts/needs-input.cjs'), 'process.exit(2)');
+      await writeFile(join(projectRoot, 'artifact-profiles/project.yaml'), `schema_version: 1
+project:
+  id: test-proj
+  language: typescript
+workflows:
+  review:
+    design-spec:
+      checklists:
+        - artifacts/checklists/review.md
+      validators:
+        - scripts/needs-input.cjs
+`);
+      await assert.rejects(execFileAsync(NODE, [
+        'scripts/check-workflow-profile.mjs', '--root', projectRoot,
+        '--action', 'review', '--domain', 'design-spec', '--format', 'json',
+      ], { cwd: adapterRoot }), error => {
+        const result = JSON.parse(error.stdout);
+        assert.equal(result.status, 'NEEDS_INPUT');
+        assert.equal(result.validators[0].exit_code, 2);
+        return true;
+      });
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  installedRunnerTest(`${host}: installed runner needs semantic review, rejects provenance tampering, and preserves target on validator failure`, async () => {
+    const adapterRoot = join(PLUGIN_ROOT, 'adapters', host);
+    const projectRoot = await mkdtemp(join(tmpdir(), `installed-runner-${host}-`));
+    try {
+      await mkdir(join(projectRoot, 'artifacts/checklists'), { recursive: true });
+      await mkdir(join(projectRoot, 'artifact-profiles'), { recursive: true });
+      await mkdir(join(projectRoot, 'scripts'), { recursive: true });
+      await mkdir(join(projectRoot, 'runs'), { recursive: true });
+      await mkdir(join(projectRoot, 'node_modules/.bin'), { recursive: true });
+      await symlink(PARENT_ARTIFACT_GRAPH_CLI, join(projectRoot, 'node_modules/.bin/artifact-graph'));
+      await writeFile(join(projectRoot, 'artifact-graph.config.yaml'), 'artifactTypes: {}\n');
+      await writeFile(join(projectRoot, 'artifacts/checklists/review.md'), '# Review\n');
+      await writeFile(join(projectRoot, 'template.md'), '# Candidate\n');
+      await writeFile(join(projectRoot, 'target.md'), 'original bytes\n');
+      await writeFile(join(projectRoot, 'scripts/validate.mjs'), 'process.exit(Number(process.env.VALIDATOR_EXIT ?? 0));\n');
+      const profilePath = join(projectRoot, 'artifact-profiles/project.yaml');
+      await writeFile(profilePath, `schema_version: 1
+project:
+  id: installed-test
+  language: markdown
+workflows:
+  review:
+    design-spec:
+      checklists:
+        - artifacts/checklists/review.md
+      validators:
+        - scripts/validate.mjs
+  generate:
+    design-spec:
+      templates:
+        - template.md
+      validators:
+        - scripts/validate.mjs
+`);
+      const validatorPath = join(projectRoot, 'scripts/validate.mjs');
+      const baseProfile = {
+        status: 'OK', profile_path: profilePath, execution_mode: 'public-worker',
+        worker_path: join(adapterRoot, 'skills/artifact-workflow-worker/SKILL.md'),
+        checklist_paths: [join(projectRoot, 'artifacts/checklists/review.md')],
+        validators: [{ path: validatorPath }], template_paths: [], diagnostics: [],
+      };
+      const run = async (name, task, env = {}) => {
+        const path = join(projectRoot, `${name}.json`);
+        await writeFile(path, `${JSON.stringify(task)}\n`);
+        const { stdout } = await execFileAsync(NODE, ['scripts/run-artifact-workflow.mjs', '--task', path], {
+          cwd: adapterRoot, env: { ...process.env, ...env },
+        });
+        return JSON.parse(stdout);
+      };
+      const reviewTask = {
+        intent: 'review', domain: 'design-spec', target_path: join(projectRoot, 'target.md'),
+        run_dir: join(projectRoot, 'runs/review'), profile_resolution: baseProfile, input_result: null,
+      };
+      const needsInput = await run('review-task', reviewTask);
+      assert.equal(needsInput.status, 'NEEDS_INPUT');
+      assert.equal(needsInput.decision, 'NEEDS_INPUT');
+
+      const forged = structuredClone(reviewTask);
+      forged.run_dir = join(projectRoot, 'runs/forged');
+      forged.profile_resolution.worker_path = join(projectRoot, 'claimed-worker.md');
+      const rejected = await run('forged-task', forged);
+      assert.equal(rejected.status, 'BLOCKED');
+
+      const generateTask = {
+        intent: 'generate', domain: 'design-spec', target_path: join(projectRoot, 'target.md'),
+        run_dir: join(projectRoot, 'runs/generate'),
+        profile_resolution: { ...baseProfile, checklist_paths: [], template_paths: [join(projectRoot, 'template.md')] },
+        input_result: null,
+      };
+      const blocked = await run('generate-task', generateTask, { VALIDATOR_EXIT: '9' });
+      assert.equal(blocked.status, 'BLOCKED');
+      assert.equal(await readFile(join(projectRoot, 'target.md'), 'utf8'), 'original bytes\n');
+      assert.equal(JSON.parse(await readFile(join(projectRoot, 'runs/generate/result.json'), 'utf8')).status, 'BLOCKED');
     } finally {
       await rm(projectRoot, { recursive: true, force: true });
     }

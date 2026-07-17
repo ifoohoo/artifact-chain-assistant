@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 // @feature ACA12 @scenario S-36,S-37,S-38,S-39
+// @feature ACA17 @scenario S-55
 // Deterministic test for agent-method-registry catalog integration.
 // No network access, no reading agent-method-registry source paths.
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { validateCatalogPackageVersion } from './lib/method-registry-version.mjs';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const catalogPath = join(root, 'agent-methods', 'catalog.yaml');
@@ -21,10 +23,18 @@ if (!existsSync(REGISTRY_CLI)) {
   process.exit(0);
 }
 
-const tmpDir = join(root, '.tmp', 'method-registry-test');
-mkdirSync(tmpDir, { recursive: true });
+const tmpRoot = join(root, '.tmp');
+mkdirSync(tmpRoot, { recursive: true });
+const tmpDir = mkdtempSync(join(tmpRoot, `method-registry-test-${process.pid}-`));
 
 const issues = [];
+
+try {
+const packageJson = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+const catalogText = readFileSync(catalogPath, 'utf8');
+const catalogVersionMatches = [...catalogText.matchAll(/^\s*version:\s*["']?([^"'\s]+)["']?\s*$/gm)];
+const catalogVersion = catalogVersionMatches.length === 1 ? catalogVersionMatches[0][1] : undefined;
+issues.push(...validateCatalogPackageVersion({ catalog: { version: catalogVersion } }, packageJson));
 
 function assert(condition, message) {
   if (!condition) {
@@ -67,7 +77,6 @@ function runRegistryExpectFail(args) {
   }
 }
 
-try {
   // ── 1. Schema validation ──
   const validation = runRegistry(['validate', '--catalog', catalogPath]);
   assert(validation.ok === true, 'catalog schema validation should pass');
@@ -99,8 +108,8 @@ try {
 
   const index = JSON.parse(readFileSync(indexPath, 'utf-8'));
 
-  // ── 3. Exactly 12 entries, all workflow ──
-  assert(index.entries.length === 12, `expected 12 entries, got ${index.entries.length}`);
+  // ── 3. Exactly 13 entries, all workflow ──
+  assert(index.entries.length === 13, `expected 13 entries, got ${index.entries.length}`);
   for (const entry of index.entries) {
     assert(entry.kind === 'workflow', `entry ${entry.ref} should be workflow, got ${entry.kind}`);
   }
@@ -119,6 +128,7 @@ try {
     'artifact.repair',
     'artifact.batch',
     'artifact.audit',
+    'artifact.generate',
   ];
   const actualRefs = index.entries.map(e => e.ref).sort();
   const sortedExpected = [...expectedRefs].sort();
@@ -126,6 +136,18 @@ try {
     JSON.stringify(actualRefs) === JSON.stringify(sortedExpected),
     `ref mismatch: expected ${JSON.stringify(sortedExpected)}, got ${JSON.stringify(actualRefs)}`
   );
+
+  // ── 4b. Verify artifact.generate exists and artifact-workflow-worker does NOT exist ──
+  const hasGenerate = index.entries.some(e => e.ref === 'artifact.generate');
+  assert(hasGenerate, 'artifact.generate entry should exist in catalog');
+  const hasWorkflowWorker = index.entries.some(e => e.ref === 'artifact-workflow-worker');
+  assert(!hasWorkflowWorker, 'artifact-workflow-worker should NOT exist in catalog');
+  for (const entry of index.entries) {
+    assert(
+      !entry.ref.includes('artifact-workflow-worker') && !entry.provider.skill.includes('artifact-workflow-worker'),
+      `entry ${entry.ref} must not expose artifact-workflow-worker through ref or provider.skill`,
+    );
+  }
 
   // ── 5. No internal skills ──
   const forbiddenPatterns = ['inspect', 'compose', 'validate'];
@@ -193,6 +215,7 @@ try {
     batch: 'artifact.batch',
     audit: 'artifact.audit',
     health: 'artifact.audit',
+    generate: 'artifact.generate',
   };
 
   for (const artifactType of genericTypes) {
@@ -245,7 +268,7 @@ try {
     `scenario review query should return exactly artifact.scenario-script.review`
   );
 
-  // ── 10. Resolve all 12 entries for Codex host (using adapter catalog) ──
+  // ── 10. Resolve all 13 entries for Codex host (using adapter catalog) ──
   const codexIndexPath = join(tmpDir, 'codex-effective-index.json');
   const codexIndexResult = runRegistry(['index', '--catalog', codexCatalogPath, '--out', codexIndexPath]);
   assert(codexIndexResult.ok === true, 'codex adapter index build should succeed');
@@ -262,7 +285,7 @@ try {
     );
   }
 
-  // ── 11. Resolve all 12 entries for Claude host (using adapter catalog) ──
+  // ── 11. Resolve all 13 entries for Claude host (using adapter catalog) ──
   const claudeIndexPath = join(tmpDir, 'claude-effective-index.json');
   const claudeIndexResult = runRegistry(['index', '--catalog', claudeCatalogPath, '--out', claudeIndexPath]);
   assert(claudeIndexResult.ok === true, 'claude adapter index build should succeed');
@@ -429,5 +452,5 @@ if (issues.length > 0) {
   }
   process.exit(1);
 } else {
-  console.log('Method registry check passed: 12 workflow entries, schema/query/resolve/overlay all verified.');
+  console.log('Method registry check passed: 13 workflow entries, schema/query/resolve/overlay all verified.');
 }

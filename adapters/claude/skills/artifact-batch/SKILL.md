@@ -12,6 +12,13 @@ argument-hint: "<action> <domain> <target-path> [--batch-size N] [--max-concurre
 
 本技能替代旧版 `batch-orchestrator`，提供标准化的批次切分、并发控制和结果合并。
 
+## Profile 与 Worker Contract
+
+- **批次并发由 batch 管理**：worker 不派生新 Agent，所有并发在 batch 层面控制。
+- **每波 worker**：使用 profile 确定每个 domain 的 worker（`public-worker` 或 `project-worker`）。
+- **标准 profile 路径**：`artifact-profiles/project.yaml`，定义 domain → worker 映射。
+- **缺 profile 或 worker 时**：返回 `NEEDS_INPUT`，停止当前批次。
+
 ## 使用
 
 ```
@@ -76,10 +83,10 @@ node "$PLUGIN_ROOT/scripts/batch-merge.mjs" <results-dir> [--run-id <id>]
   "status": "SUCCEEDED",
   "decision": "PASS",
   "summary": "Batch completed: 21 batches, 83 files, 0 findings.",
+  "producer": { "executor": "worker", "name": "artifact-batch", "skill": "artifact-batch" },
   "review": {
     "batches": [
-      { "id": "batch-001", "files": [...], "chars": 39207 },
-      ...
+      { "id": "batch-001", "files": ["artifacts/design/example.md"], "chars": 39207 }
     ],
     "metrics": {
       "batch_count": 21,

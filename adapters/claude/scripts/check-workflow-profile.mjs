@@ -1,74 +1,24 @@
 #!/usr/bin/env node
-// @feature ACA16 @scenario S-50
-// Read-only profile and worker readiness check for generic artifact workflows.
-import { existsSync, readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+// @feature ACA17
+// @scenario S-51
+// @scenario S-53
+// @scenario S-54
+// @decision D-ACA-17
+// Thin CLI wrapper. scripts/lib/workflow-profile.mjs is the single resolver.
+import { resolve } from 'node:path';
+import { buildCheckerOutput } from './lib/workflow-profile.mjs';
 
-const SUPPORTED_DOMAINS = new Set(['design-spec', 'link', 'e2e', 'domain', 'contract', 'blueprint', 'verification']);
-const DEDICATED_DOMAINS = new Set(['prd-feature', 'scenario-script']);
-const REVIEW_WORKERS = {
-  'design-spec': 'artifact-review-design',
-  link: 'artifact-review-link',
-  e2e: 'artifact-review-e2e',
-  domain: 'artifact-review-domain',
-  contract: 'artifact-review-contract',
-  blueprint: 'artifact-review-blueprint',
-  verification: 'artifact-review-verification',
-};
-
-function findSkill(root, name) {
-  for (const base of ['.claude/skills', '.agents/skills']) {
-    if (existsSync(join(root, base, name, 'SKILL.md'))) return join(base, name, 'SKILL.md');
-  }
-  return null;
-}
-
-function readProfile(root, explicitPath) {
-  const profilePath = explicitPath ? resolve(explicitPath) : join(root, '.artifact-review.json');
-  if (!existsSync(profilePath)) return { path: null, data: null, error: null };
-  try {
-    return { path: profilePath, data: JSON.parse(readFileSync(profilePath, 'utf8')), error: null };
-  } catch (error) {
-    return { path: profilePath, data: null, error: `Invalid profile JSON: ${error.message}` };
-  }
-}
-
-export async function checkWorkflowProfile({ root = process.cwd(), action = 'review', domain, profilePath } = {}) {
+export async function checkWorkflowProfile({ root = process.cwd(), action = 'review', domain, profilePath, target } = {}) {
   const projectRoot = resolve(root);
-  const diagnostics = [];
-  const hasConfig = existsSync(join(projectRoot, 'artifact-graph.config.yaml'));
-  const hasArtifacts = existsSync(join(projectRoot, 'artifacts'));
-  if (!hasConfig && !hasArtifacts) diagnostics.push('Missing artifact-graph.config.yaml and artifacts/');
-
-  if (DEDICATED_DOMAINS.has(domain)) diagnostics.push(`${domain} is owned by a dedicated skill family`);
-  if (!SUPPORTED_DOMAINS.has(domain) && action !== 'audit') diagnostics.push(`Unsupported generic workflow domain: ${domain ?? '(missing)'}`);
-
-  const profile = readProfile(projectRoot, profilePath);
-  if (profile.error) diagnostics.push(profile.error);
-
-  let worker = null;
-  let workerPath = null;
-  if (diagnostics.length === 0 && action !== 'audit' && action !== 'batch') {
-    worker = profile.data?.workers?.[action]?.[domain]
-      ?? (action === 'review' ? REVIEW_WORKERS[domain] : action === 'repair' ? 'artifact-review-repair' : null);
-    if (!worker) diagnostics.push(`No ${action} worker mapping for ${domain}`);
-    else {
-      workerPath = findSkill(projectRoot, worker);
-      if (!workerPath) diagnostics.push(`Mapped worker not found: ${worker}`);
-    }
-  }
-
+  const checker = await buildCheckerOutput({ root: projectRoot, profilePath, intent: action, domain, target });
   return {
-    status: diagnostics.length === 0 ? 'OK' : 'NEEDS_INPUT',
+    ...checker,
     root: projectRoot,
     action,
     domain,
-    profile: profile.path,
-    worker,
-    worker_path: workerPath,
+    profile: checker.profile_path,
+    worker: checker.worker_path ? checker.worker_path.split('/').slice(-2, -1)[0] : null,
     dry_run: true,
-    diagnostics,
-    next: diagnostics.length === 0 ? 'Invoke the resolved workflow.' : 'Add the missing config/profile/worker and run this check again.',
   };
 }
 
@@ -80,19 +30,35 @@ if (isMain) {
     return index >= 0 ? args[index + 1] : undefined;
   };
   if (args.includes('--help')) {
-    console.log('Usage: node check-workflow-profile.mjs --root <path> --action <review|repair|audit|batch> --domain <type> [--profile <json>] [--format json|text]');
+    console.log('Usage: node check-workflow-profile.mjs --root <path> --action <generate|review|repair|audit|batch> --domain <type> [--profile <json|yaml>] [--target <path>] [--format json|text]');
     process.exit(0);
   }
-  const result = await checkWorkflowProfile({
-    root: value('--root') ?? process.cwd(),
-    action: value('--action') ?? 'review',
-    domain: value('--domain'),
-    profilePath: value('--profile'),
-  });
+  let result;
+  try {
+    result = await checkWorkflowProfile({
+      root: value('--root') ?? process.cwd(),
+      action: value('--action') ?? 'review',
+      domain: value('--domain'),
+      profilePath: value('--profile'),
+      target: value('--target'),
+    });
+  } catch (error) {
+    result = {
+      status: 'BLOCKED', schema: null, profile_path: null, execution_mode: null,
+      worker_path: null, checklist_paths: [], validators: [], template_paths: [],
+      diagnostics: [`Checker failed closed: ${error.message}`],
+      next: 'Fix the malformed or unsafe profile and run this check again.',
+      root: resolve(value('--root') ?? process.cwd()),
+      action: value('--action') ?? 'review', domain: value('--domain'), profile: null,
+      worker: null, dry_run: true,
+    };
+  }
   if ((value('--format') ?? 'json') === 'text') {
     console.log(`${result.status}: ${result.action}/${result.domain ?? '(missing)'}`);
     for (const item of result.diagnostics) console.log(`- ${item}`);
     console.log(`Next: ${result.next}`);
-  } else console.log(JSON.stringify(result, null, 2));
+  } else {
+    console.log(JSON.stringify(result, null, 2));
+  }
   process.exit(result.status === 'OK' ? 0 : 2);
 }

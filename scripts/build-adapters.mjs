@@ -1,11 +1,26 @@
 #!/usr/bin/env node
 // @scenario S-05 @feature ACA5
+// @feature ACA17
+// @scenario S-56
 import { access, chmod, mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const check = process.argv.includes('--check');
+
+if (check) {
+  const skillCheck = spawnSync(process.execPath, ['scripts/sync-skills.mjs', '--check'], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  if (skillCheck.status !== 0) {
+    if (skillCheck.stdout) process.stderr.write(skillCheck.stdout);
+    if (skillCheck.stderr) process.stderr.write(skillCheck.stderr);
+    process.exitCode = 1;
+  }
+}
 const packageJson = JSON.parse(await readFile(join(root, 'package.json'), 'utf-8'));
 const vars = {
   pluginName: 'artifact-chain-assistant',

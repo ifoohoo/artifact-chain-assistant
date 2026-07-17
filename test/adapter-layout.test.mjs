@@ -155,6 +155,7 @@ test('builds self-contained host runtime bundles', async () => {
     await access(join(root, `adapters/${host}/EXTENDED-ARTIFACT-CATALOG.md`));
     await access(join(root, `adapters/${host}/templates/core/feature/starter.md`));
     await access(join(root, `adapters/${host}/templates/extended/ops/runbook/review-checklist.md`));
+    await access(join(root, `adapters/${host}/schemas/artifact-workflow-profile.schema.json`));
   }
   await runNode(root, 'scripts/build-runtime-bundles.mjs', ['--check']);
 });
@@ -279,6 +280,36 @@ test('rejects stale and missing generated skills', async () => {
   await rm(join(root, 'adapters/codex/skills/obsolete'), { recursive: true });
   await rm(join(root, 'adapters/claude/skills/artifact-chain-maintainer'), { recursive: true });
   await assert.rejects(runNode(root, 'scripts/sync-skills.mjs', ['--check']));
+});
+
+test('recursively syncs nested professional skills and detects drift in either adapter', async () => {
+  const root = await tempPlugin('nested-skill-drift');
+  const source = join(root, 'skills-src/prd-feature/author/SKILL.md');
+  const codex = join(root, 'adapters/codex/skills/prd-feature/author/SKILL.md');
+  const claude = join(root, 'adapters/claude/skills/prd-feature/author/SKILL.md');
+
+  await runNode(root, 'scripts/sync-skills.mjs');
+  assert.equal(await readFile(codex, 'utf8'), await readFile(source, 'utf8'));
+  assert.equal(await readFile(claude, 'utf8'), await readFile(source, 'utf8'));
+
+  await writeFile(codex, 'drifted nested Codex skill\n');
+  await assert.rejects(
+    runNode(root, 'scripts/sync-skills.mjs', ['--check']),
+    error => {
+      assert.match(error.stderr, /adapters\/codex\/skills\/prd-feature\/author\/SKILL\.md/);
+      return true;
+    },
+  );
+  await runNode(root, 'scripts/sync-skills.mjs');
+
+  await writeFile(claude, 'drifted nested Claude skill\n');
+  await assert.rejects(
+    runNode(root, 'scripts/build-adapters.mjs', ['--check']),
+    error => {
+      assert.match(error.stderr, /prd-feature\/author\/SKILL\.md|skill drift/i);
+      return true;
+    },
+  );
 });
 
 test('rejects executable mode drift', async () => {

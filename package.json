@@ -1,6 +1,6 @@
 {
   "name": "artifact-chain-assistant",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Codex and Claude Code assistant plugin for artifact-chain projects",
   "license": "Apache-2.0",
   "type": "module",
@@ -23,7 +23,7 @@
     "check:templates": "node scripts/check-templates.mjs",
     "check:method-registry": "node scripts/check-method-registry.mjs",
     "check:compatibility": "node scripts/check-compatibility.mjs",
-    "typecheck": "node --check runtime/claude/version-lock-stop.mjs && node --check scripts/build-adapters.mjs && node --check scripts/build-runtime-bundles.mjs && node --check scripts/check-templates.mjs && node --check scripts/doctor.mjs && node --check scripts/install-git-hooks.mjs && node --check scripts/sync-skills.mjs && node --check scripts/check-method-registry.mjs && node --check scripts/check-compatibility.mjs && node --check scripts/lib/compatibility-policy.mjs && node --check scripts/lib/artifact-graph-runtime.mjs && node --check scripts/batch-split.mjs && node --check scripts/batch-merge.mjs && node --check scripts/check-workflow-profile.mjs",
+    "typecheck": "node --check runtime/claude/version-lock-stop.mjs && node --check scripts/build-adapters.mjs && node --check scripts/build-runtime-bundles.mjs && node --check scripts/check-templates.mjs && node --check scripts/doctor.mjs && node --check scripts/install-git-hooks.mjs && node --check scripts/sync-skills.mjs && node --check scripts/check-method-registry.mjs && node --check scripts/check-compatibility.mjs && node --check scripts/lib/compatibility-policy.mjs && node --check scripts/lib/artifact-graph-runtime.mjs && node --check scripts/lib/inline-yaml-parser.mjs && node --check scripts/lib/workflow-profile.mjs && node --check scripts/batch-split.mjs && node --check scripts/batch-merge.mjs && node --check scripts/check-workflow-profile.mjs && node --check scripts/run-artifact-workflow.mjs",
     "sync:skills": "node scripts/sync-skills.mjs",
     "sync:skills:check": "node scripts/sync-skills.mjs --check",
     "build:adapters": "node scripts/build-adapters.mjs",
@@ -53,7 +53,8 @@
     "templates",
     "scripts",
     "runtime",
-    "agent-methods"
+    "agent-methods",
+    "schemas"
   ],
   "repository": {
     "type": "git",
