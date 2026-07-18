@@ -13,30 +13,30 @@ instructions.
 ## Prerequisites
 
 - Node.js `>=22.0.0`.
-- `artifact-graph` 0.6.0 installed in the target project.
+- `artifact-graph` 0.6.1 installed in the target project.
 
 ### Runtime Compatibility Matrix
 
 | Plugin | Verified Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.6.0 | `artifact-graph` 0.6.0 | `pnpm add -D artifact-graph@0.6.0` |
+| `artifact-chain-assistant` 0.6.1 | `artifact-graph` 0.6.1 | `pnpm add -D artifact-graph@0.6.1` |
 
 ### Install The Runtime
 
 The default installation path uses the npm registry with a precise version:
 
 ```bash
-pnpm add -D artifact-graph@0.6.0
+pnpm add -D artifact-graph@0.6.1
 ```
 
 If the npm registry is unavailable, use the explicit GitHub fallback pinned to the verified tag:
 
 ```bash
-pnpm add -D github:mzdbxqh/artifact-graph#artifact-graph-v0.6.0
+pnpm add -D github:mzdbxqh/artifact-graph#artifact-graph-v0.6.1
 ```
 
 > **Never** install with an unlocked range (`artifact-graph`, `artifact-graph@latest`,
-> `artifact-graph@^0.6.0`) or an unpinned GitHub URL (`github:mzdbxqh/artifact-graph`).
+> `artifact-graph@^0.6.1`) or an unpinned GitHub URL (`github:mzdbxqh/artifact-graph`).
 > Unlocked installs produce non-reproducible dependency trees and break version-lock audit.
 
 With pnpm 10+, projects that install `artifact-graph` must allow the native `better-sqlite3`
@@ -63,7 +63,7 @@ allowBuilds:
 
 The plugin's `doctor` command validates the installed runtime version before running any
 diagnostic. If it detects a version mismatch or missing CLI, it reports the exact remediation
-command (`pnpm add -D artifact-graph@0.6.0`) and exits non-zero.
+command (`pnpm add -D artifact-graph@0.6.1`) and exits non-zero.
 
 ### CLI Resolution Order
 
@@ -151,7 +151,7 @@ The plugin should not move these files into the plugin repository.
 
 For a first-time setup, the end-to-end sequence is:
 
-1. **Install the CLI** — `pnpm add -D artifact-graph@0.6.0` (see Prerequisites above).
+1. **Install the CLI** — `pnpm add -D artifact-graph@0.6.1` (see Prerequisites above).
 2. **Install the plugin** — follow the Codex or Claude Code section above.
 3. **Run bootstrap** — ask the assistant to use the `artifact-chain-bootstrap` skill (see prompt
    below). The skill will:
@@ -214,7 +214,8 @@ the returned `worker_path`. Checker output always uses `status`, `schema`, `prof
 and `next`.
 
 The legacy `.artifact-review.json` profile and `@tc` code tag are deprecated in 0.5.x; migrate to
-`artifact-profiles/project.yaml` and `@e2e_test`. The JSON profile is planned for removal in 0.6.0.
+`artifact-profiles/project.yaml` and `@e2e_test`. The JSON profile was scheduled for removal in 0.6.0;
+the compatibility reader remains available during the 0.6.x migration window.
 
 Configured `.mjs`, `.js`, and `.cjs` validators run in profile order with the project root as `cwd`.
 Validators must be read-only. Profile/target/checklist content, checker diagnostics, validator/CLI
@@ -948,7 +949,7 @@ with append-only behavior; it does not overwrite local rules.
 ### Recovery Steps
 
 ```bash
-# 1. Install dependencies from lockfile (gets artifact-graph@0.6.0)
+# 1. Install dependencies from lockfile (gets artifact-graph@0.6.1)
 pnpm install --frozen-lockfile
 
 # 2. Install plugin per your host (Codex / Claude Code)
@@ -1015,7 +1016,7 @@ pnpm exec artifact-graph hooks install-git --hook all
 ### Enterprise Mirror
 
 If the corporate environment cannot access the public npm registry or GitHub, mirror both
-`artifact-graph@0.6.0` and the plugin marketplace repository on an internal registry. The mirror
+`artifact-graph@0.6.1` and the plugin marketplace repository on an internal registry. The mirror
 does not change the state ownership model: Git-tracked files remain authoritative, local caches
 remain derived.
 

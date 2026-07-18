@@ -51,12 +51,12 @@ async function isInParentRepo() {
 
 test('INSTALL.md contains precise npm install command', async () => {
   const content = await readUtf8(INSTALL_PATH);
-  assert.match(content, /pnpm add -D artifact-graph@0.6.0/);
+  assert.match(content, /pnpm add -D artifact-graph@0.6.1/);
 });
 
 test('INSTALL.md contains GitHub fallback with precise tag', async () => {
   const content = await readUtf8(INSTALL_PATH);
-  assert.match(content, /github:mzdbxqh\/artifact-graph#artifact-graph-v0.6.0/);
+  assert.match(content, /github:mzdbxqh\/artifact-graph#artifact-graph-v0.6.1/);
 });
 
 test('INSTALL.md mentions artifact-chain-bootstrap', async () => {
@@ -125,9 +125,9 @@ test('INSTALL.md code blocks do not contain unlocked GitHub repo (no tag)', asyn
 
 // --- README contract tests ---
 
-test('English README contains version 0.6.0 reference', async () => {
+test('English README contains version 0.6.1 reference', async () => {
   const content = await readUtf8(README_EN_PATH);
-  assert.match(content, /0.6.0/);
+  assert.match(content, /0.6.1/);
 });
 
 test('English README links to INSTALL.md', async () => {
@@ -135,9 +135,9 @@ test('English README links to INSTALL.md', async () => {
   assert.match(content, /INSTALL\.md|INSTALL/);
 });
 
-test('Chinese README contains version 0.6.0 reference', async () => {
+test('Chinese README contains version 0.6.1 reference', async () => {
   const content = await readUtf8(README_ZH_PATH);
-  assert.match(content, /0.6.0/);
+  assert.match(content, /0.6.1/);
 });
 
 test('Chinese README links to INSTALL.md', async () => {
@@ -297,7 +297,7 @@ test('Codex JSON root discovery extracts versioned cache root from fixture JSON'
         pluginId: 'artifact-chain-assistant@artifact-chain-assistant',
         marketplaceName: 'artifact-chain-assistant',
         name: 'artifact-chain-assistant',
-        version: '0.6.0',
+        version: '0.6.1',
         installed: true,
         enabled: true,
       },
@@ -325,7 +325,7 @@ test('Codex JSON root discovery extracts versioned cache root from fixture JSON'
   );
   assert.equal(
     versionedRoot,
-    '/home/user/.codex/plugins/cache/artifact-chain-assistant/artifact-chain-assistant/0.6.0',
+    '/home/user/.codex/plugins/cache/artifact-chain-assistant/artifact-chain-assistant/0.6.1',
   );
 });
 
@@ -334,10 +334,10 @@ test('Claude JSON root discovery extracts installPath from fixture JSON', async 
   const fixtureJson = JSON.stringify([
     {
       id: 'artifact-chain-assistant@artifact-chain-assistant',
-      version: '0.6.0',
+      version: '0.6.1',
       scope: 'user',
       enabled: true,
-      installPath: '/home/user/.claude/plugins/cache/artifact-chain-assistant/artifact-chain-assistant/0.6.0',
+      installPath: '/home/user/.claude/plugins/cache/artifact-chain-assistant/artifact-chain-assistant/0.6.1',
     },
   ]);
 
@@ -347,7 +347,7 @@ test('Claude JSON root discovery extracts installPath from fixture JSON', async 
   );
   assert.ok(plugin, 'should find plugin by id');
   assert.equal(plugin.enabled, true);
-  assert.match(plugin.installPath, /artifact-chain-assistant\/0.6.0$/);
+  assert.match(plugin.installPath, /artifact-chain-assistant\/0.6.1$/);
 });
 
 // --- Document-equivalent parser execution tests ---
@@ -364,7 +364,7 @@ test('Codex parser handles CODEX_HOME with spaces via env (not shell interpolati
         pluginId: 'artifact-chain-assistant@artifact-chain-assistant',
         marketplaceName: 'artifact-chain-assistant',
         name: 'artifact-chain-assistant',
-        version: '0.6.0',
+        version: '0.6.1',
         installed: true,
         enabled: true,
       },
@@ -403,7 +403,7 @@ process.stdin.on('end', () => {
 
     assert.equal(
       result,
-      '/home/Test User/.codex/plugins/cache/artifact-chain-assistant/artifact-chain-assistant/0.6.0',
+      '/home/Test User/.codex/plugins/cache/artifact-chain-assistant/artifact-chain-assistant/0.6.1',
       'Must handle CODEX_HOME with spaces via process.env, not shell interpolation',
     );
   } finally {
@@ -420,10 +420,10 @@ test('Claude parser extracts installPath by id field', async () => {
   const fixtureJson = JSON.stringify([
     {
       id: 'artifact-chain-assistant@artifact-chain-assistant',
-      version: '0.6.0',
+      version: '0.6.1',
       scope: 'user',
       enabled: true,
-      installPath: '/home/user/.claude/plugins/cache/artifact-chain-assistant/artifact-chain-assistant/0.6.0',
+      installPath: '/home/user/.claude/plugins/cache/artifact-chain-assistant/artifact-chain-assistant/0.6.1',
     },
   ]);
 
@@ -455,7 +455,7 @@ process.stdin.on('end', () => {
 
     assert.equal(
       result,
-      '/home/user/.claude/plugins/cache/artifact-chain-assistant/artifact-chain-assistant/0.6.0',
+      '/home/user/.claude/plugins/cache/artifact-chain-assistant/artifact-chain-assistant/0.6.1',
       'Must extract installPath by id field',
     );
   } finally {
@@ -514,10 +514,10 @@ test('Claude parser fails non-zero when plugin disabled', async () => {
   const fixtureJson = JSON.stringify([
     {
       id: 'artifact-chain-assistant@artifact-chain-assistant',
-      version: '0.6.0',
+      version: '0.6.1',
       scope: 'user',
       enabled: false,
-      installPath: '/home/user/.claude/plugins/cache/artifact-chain-assistant/artifact-chain-assistant/0.6.0',
+      installPath: '/home/user/.claude/plugins/cache/artifact-chain-assistant/artifact-chain-assistant/0.6.1',
     },
   ]);
 
@@ -803,7 +803,7 @@ test('Claude parser fails non-zero when installPath is missing', async () => {
   const fixtureJson = JSON.stringify([
     {
       id: 'artifact-chain-assistant@artifact-chain-assistant',
-      version: '0.6.0',
+      version: '0.6.1',
       scope: 'user',
       enabled: true,
     },
@@ -856,7 +856,7 @@ test('Codex parser fails non-zero when marketplaceName is missing', async () => 
       {
         pluginId: 'artifact-chain-assistant@artifact-chain-assistant',
         name: 'artifact-chain-assistant',
-        version: '0.6.0',
+        version: '0.6.1',
         installed: true,
         enabled: true,
       },

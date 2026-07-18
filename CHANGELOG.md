@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 0.6.1
+
+### Changed
+
+- **Version compatibility upgrade**: plugin and runtime compatibility pinned to `artifact-graph@0.6.1`.
+- **Hook staged-config branch**: existing pre-commit hooks installed before 0.6.0 can gain the
+  staged config → `version-lock refresh --all` branch by re-running `artifact-graph hooks install-git`
+  (idempotent). No hook business logic changes in this release.
+
 ## 0.6.0
 
 ### Changed

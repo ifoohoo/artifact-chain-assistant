@@ -1,6 +1,6 @@
 {
   "name": "artifact-chain-assistant",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Codex and Claude Code assistant plugin for artifact-chain projects",
   "license": "Apache-2.0",
   "type": "module",

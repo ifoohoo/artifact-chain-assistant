@@ -335,7 +335,7 @@ agent-method-registry resolve \
 
 | 插件 | 运行时 | 安装 |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.5.0 | `artifact-graph` 0.5.0 | `pnpm add -D artifact-graph@0.6.0` |
+| `artifact-chain-assistant` 0.6.1 | `artifact-graph` 0.6.1 | `pnpm add -D artifact-graph@0.6.1` |
 
 ## 安装
 
@@ -354,7 +354,7 @@ claude plugin install artifact-chain-assistant@artifact-chain-assistant --scope 
 
 ## 快速开始
 
-1. 安装插件 0.5.0（见上方）和运行时：`pnpm add -D artifact-graph@0.6.0`。
+1. 安装插件 0.6.1（见上方）和运行时：`pnpm add -D artifact-graph@0.6.1`。
 2. 运行 `artifact-graph doctor --root . --format json` 验证运行时。
 3. 首次使用，进入 bootstrap 技能。
 4. 日常工作，进入 maintainer 技能。
