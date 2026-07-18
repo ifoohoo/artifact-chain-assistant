@@ -17,7 +17,7 @@ const PLUGIN_ROOT = join(import.meta.dirname, '..');
 const DOCTOR_SCRIPT = join(PLUGIN_ROOT, 'scripts', 'doctor.mjs');
 const RUNTIME_MODULE = join(PLUGIN_ROOT, 'scripts', 'lib', 'artifact-graph-runtime.mjs');
 
-async function createFakeProject({ version = '0.5.0', withBin = true, pkgName = 'artifact-graph' } = {}) {
+async function createFakeProject({ version = '0.6.0', withBin = true, pkgName = 'artifact-graph' } = {}) {
   const dir = await mkdtemp(join(tmpdir(), 'doctor-test-'));
   const nmDir = join(dir, 'node_modules', pkgName);
   const binDir = join(dir, 'node_modules', '.bin');
@@ -66,12 +66,12 @@ if (arg === 'doctor') {
 
 test('inspectArtifactGraphRuntime resolves correct version from project node_modules', async () => {
   const { inspectArtifactGraphRuntime } = await import(RUNTIME_MODULE);
-  const projectRoot = await createFakeProject({ version: '0.5.0' });
+  const projectRoot = await createFakeProject({ version: '0.6.0' });
   try {
     const result = await inspectArtifactGraphRuntime({ projectRoot });
     assert.equal(result.ok, true);
-    assert.equal(result.actualVersion, '0.5.0');
-    assert.equal(result.expectedVersion, '0.5.0');
+    assert.equal(result.actualVersion, '0.6.0');
+    assert.equal(result.expectedVersion, '0.6.0');
     assert.equal(result.reason, undefined);
     assert.ok(result.cliPath.includes('artifact-graph'));
   } finally {
@@ -87,8 +87,8 @@ test('inspectArtifactGraphRuntime detects version mismatch', async () => {
     assert.equal(result.ok, false);
     assert.equal(result.reason, 'version_mismatch');
     assert.equal(result.actualVersion, '0.3.0');
-    assert.equal(result.expectedVersion, '0.5.0');
-    assert.match(result.remediation, /pnpm add -D artifact-graph@0.5.0/);
+    assert.equal(result.expectedVersion, '0.6.0');
+    assert.match(result.remediation, /pnpm add -D artifact-graph@0.6.0/);
   } finally {
     await rm(projectRoot, { recursive: true, force: true });
   }
@@ -103,7 +103,7 @@ test('inspectArtifactGraphRuntime detects missing CLI', async () => {
     const result = await inspectArtifactGraphRuntime({ projectRoot, env: { PATH: CLEAN_PATH } });
     assert.equal(result.ok, false);
     assert.equal(result.reason, 'cli_not_found');
-    assert.match(result.remediation, /pnpm add -D artifact-graph@0.5.0/);
+    assert.match(result.remediation, /pnpm add -D artifact-graph@0.6.0/);
   } finally {
     await rm(projectRoot, { recursive: true, force: true });
   }
@@ -111,7 +111,7 @@ test('inspectArtifactGraphRuntime detects missing CLI', async () => {
 
 test('inspectArtifactGraphRuntime detects unresolvable version (wrong package name)', async () => {
   const { inspectArtifactGraphRuntime } = await import(RUNTIME_MODULE);
-  const projectRoot = await createFakeProject({ version: '0.5.0', pkgName: 'wrong-package' });
+  const projectRoot = await createFakeProject({ version: '0.6.0', pkgName: 'wrong-package' });
   try {
     // .bin/artifact-graph exists (as wrong-package binary), but its package.json
     // name is not "artifact-graph" → version_unresolved
@@ -126,7 +126,7 @@ test('inspectArtifactGraphRuntime detects unresolvable version (wrong package na
 // --- doctor.mjs integration tests ---
 
 test('doctor.mjs passes with correct version', async () => {
-  const projectRoot = await createFakeProject({ version: '0.5.0' });
+  const projectRoot = await createFakeProject({ version: '0.6.0' });
   try {
     const out = execFileSync('node', [DOCTOR_SCRIPT, '--root', projectRoot, '--format', 'json'], {
       encoding: 'utf8',
@@ -178,7 +178,7 @@ test('doctor.mjs fails when CLI not found', async () => {
 });
 
 test('doctor.mjs forwards arguments to underlying doctor on correct version', async () => {
-  const projectRoot = await createFakeProject({ version: '0.5.0' });
+  const projectRoot = await createFakeProject({ version: '0.6.0' });
   try {
     const out = execFileSync('node', [DOCTOR_SCRIPT, '--root', projectRoot, '--format', 'json'], {
       encoding: 'utf8',
@@ -196,13 +196,13 @@ test('doctor.mjs forwards arguments to underlying doctor on correct version', as
 
 test('doctor.mjs preserves underlying doctor exit code', async () => {
   // Create a fake project where the CLI returns exit code 7 on doctor
-  const projectRoot = await createFakeProject({ version: '0.5.0' });
+  const projectRoot = await createFakeProject({ version: '0.6.0' });
   try {
     // Overwrite the CLI to exit with code 7
     const nmDir = join(projectRoot, 'node_modules', 'artifact-graph', 'bin');
     await writeFile(join(nmDir, 'cli.mjs'), `#!/usr/bin/env node
 const arg = process.argv[2];
-if (arg === '--version') { process.stdout.write('0.5.0\\n'); process.exit(0); }
+if (arg === '--version') { process.stdout.write('0.6.0\\n'); process.exit(0); }
 process.exit(7);
 `);
     await chmod(join(nmDir, 'cli.mjs'), 0o755);
@@ -210,7 +210,7 @@ process.exit(7);
     // Also update .bin
     await writeFile(join(projectRoot, 'node_modules', '.bin', 'artifact-graph'), `#!/usr/bin/env node
 const arg = process.argv[2];
-if (arg === '--version') { process.stdout.write('0.5.0\\n'); process.exit(0); }
+if (arg === '--version') { process.stdout.write('0.6.0\\n'); process.exit(0); }
 process.exit(7);
 `);
     await chmod(join(projectRoot, 'node_modules', '.bin', 'artifact-graph'), 0o755);

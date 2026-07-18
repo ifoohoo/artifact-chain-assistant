@@ -350,7 +350,7 @@ agent-method-registry resolve \
 
 | Plugin | Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.5.0 | `artifact-graph` 0.5.0 | `pnpm add -D artifact-graph@0.5.0` |
+| `artifact-chain-assistant` 0.5.0 | `artifact-graph` 0.5.0 | `pnpm add -D artifact-graph@0.6.0` |
 
 ## Install
 
@@ -369,7 +369,7 @@ For the full installation guide, quick start, Agent prompts, and clone onboardin
 
 ## Quick Start
 
-1. Install plugin 0.5.0 (above) and runtime: `pnpm add -D artifact-graph@0.5.0`.
+1. Install plugin 0.5.0 (above) and runtime: `pnpm add -D artifact-graph@0.6.0`.
 2. Run `artifact-graph doctor --root . --format json` to verify the runtime.
 3. For first-time setup, use the bootstrap skill.
 4. For daily work, use the maintainer skill.

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.6.0
+
+### Changed
+
+- **E2E coverage proof**: artifact-chain-assistant profiles and templates now reference the 0.6.0
+  E2E coverage proof mechanism from artifact-graph. Chain spec updated with TC status lifecycle,
+  chain_type vocabulary, deterministic checklist rules, and ac_coverage_rate schema.
+
 ## 0.5.0
 
 ### Added

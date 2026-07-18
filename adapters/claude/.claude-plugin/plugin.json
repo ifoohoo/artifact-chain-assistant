@@ -1,7 +1,7 @@
 {
   "name": "artifact-chain-assistant",
   "displayName": "Artifact Chain Assistant",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Artifact-chain intake, review/repair/batch/audit workflows, diagnostics, hooks, and version-lock maintenance helpers.",
   "author": {
     "name": "Artifact Graph Maintainers"

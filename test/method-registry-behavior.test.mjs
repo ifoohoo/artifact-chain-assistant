@@ -80,7 +80,11 @@ registryTest('two concurrent method-registry checks use isolated temporary state
   const tempRoot = join(root, '.tmp');
   await rm(join(tempRoot, 'method-registry-test'), { recursive: true, force: true });
   const first = execFileAsync(process.execPath, [script], { cwd: root });
-  const deadline = Date.now() + 15_000;
+  // The checker intentionally completes its validation/query/resolve phases before
+  // writing the project overlay. A release dry-run runs this test alongside other
+  // CLI-heavy suites, so allow enough time to reach the concurrency probe without
+  // weakening the requirement that both checker instances overlap and succeed.
+  const deadline = Date.now() + 60_000;
   let firstProjectFile;
   while (Date.now() < deadline && !firstProjectFile) {
     const entries = await readdir(tempRoot, { withFileTypes: true }).catch(() => []);
