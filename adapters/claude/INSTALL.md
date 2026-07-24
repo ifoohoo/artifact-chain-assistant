@@ -13,30 +13,30 @@ instructions.
 ## Prerequisites
 
 - Node.js `>=22.0.0`.
-- `artifact-graph` 0.6.1 installed in the target project.
+- `artifact-graph` 0.7.0 installed in the target project.
 
 ### Runtime Compatibility Matrix
 
 | Plugin | Verified Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.6.1 | `artifact-graph` 0.6.1 | `pnpm add -D artifact-graph@0.6.1` |
+| `artifact-chain-assistant` 0.7.0 | `artifact-graph` 0.7.0 | `pnpm add -D artifact-graph@0.7.0` |
 
 ### Install The Runtime
 
 The default installation path uses the npm registry with a precise version:
 
 ```bash
-pnpm add -D artifact-graph@0.6.1
+pnpm add -D artifact-graph@0.7.0
 ```
 
 If the npm registry is unavailable, use the explicit GitHub fallback pinned to the verified tag:
 
 ```bash
-pnpm add -D github:mzdbxqh/artifact-graph#artifact-graph-v0.6.1
+pnpm add -D github:ifoohoo/artifact-graph#artifact-graph-v0.7.0
 ```
 
 > **Never** install with an unlocked range (`artifact-graph`, `artifact-graph@latest`,
-> `artifact-graph@^0.6.1`) or an unpinned GitHub URL (`github:mzdbxqh/artifact-graph`).
+> `artifact-graph@^0.7.0`) or an unpinned GitHub URL (`github:ifoohoo/artifact-graph`).
 > Unlocked installs produce non-reproducible dependency trees and break version-lock audit.
 
 With pnpm 10+, projects that install `artifact-graph` must allow the native `better-sqlite3`
@@ -63,7 +63,7 @@ allowBuilds:
 
 The plugin's `doctor` command validates the installed runtime version before running any
 diagnostic. If it detects a version mismatch or missing CLI, it reports the exact remediation
-command (`pnpm add -D artifact-graph@0.6.1`) and exits non-zero.
+command (`pnpm add -D artifact-graph@0.7.0`) and exits non-zero.
 
 ### CLI Resolution Order
 
@@ -84,7 +84,7 @@ instructions, hooks, or generated prompts.
 Register the public repository as a marketplace, then install the plugin:
 
 ```bash
-codex plugin marketplace add https://github.com/mzdbxqh/artifact-chain-assistant.git
+codex plugin marketplace add https://github.com/ifoohoo/artifact-chain-assistant.git
 codex plugin add artifact-chain-assistant@artifact-chain-assistant
 ```
 
@@ -110,7 +110,7 @@ skills, and managed scripts (`doctor.mjs`, `check-workflow-profile.mjs`, `run-ar
 Add the public repository marketplace and install the plugin:
 
 ```bash
-claude plugin marketplace add https://github.com/mzdbxqh/artifact-chain-assistant.git
+claude plugin marketplace add https://github.com/ifoohoo/artifact-chain-assistant.git
 claude plugin install artifact-chain-assistant@artifact-chain-assistant --scope user
 ```
 
@@ -133,6 +133,27 @@ The public marketplace selects the Claude Code adapter, including its skills, ma
 (`doctor.mjs`, `check-workflow-profile.mjs`, `run-artifact-workflow.mjs`, `batch-split.mjs`, `batch-merge.mjs`), slash command
 wrappers, and Stop-hook guardrail. These assistant controls do not replace Git hooks or CI.
 
+## Post-Installation Discovery
+
+After installing the plugin, use these entry points to understand available capabilities:
+
+1. **`artifact-chain-help`** — Run this skill to see the standard Family API catalog and bundled legacy methods.
+   It shows what families and services the plugin provides, without claiming any are installed, enabled, or verified
+   for your project. Installation of the plugin does NOT mean families are bound or providers are active.
+
+2. **`where-am-i`** — Use this skill for project-specific triage. It searches your project configuration, artifact
+   graph, and current state to produce a structured project-facts envelope and Method Query candidate (5 top-level keys),
+   then queries Registry for dynamic service discovery and recommends next steps. A process-local
+   `preparedQueryHandle`, full Method Query, provider resolution, and run lock remain Registry-only execution capabilities.
+
+3. **Adoption still requires `artifact-chain-bootstrap` and user authorization** — The help and triage skills are
+   read-only discovery tools. Actually configuring the artifact chain, binding services, or writing artifacts requires
+   running the bootstrap skill with explicit user approval.
+
+> **Important**: Installing the plugin does NOT enable or bind any family implementation. Standard API entries are
+> visible via help, but no E2E provider, review provider, or other family implementation is installed or verified
+> until explicitly adopted through bootstrap and registry binding (when available).
+
 ## Prepare A Target Project
 
 Each project must keep its own artifact-chain state:
@@ -151,7 +172,7 @@ The plugin should not move these files into the plugin repository.
 
 For a first-time setup, the end-to-end sequence is:
 
-1. **Install the CLI** — `pnpm add -D artifact-graph@0.6.1` (see Prerequisites above).
+1. **Install the CLI** — `pnpm add -D artifact-graph@0.7.0` (see Prerequisites above).
 2. **Install the plugin** — follow the Codex or Claude Code section above.
 3. **Run bootstrap** — ask the assistant to use the `artifact-chain-bootstrap` skill (see prompt
    below). The skill will:
@@ -622,11 +643,11 @@ types, so every supported type+intent query remains unique.
 
 ### Standalone Install
 
-Install `agent-method-registry@0.1.1` as a separate dependency if you only need the registry
+Install `agent-method-registry@0.2.0` as a separate dependency if you only need the registry
 capabilities:
 
 ```bash
-npm install agent-method-registry@0.1.1
+npm install agent-method-registry@0.2.0
 ```
 
 The CLI is available as `agent-method-registry` after installation.
@@ -949,7 +970,7 @@ with append-only behavior; it does not overwrite local rules.
 ### Recovery Steps
 
 ```bash
-# 1. Install dependencies from lockfile (gets artifact-graph@0.6.1)
+# 1. Install dependencies from lockfile (gets artifact-graph@0.7.0)
 pnpm install --frozen-lockfile
 
 # 2. Install plugin per your host (Codex / Claude Code)
@@ -1016,7 +1037,7 @@ pnpm exec artifact-graph hooks install-git --hook all
 ### Enterprise Mirror
 
 If the corporate environment cannot access the public npm registry or GitHub, mirror both
-`artifact-graph@0.6.1` and the plugin marketplace repository on an internal registry. The mirror
+`artifact-graph@0.7.0` and the plugin marketplace repository on an internal registry. The mirror
 does not change the state ownership model: Git-tracked files remain authoritative, local caches
 remain derived.
 

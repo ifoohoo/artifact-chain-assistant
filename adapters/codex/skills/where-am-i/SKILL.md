@@ -31,15 +31,15 @@ description: 面向任意 artifact-graph 项目的搜索优先需求分诊技能
 1. **查找 effective index**：检查 `<project>/.agent-method-registry/effective-index.json` 是否存在。
 2. **检查 registry CLI**：检查 `agent-method-registry` 是否在 PATH 或项目的 `node_modules/.bin/` 中可用。
 3. **如果两者都可用**：
-   - 运行 compact query 获取匹配当前制品类型和意图的入口元数据（只返回 `ref`、`kind`、`summary`）。
+   - 运行 recommendation query 获取匹配当前制品类型和意图的入口元数据及 `installation`、`enablement`、`compatibility`、`trust`、`resolution`、`selectionSource` 状态。
    - 只推荐 effective provider，不同时列出插件默认和项目覆盖两份候选。
    - 如果匹配入口的 `kind: workflow`，将其视为闭环叶子——不建议外围 review/repair 阶段。
-   - 选定入口后才运行 `agent-method-registry resolve` 获取 provider 路径并加载 `SKILL.md`。
+   - **不得自行解析提供方路径或加载第三方 `SKILL.md`**。产出五字段候选后交给 Registry 查询；`loop-agent` 可复用本技能的分诊结果，也可直接调用 Registry，但不属于本技能内部流程。
 4. **如果不可用**：
-   - 输出 "registry unavailable" 诊断信息。
-   - 回退到现有项目配置与插件路由逻辑（下方的标准流程）。
+   - 输出 `NEEDS_INPUT` + "registry unavailable" 诊断和采用步骤。
    - 不自行合并 catalog 和 overlay，不猜测合并结果。
    - 不自动创建空 overlay 或空 effective index。
+   - contract-backed service 不得使用 builtin/config fallback。
 
 ## 必须执行的流程
 
@@ -57,6 +57,102 @@ description: 面向任意 artifact-graph 项目的搜索优先需求分诊技能
 
 如果 `context` 或 `packet` 输出 `missing`，停止实现路由，先建议修复追溯或制品缺口。
 
+## Project-Facts Evidence Envelope
+
+在产出最终判定之前，必须形成结构化的 project-facts evidence envelope。这是与 registry 和外层规划器（如 `loop-agent`）的机器可消费交接对象。
+
+```json
+{
+  "schemaVersion": 1,
+  "projectRoot": "<project-root-identity>",
+  "configDigest": "sha256:<hex-of-artifact-graph-config>",
+  "policyDigest": "sha256:<hex-of-project-policy-or-null>",
+  "artifactGraphSummary": {
+    "artifactCount": 0,
+    "edgeCount": 0,
+    "contextTargets": []
+  },
+  "targetArtifact": {
+    "type": "<artifact-type>",
+    "id": "<artifact-id>"
+  },
+  "contractRevisionDigest": "sha256:<hex-of-contract-revision-content>",
+  "proofStatus": "present | missing | stale",
+  "versionLockStatus": "fresh | stale | missing",
+  "sourcesFreshness": "fresh | stale | missing",
+  "bindingFreshness": "fresh | stale | missing",
+  "evidenceDigest": "sha256:<hex-of-envelope-content-excluding-this-field>"
+}
+```
+
+**`evidenceDigest` 计算**：对移除 `evidenceDigest` 字段后的 envelope 内容按确定性键排序序列化，再计算 SHA-256。相同语义不同键顺序必须产生相同 digest。
+
+**Fail-closed 规则**：
+- 缺 `projectRoot`：`NEEDS_INPUT`，不得继续
+- 缺 `configDigest`（无 `artifact-graph.config.yaml`）：`NEEDS_INPUT`，建议 `artifact-chain-bootstrap`
+- 缺 `targetArtifact` 且用户需求明确指向某制品类型：`NEEDS_INPUT`
+- 缺 `artifactGraphSummary`、`sourcesFreshness` 或 `bindingFreshness`：`NEEDS_INPUT`，不得制造全零或 fresh 证据
+- `versionLockStatus: stale` 或 `missing`：报告风险，建议先运行 `artifact-chain-maintainer`
+- `proofStatus: missing`：在推荐中提醒追溯缺口
+
+## Method Query Candidate 输出
+
+结论模式的输出必须附加结构化 Method Query Candidate（方法查询候选，5 个顶层键），供 Registry 的 `queryEffectiveIndex` 消费并返回匹配服务元数据：
+
+```json
+{
+  "mode": "standard",
+  "intent": "author",
+  "kind": "workflow",
+  "projectFactsEvidence": { "schemaVersion": 1, "..." : "完整 envelope 内容" },
+  "authorization": {
+    "sideEffectBudget": "write-authorized-artifacts",
+    "granted": false
+  }
+}
+```
+
+**Candidate 构建流程**（fail-closed）：
+1. 生成并验证 project-facts envelope（`build-envelope` + `validate-envelope`）
+2. 构建 5-key candidate（`build-candidate`）
+3. 通过 Registry 查询有效索引，取得 0、1 或多个匹配服务并形成推荐解释
+4. Registry 不可用、索引无效、绑定缺失或查询被拒绝时：输出 `NEEDS_INPUT` 和诊断步骤，标明“尚不可执行”
+
+动态发现使用 Registry 的公开查询入口，不读取其内部文件结构：
+
+```bash
+agent-method-registry query \
+  --index <project>/.agent-method-registry/effective-index.json \
+  --candidate <candidate-json-path>
+```
+
+该命令用于推荐，不等于执行授权。必须按以下规则解释结果：
+
+- 0 项：返回缺失建议，不得声称存在可用技能。
+- 多项：报告歧义并建议项目通过 binding（绑定）明确选择，不能取第一项。
+- 1 项：可以推荐该技能作为下一步候选，但只有当 Registry 返回的 `executable` 字段为 `true` 时，才能标记为“可执行”。
+- 单候选若 `executable` 为 `false`：输出 `NEEDS_INPUT`，读取六状态（`installation`、`enablement`、`compatibility`、`trust`、`resolution`、`selectionSource`）用于诊断，但**不得重新推导可执行性**。明确标注“已发现但尚不可执行”。
+- 六状态中 `resolution: EXPLICIT_BINDING`，`selectionSource: project-binding`，这是可执行的必要条件。
+
+**Candidate 校验规则**：
+- 缺 `projectFactsEvidence`：不得输出 candidate
+- envelope 验证失败：不得构建 candidate
+- 写入型推荐必须显式携带授权状态；`granted: false` 表示可推荐但不可执行
+
+**执行能力只由 Registry 产出**：
+- `targetArtifact`、`contractRevisionDigest`、`projectFactsEvidenceDigest`、`candidateServices`、`registrySnapshot`、`queryDigest` 均由 Registry 从 candidate 和 effective index 派生
+- 助手不得自行生成完整 Method Query 或 queryDigest
+- `preparedQueryHandle` 是 Registry 在 `prepare` 模式下在同一进程内签发给后续执行器的不可伪造能力；本技能使用 `recommendation` 模式查询，不创建它，也不得输出或序列化、缓存、声称持有它
+- v2 查询使用 `purpose: 'recommendation'`，CLI 输出不含 handle 或 queryDigest
+
+**不允许的行为**：
+- 不得输出 provider path 或 "直接运行 SKILL.md"
+- 不得对 contract-backed service 使用 builtin/config fallback
+- 不得自动选择第一候选或多候选中的"最佳"
+- 只有明确标记为 generic non-contract-backed 的旧入口可按其既有协议建议，且必须与标准 service 区分
+
+必须调用插件安装根中的 `scripts/method-query.mjs` 构建并验证 envelope 和 candidate，不手工拼装摘要或 digest。Registry 不可用时：输出 `NEEDS_INPUT` + 诊断步骤，不假装可以解析。
+
 ## 输出契约
 
 输出必须二选一：`结论模式` 或 `追问模式`。不要在信息不足时同时输出完整判定、证据、追问和下一步技能。
@@ -67,7 +163,10 @@ description: 面向任意 artifact-graph 项目的搜索优先需求分诊技能
 
 - `判定`：当前阶段、置信度、source-of-truth 制品，以及现在是否允许进入实现。
 - `证据`：命中的制品、代码路径、设计来源，以及重要的缺失/过期制品。
+- `project-facts evidence envelope`：结构化项目事实摘要（JSON），包含 projectRoot、configDigest、targetArtifact、proofStatus、versionLockStatus 和 evidenceDigest。
 - `需要加载的上下文`：已经运行或下一步应运行的精确 `artifact-graph` 命令。
+- `候选标准服务`：`serviceId@major` 列表，来自 Family API Catalog。
+- `方法查询候选`：五字段结构化候选（JSON），以及 Registry 返回的 0、1 或歧义匹配结果；不得输出完整 Method Query 或进程内句柄。
 - `下一步技能`：建议后续技能。
 - `提示词建议`：给 Codex 或其他 AI Coding 工具的短提示词，默认不超过 4000 字符。
 - `价值判断`：说明本次分诊结果对项目的价值——它揭示了哪些缺口或确认了哪些能力已就绪，以及这对后续工作路径意味着什么。

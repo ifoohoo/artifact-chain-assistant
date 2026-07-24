@@ -184,11 +184,11 @@ every supported type+intent query remains unique.
 
 #### Standalone Install
 
-Install `agent-method-registry@0.1.1` as a separate dependency if you only need the registry
+Install `agent-method-registry@0.2.0` as a separate dependency if you only need the registry
 capabilities:
 
 ```bash
-npm install agent-method-registry@0.1.1
+npm install agent-method-registry@0.2.0
 ```
 
 The CLI is available as `agent-method-registry` after installation:
@@ -350,17 +350,17 @@ agent-method-registry resolve \
 
 | Plugin | Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.6.1 | `artifact-graph` 0.6.1 | `pnpm add -D artifact-graph@0.6.1` |
+| `artifact-chain-assistant` 0.7.0 | `artifact-graph` 0.7.0 | `pnpm add -D artifact-graph@0.7.0` |
 
 ## Install
 
 ```bash
 # Codex
-codex plugin marketplace add https://github.com/mzdbxqh/artifact-chain-assistant.git
+codex plugin marketplace add https://github.com/ifoohoo/artifact-chain-assistant.git
 codex plugin add artifact-chain-assistant@artifact-chain-assistant
 
 # Claude Code
-claude plugin marketplace add https://github.com/mzdbxqh/artifact-chain-assistant.git
+claude plugin marketplace add https://github.com/ifoohoo/artifact-chain-assistant.git
 claude plugin install artifact-chain-assistant@artifact-chain-assistant --scope user
 ```
 
@@ -369,7 +369,7 @@ For the full installation guide, quick start, Agent prompts, and clone onboardin
 
 ## Quick Start
 
-1. Install plugin 0.6.1 (above) and runtime: `pnpm add -D artifact-graph@0.6.1`.
+1. Install plugin 0.7.0 (above) and runtime: `pnpm add -D artifact-graph@0.7.0`.
 2. Run `artifact-graph doctor --root . --format json` to verify the runtime.
 3. For first-time setup, use the bootstrap skill.
 4. For daily work, use the maintainer skill.

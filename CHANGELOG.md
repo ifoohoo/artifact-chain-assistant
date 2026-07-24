@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+## 0.7.0
+
+### Added
+
+- **Registry v2 SPI discovery in where-am-i**: the `where-am-i` skill now dynamically discovers
+  professional skill families through the agent-method-registry v2 SPI and reports project facts as
+  a structured evidence envelope, instead of relying on a static family list.
+- **artifact-chain-help skill**: new `artifact-chain-help` skill as the discoverable entry point
+  for plugin capabilities, workflows, and guidance.
+- **Family API compile/validate toolchain**: deterministic compile and validate tooling for skill
+  family API contract definitions, with the generated family catalog synced to both Codex and
+  Claude Code adapter roots.
+
+### Changed
+
+- **agent-method-registry 0.2.0**: runtime dependency upgraded to `agent-method-registry@0.2.0`
+  (Registry v2 with SPI identity binding and lock).
+- **Organization migration to `ifoohoo`**: the public repository transferred to the `ifoohoo`
+  GitHub organization (`ifoohoo/artifact-chain-assistant`, name unchanged). Copyright is now held
+  by 广州市风荷科技有限公司 (Guangzhou Fenghe Technology Co., Ltd.) together with the project
+  contributors; the NOTICE file states that the organization transfer is an administrative hosting
+  change, not a copyright assignment. Marketplace manifests, installation docs, and repository
+  references were updated accordingly; the plugin and npm package names are unchanged.
+
 ## 0.6.1
 
 ### Changed
@@ -97,7 +121,7 @@
 
 ### Changed
 
-- Default runtime install path changed from GitHub (`github:mzdbxqh/artifact-graph`) to npm registry (`pnpm add -D artifact-graph@0.3.1`).
+- Default runtime install path changed from GitHub (`github:ifoohoo/artifact-graph`) to npm registry (`pnpm add -D artifact-graph@0.3.1`).
 - `doctor.mjs` now performs version pre-check before forwarding to underlying `artifact-graph doctor`.
 - Bootstrap and maintainer skills now run compatibility diagnosis before first-time adoption, upgrade, and daily operations.
 - `check:compatibility` added to plugin test gate.

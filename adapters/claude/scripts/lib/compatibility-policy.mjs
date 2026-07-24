@@ -295,13 +295,15 @@ const INSTALL_CMD_PREFIXES = [
  *
  * @param {string} line
  * @param {string} expectedInstallSpec - e.g. "artifact-graph@0.3.1"
- * @param {string} expectedGithubSpec - e.g. "github:mzdbxqh/artifact-graph#artifact-graph-v0.3.1"
+ * @param {string} expectedGithubSpec - e.g. "github:ifoohoo/artifact-graph#artifact-graph-v0.3.1"
  */
 function classifyInstallSpecViolation(line, expectedInstallSpec, expectedGithubSpec) {
   const tokens = line.split(/\s+/);
 
   // Standalone GitHub repo (no install command prefix needed)
-  if (tokens.length === 1 && /^github:mzdbxqh\/artifact-graph/.test(tokens[0])) {
+  // Match both the current ifoohoo slug and the pre-migration mzdbxqh slug so
+  // stale references are still flagged as mismatches.
+  if (tokens.length === 1 && /^github:(?:mzdbxqh|ifoohoo)\/artifact-graph/.test(tokens[0])) {
     if (tokens[0] === expectedGithubSpec) return null;
     return `GitHub spec mismatch: got "${tokens[0]}", expected "${expectedGithubSpec}"`;
   }
@@ -323,8 +325,8 @@ function classifyInstallSpecViolation(line, expectedInstallSpec, expectedGithubS
     // Skip flags
     if (tok.startsWith('-')) continue;
 
-    // GitHub spec: github:mzdbxqh/artifact-graph or github:mzdbxqh/artifact-graph#tag
-    if (/^github:mzdbxqh\/artifact-graph/.test(tok)) {
+    // GitHub spec: github:ifoohoo/artifact-graph or github:ifoohoo/artifact-graph#tag
+    if (/^github:(?:mzdbxqh|ifoohoo)\/artifact-graph/.test(tok)) {
       if (tok === expectedGithubSpec) continue;
       return `GitHub spec mismatch: got "${tok}", expected "${expectedGithubSpec}"`;
     }

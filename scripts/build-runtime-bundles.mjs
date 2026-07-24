@@ -17,8 +17,13 @@ const sharedFiles = [
   'scripts/run-artifact-workflow.mjs',
   'scripts/batch-split.mjs',
   'scripts/batch-merge.mjs',
+  'scripts/check-family-api.mjs',
+  'scripts/family-compile.mjs',
+  'scripts/family-help-render.mjs',
+  'scripts/method-query.mjs',
+  'scripts/export-family-api.mjs',
 ];
-const sharedDirectories = ['templates/core', 'templates/extended', 'scripts/lib', 'schemas', 'agent-methods'];
+const sharedDirectories = ['templates/core', 'templates/extended', 'scripts/lib', 'schemas', 'agent-methods', 'family-apis', 'families-src'];
 
 let drift = false;
 

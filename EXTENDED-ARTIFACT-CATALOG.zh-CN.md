@@ -2,28 +2,28 @@
 
 [English](EXTENDED-ARTIFACT-CATALOG.md)
 
-本文档总结 `artifact-chain-assistant` 的扩展制品类型目录。涵盖类型分类、推荐路径和 ID 模式、
+本文档汇总 `artifact-chain-assistant` 的扩展制品类型目录，内容包括类型分类、推荐路径与 ID 模式、
 模板采用规则，以及 `artifact-graph`、插件与目标项目之间的三层权威边界。
 
-核心制品类型（`feature`、`scenario`、`decision`、`design`、`test`、`e2e_test`）请参见
-插件 README 和 INSTALL.md。本文档覆盖核心集合之外的可选类型。
+核心制品类型（`feature`、`scenario`、`decision`、`design`、`test`、`e2e_test`）见插件 README 和
+INSTALL.md。本文档只介绍核心集合之外的可选类型。
 
 ## 三层权威模型
 
 | 层级 | 权威范围 | 对扩展制品的职责 |
 |------|---------|-----------------|
-| **artifact-graph** | 确定性图能力 | 从 config 读取类型定义，索引制品，提供 context/packet/validate。**不内置扩展类型的默认路径或 ID 模式。** 缺失路径的类型不被索引。 |
+| **artifact-graph** | 确定性图能力 | 从 config 读取类型定义，索引制品，提供 context/packet/validate。**不内置扩展类型的默认路径或 ID 模式。** 未配置路径的类型不会被索引。 |
 | **artifact-chain-assistant** | 通用助手指导 | 提供扩展制品的入门模板、profile 建议和通用审查清单。**模板是指导，不是权威。** 项目本地模板和审查技能覆盖插件建议。 |
-| **目标项目** | 最终工作法 | 决定启用哪些扩展类型，维护 config、本地模板、审查技能和 ID 规则。**项目本地覆盖插件建议。** 随成熟度渐进启用新类型。 |
+| **目标项目** | 最终工作法 | 决定启用哪些扩展类型，维护 config、本地模板、审查技能和 ID 规则。**项目本地覆盖插件建议。** 随成熟度提升逐步启用新类型。 |
 
 ## 扩展制品类型目录
 
 扩展类型按四个类别组织。每类制品包含推荐路径、ID 模式、生命周期规则和审查要点。所有推荐值
-均为**指导**——项目的 `artifact-graph.config.yaml` 是最终权威。
+均为**指导**——项目的 `artifact-graph.config.yaml` 才是最终权威。
 
 ### 一、契约类制品
 
-契约类制品记录系统边界的接口约定。当需求从功能和场景流入实现时，契约是上下文组装的关键上游。
+契约类制品记录系统边界上的接口约定。需求从功能、场景流向实现时，契约是上下文组装的关键上游制品。
 
 | 制品类型 | 推荐路径 | 推荐 ID 模式 | 生命周期 | 审查要点 |
 |---------|---------|-------------|---------|---------|
@@ -38,7 +38,7 @@
 
 ### 二、领域与数据制品
 
-领域与数据制品捕捉业务概念和技术数据模型。它们是企业 Java 和 DDD 项目的核心制品。
+领域与数据制品记录业务概念和技术数据模型，是企业 Java 和 DDD 项目的核心制品。
 
 | 制品类型 | 推荐路径 | 推荐 ID 模式 | 生命周期 | 审查要点 |
 |---------|---------|-------------|---------|---------|
@@ -47,7 +47,7 @@
 
 ### 三、部署与运维制品
 
-部署与运维制品覆盖生产环境的变更、安全、性能和操作流程。仅当项目有对应运维流程时启用。
+部署与运维制品覆盖生产环境的变更、安全、性能和操作流程。项目具备对应运维流程时才启用。
 
 | 制品类型 | 推荐路径 | 推荐 ID 模式 | 生命周期 | 审查要点 |
 |---------|---------|-------------|---------|---------|
@@ -59,7 +59,7 @@
 
 ### 四、发布治理制品
 
-发布治理制品覆盖版本策略、发布工作流和开源合规。仅当项目是父工程、发布治理仓库或拥有发布流程的多包 monorepo 时启用。
+发布治理制品覆盖版本策略、发布工作流和开源合规。仅父工程、发布治理仓库或自身负责发布流程的多包 monorepo 才启用。
 
 | 制品类型 | 推荐路径 | 推荐 ID 模式 | 生命周期 | 审查要点 |
 |---------|---------|-------------|---------|---------|
@@ -69,7 +69,7 @@
 
 ### 五、Agent 与 Hook 制品
 
-Agent 与 Hook 制品覆盖 AI 辅助工作流和 CI/CD 门禁。仅当项目有对应文件或流程时启用。
+Agent 与 Hook 制品覆盖 AI 辅助工作流和 CI/CD 门禁。项目存在对应文件或流程时才启用。
 
 | 制品类型 | 推荐路径 | 推荐 ID 模式 | 生命周期 | 审查要点 |
 |---------|---------|-------------|---------|---------|
@@ -79,44 +79,42 @@ Agent 与 Hook 制品覆盖 AI 辅助工作流和 CI/CD 门禁。仅当项目有
 
 ## Bootstrap 裁剪策略
 
-bootstrap 的职责是根据项目形态选择**最小可用 profile**，而非启用所有已知类型。
+bootstrap 的职责是按项目形态选出**最小可用 profile**，而不是启用所有已知类型。
 
 裁剪规则：
 
 1. **基础集合始终启用**：`feature`、`scenario`、`decision`、`design`、`test`、`e2e_test`。
-2. **契约类按证据加入**：仅当项目本地存在对应的接口文件（如 OpenAPI spec、CLI 入口、IPC 通道定义）时启用。
-3. **领域与数据类按项目形态加入**：企业 Java/DDD 项目可启用 `domain_model`；有数据库的项目可启用 `database_migration`。
-4. **运维类按运维流程加入**：仅有部署配置文件、安全审查流程或运维手册的项目才启用对应类型。
-5. **Agent/Hook 类按本地文件加入**：仅当项目存在 `skills/`、`policies/` 或 hook 配置文件时启用。
-6. **发布治理类按治理证据加入**：仅当项目存在发布策略、发布脚本或开源合规流程时启用 `release_policy`、`publish_skill`、`oss_compliance`。
-7. **渐进扩展**：项目随成熟度增长，可按需在 `artifact-graph.config.yaml` 中添加新类型。已有制品和追溯关系不受影响。
+2. **契约类按证据加入**：项目本地存在对应的接口文件（如 OpenAPI spec、CLI 入口、IPC 通道定义）才启用。
+3. **领域与数据类按项目形态加入**：企业 Java/DDD 项目可启用 `domain_model`；使用数据库的项目可启用 `database_migration`。
+4. **运维类按运维流程加入**：项目有部署配置、安全审查流程或运维手册，才启用对应类型。
+5. **Agent/Hook 类按本地文件加入**：项目存在 `skills/`、`policies/` 或 hook 配置文件才启用。
+6. **发布治理类按治理证据加入**：项目存在发布策略、发布脚本或开源合规流程时，才启用 `release_policy`、`publish_skill`、`oss_compliance`。
+7. **渐进扩展**：项目成熟度提升后，可按需在 `artifact-graph.config.yaml` 中新增类型，已有制品和追溯关系不受影响。
 
-bootstrap 执行后，启用的类型、路径和 ID 模式记录在 `artifact-graph.config.yaml` 中。延迟启用
-的类型及其证据条件记录在项目制品目录中，使未来的扩展成为有据可查的决策。
+bootstrap 执行后，启用的类型、路径和 ID 模式记录在 `artifact-graph.config.yaml` 中；延后启用的
+类型及其证据条件记录在项目制品目录中，让日后的扩展有据可查。
 
 ## 模板采用
 
 ### 模板来源规则
 
-1. **插件模板是入门指导**。`artifact-chain-assistant` 在 `templates/extended/` 中为每种扩展类型
+1. **插件模板是入门指导**。`artifact-chain-assistant` 在 `templates/extended/` 下为每种扩展类型
    提供 starter 模板，按类别组织（`contracts/`、`domain/`、`ops/`、`agent/`）。插件模板不决定
    项目的制品形态。
-2. **项目本地模板是权威**。当项目需要不同的章节结构、审查标准或命名规则时，项目本地模板覆盖
-   插件模板。
-3. **无模板时的回退**。如果项目启用了某扩展类型但无本地模板，助手可引用插件 starter，但必须
-   提示用户该模板未经项目本地定制。
-4. **采用流程**。从 `templates/extended/` 复制 starter 模板到项目本地 `artifacts/templates/` 或
-   等价位置，定制后成为项目权威。
+2. **项目本地模板是权威**。项目需要不同的章节结构、审查标准或命名规则时，本地模板覆盖插件模板。
+3. **无模板时的回退**。项目启用了某扩展类型但没有本地模板时，助手可以引用插件 starter，但必须
+   提示用户该模板尚未按项目定制。
+4. **采用流程**。把 starter 模板从 `templates/extended/` 复制到项目本地的 `artifacts/templates/`
+   或等价位置，定制后即成为项目权威。
 
 ### 模板生命周期
 
 1. **Bootstrap 阶段**：bootstrap 技能引用插件 starter 模板生成初始制品结构，模板来源记录在
    `artifacts/README.md` 中。
-2. **采用阶段**：团队审阅 starter 模板，决定哪些章节保留、修改、删除，复制到本地。定制后的
+2. **采用阶段**：团队审阅 starter 模板，决定各章节保留、修改还是删除，再复制到本地。定制后的
    版本成为权威。
-3. **成熟阶段**：项目在本地维护完整的模板库。插件 starter 仅在新成员加入或新类型启用时被
-   参考。
-4. **升级评审**：插件更新 starter 时，项目审查 diff 并选择性合入有用变更，保留本地定制。
+3. **成熟阶段**：项目本地维护完整的模板库，只在新成员上手或启用新类型时才参考插件 starter。
+4. **升级评审**：插件更新 starter 时，项目审查 diff，有选择地合入有用变更，保留本地定制。
 
 ### 模板目录布局
 
@@ -190,12 +188,12 @@ templates/
         review-checklist.md
 ```
 
-每个类型的 `starter.md` 包含制品结构模板和最小填写指引。`review-checklist.md` 是通用审查要点
-基线。两者都是**可被项目本地完全覆盖的建议**。
+每个类型的 `starter.md` 包含制品结构模板和最基本的填写指引，`review-checklist.md` 是通用审查
+要点的基线。两者都只是建议，项目本地可以完全覆盖。
 
 ## 按证据启用
 
-bootstrap 仅在当地文件或目录存在时才启用扩展制品类型：
+bootstrap 只在本地文件或目录确实存在时才启用扩展制品类型：
 
 | 制品类型 | 启用证据 |
 |---------|---------|
@@ -216,38 +214,38 @@ bootstrap 仅在当地文件或目录存在时才启用扩展制品类型：
 | `publish_skill` | 存在发布脚本、CI/CD 发布流水线或注册中心配置 |
 | `oss_compliance` | 存在许可证文件、依赖审计配置或开源合规流程文档 |
 
-**规则**：仅当本地证据存在时才启用对应类型。不要因为插件提供了模板就启用。
+**规则**：本地证据存在才启用对应类型，不要因为插件提供了模板就启用。
 
 ## artifact-graph 对自定义类型的运行时支持
 
-从 `artifact-graph` 0.3.0 起，配置驱动的自定义类型已获得完整的运行时支持。扩展制品目录
-分为两个层次：
+从 `artifact-graph` 0.3.0 起，配置驱动的自定义类型获得了完整的运行时支持。扩展制品目录分为
+两个层次：
 
-1. **已在 artifact-chain-assistant 实现**：starter 模板、审查清单、bootstrap 推荐和按证据采用指导。
-2. **已在 artifact-graph 0.3.0+ 实现**：任意注册自定义类型的配置驱动索引、图遍历、`context`、
-   `packet`、`validate`、`version-lock` 和 `extraFields` 支持。
+1. **artifact-chain-assistant 已实现**：starter 模板、审查清单、bootstrap 推荐和按证据启用指导。
+2. **artifact-graph 0.3.0+ 已实现**：对任意注册的自定义类型，提供配置驱动的索引、图遍历、
+   `context`、`packet`、`validate`、`version-lock` 和 `extraFields` 支持。
 
 ### 运行时为自定义类型提供的能力
 
-在 `artifact-graph.config.yaml` 中注册类型（`paths` 和可选 `idPatterns`）后，运行时提供：
+在 `artifact-graph.config.yaml` 中注册类型（`paths` 和可选的 `idPatterns`）后，运行时提供以下能力：
 
-1. **扫描与 frontmatter 解析**：读取 `types.{type}.paths`，扫描匹配文件，解析 frontmatter 提取
-   `id`、`title`、`status` 等标准字段。未配置路径的类型不被索引。
-2. **图边建立**：自定义类型通过 `related_<type>` frontmatter 字段、`@<type> <ID>` 追溯注释和
+1. **扫描与 frontmatter 解析**：读取 `types.{type}.paths`，扫描匹配文件，解析 frontmatter，提取
+   `id`、`title`、`status` 等标准字段。未配置路径的类型不会被索引。
+2. **图边建立**：自定义类型可通过 `related_<type>` frontmatter 字段、`@<type> <ID>` 追溯注释和
    显式关系字段参与图遍历。
 3. **Target 选择器**：`--target <type>:<id>` 可用于 `context`、`packet`、`packet-prompt` 和 `audit`
-   命令，适用于 config 中 `target: true` 的任意类型。ID 可包含冒号；仅第一个冒号分隔类型和 ID。
-   **没有**动态 `--{type}` flag；`--target` 是通用入口。
-4. **额外字段**：在 config 中声明 `extraFields` 以索引特定 frontmatter 字段（string、number、
-   boolean、enum）。未声明的字段保留在原始 frontmatter 中但不被索引。
-5. **验证**：自定义类型参与 ID 模式检查、悬空关系警告、孤立制品警告和版本锁新鲜度检查。
-6. **版本锁**：自定义类型制品及其追溯边纳入 version-lock refresh、audit 和 bootstrap。
+   命令，适用于 config 中标记了 `target: true` 的任意类型。ID 可以包含冒号，只有第一个冒号用于
+   分隔类型和 ID。注意：**没有**动态的 `--{type}` flag，`--target` 是通用入口。
+4. **额外字段**：在 config 中声明 `extraFields`，即可索引指定的 frontmatter 字段（string、number、
+   boolean、enum）。未声明的字段仍留在原始 frontmatter 中，但不会被索引。
+5. **验证**：自定义类型同样参与 ID 模式检查、悬空关系警告、孤立制品警告和版本锁新鲜度检查。
+6. **版本锁**：自定义类型的制品及其追溯边会纳入 version-lock 的 refresh、audit 和 bootstrap。
 
 ### 能力矩阵
 
 | 能力 | 核心类型 | 扩展类型 | 说明 |
 |------|---------|---------|------|
-| 文件索引和 ID 解析 | 已实现 | 通过 config `paths` + `idPatterns` 实现 | 未配置路径的类型不被索引 |
+| 文件索引和 ID 解析 | 已实现 | 通过 config `paths` + `idPatterns` 实现 | 未配置路径的类型不会被索引 |
 | 图遍历（上游/下游） | 已实现 | 通过 `related_<type>` 字段和追溯注释实现 | 强度取决于追溯注释密度 |
 | context/packet 组装 | 已实现（`--target <type>:<id>`） | 已实现（`--target <type>:<id>`） | `--target` 是通用入口；没有动态 `--{type}` flag |
 | validate | 已实现 | 已实现 | ID 模式检查、悬空关系、孤立制品、锁新鲜度 |
@@ -257,22 +255,22 @@ bootstrap 仅在当地文件或目录存在时才启用扩展制品类型：
 
 ### 已知限制
 
-- **内容质量不判断**：artifact-graph 验证结构和追溯性，不判断制品内容是否写得好或完整。
-- **追溯注释稀疏**：如果自定义制品缺少 `related_*` frontmatter 字段或实现文件缺少追溯注释，
-  图遍历仍会产生较弱关系。缓解措施：项目本地审查应要求追溯字段。
-- **ID 模式冲突**：多个类型使用相同的 ID 模式可能导致歧义图边。缓解措施：每个类型使用
+- **不判断内容质量**：artifact-graph 验证的是结构和追溯性，不判断制品内容写得好不好、完不完整。
+- **追溯注释稀疏**：自定义制品缺少 `related_*` frontmatter 字段，或实现文件缺少追溯注释时，图
+  遍历得到的关系会比较弱。缓解办法：项目本地审查中强制要求追溯字段。
+- **ID 模式冲突**：多个类型使用相同的 ID 模式，可能产生有歧义的图边。缓解办法：每个类型使用
   不同的 ID 前缀（如 `API-`、`CLI-`）。
-- **路径重叠**：多个类型的路径 glob 匹配相同文件会创建重复图节点。缓解措施：使用互斥的
+- **路径重叠**：多个类型的路径 glob 匹配到相同文件，会产生重复的图节点。缓解办法：使用互斥的
   路径 glob。
-- **运维制品天然松散**：某些类型（如 `runbook`、`deployment_manifest`）与核心需求链的关联
-  天然较松散。这是预期行为，不是缺陷。
+- **运维制品关联本就松散**：某些类型（如 `runbook`、`deployment_manifest`）与核心需求链的联系
+  天然较弱。这是预期行为，不是缺陷。
 
 ## 项目形态 Profile
 
-九种项目画像各自映射到推荐的 starter 集合和延迟就绪列表。Profile 仅在 bootstrap 阶段使用，
-不是运行时概念。最终选择写入 `artifact-graph.config.yaml`。
+九种项目形态各自对应一套推荐的 starter 集合和延后启用列表。Profile 只在 bootstrap 阶段使用，
+不是运行时概念；最终选择会写入 `artifact-graph.config.yaml`。
 
-| 项目形态 | 推荐启用的扩展类型 | 延迟启用的类型 |
+| 项目形态 | 推荐启用的扩展类型 | 延后启用的类型 |
 |---------|------------------|-------------|
 | 文档/规划仓库 | 无 | 所有扩展类型 |
 | TypeScript 库或 CLI | `cli_contract` | 其他契约、领域、运维 |
@@ -288,4 +286,4 @@ bootstrap 仅在当地文件或目录存在时才启用扩展制品类型：
 
 - [README](README.md) — 插件概览与完整功能列表
 - [INSTALL.md](INSTALL.md) — 安装、bootstrap 流程和 profile 扩展指南
-- [ADOPTION-GUIDE](https://github.com/mzdbxqh/artifact-chain-assistant/blob/main/templates/extended/ADOPTION-GUIDE.md) — 模板采用和升级评审的分步指南
+- [ADOPTION-GUIDE](https://github.com/ifoohoo/artifact-chain-assistant/blob/main/templates/extended/ADOPTION-GUIDE.md) — 模板采用和升级评审的分步指南

@@ -1,0 +1,39 @@
+schemaVersion: 1
+familyImplementationId: com.github.mzdbxqh.prd-feature
+version: "0.6.1"
+targetApiStatus: pending
+lifecycle:
+  ownership: bundled
+  maturity: stable
+  channel: stable
+hostSupport:
+  codex:
+    skillPath: skills/prd-feature
+    available: true
+  claude:
+    skillPath: skills/prd-feature
+    available: true
+bundleRoots:
+  - skills-src/prd-feature
+services:
+  artifact.prd-feature.default:
+    skill: prd-feature
+    summary: "PRD feature default route entry"
+  artifact.prd-feature.author:
+    skill: prd-feature/author
+    summary: "PRD feature authoring entry"
+  artifact.prd-feature.review:
+    skill: prd-feature/review
+    summary: "PRD feature review entry"
+  artifact.prd-feature.repair:
+    skill: prd-feature/repair
+    summary: "PRD feature repair entry"
+conformance:
+  deterministicAttestation: null
+  behaviorQualification: null
+pendingApiStatus:
+  hasPublishedFamilyApi: false
+  reason: "No formal Family API published for prd-feature; migration sample only"
+  missingContracts:
+    - "artifact.prd-feature@1 (Artifact Contract not yet published)"
+notes: "Migration sample for bundled prd-feature family. No published Family API exists yet; targetApiStatus: pending. This descriptor does not claim Family API conformance. It records current bundled service mappings for future registry v2 migration."

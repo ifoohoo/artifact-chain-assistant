@@ -7,7 +7,7 @@ import { promisify } from 'node:util';
 import { pluginRoot } from './helpers.mjs';
 
 const execFileAsync = promisify(execFile);
-const repository = 'https://github.com/mzdbxqh/artifact-chain-assistant/';
+const repository = 'https://github.com/ifoohoo/artifact-chain-assistant/';
 
 test('packaged Markdown links resolve from the npm package file set', async () => {
   const files = await packageFiles(pluginRoot);

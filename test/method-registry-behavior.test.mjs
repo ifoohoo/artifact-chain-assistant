@@ -11,16 +11,17 @@ import test from 'node:test';
 import { promisify } from 'node:util';
 
 const root = join(import.meta.dirname, '..');
-const cli = join(root, 'node_modules/.bin/agent-method-registry');
+const cliDist = join(root, 'node_modules', 'agent-method-registry', 'dist', 'bin.js');
+const cli = existsSync(cliDist) ? cliDist : join(root, 'node_modules/.bin/agent-method-registry');
 const catalog = join(root, 'agent-methods/catalog.yaml');
 const execFileAsync = promisify(execFile);
-const hasRegistryCli = existsSync(cli);
+const hasRegistryCli = existsSync(cliDist) || existsSync(join(root, 'node_modules/.bin/agent-method-registry'));
 const registryTest = hasRegistryCli
   ? test
   : (name, fn) => test.skip(`${name} [requires agent-method-registry CLI]`, fn);
 
 function run(args) {
-  return JSON.parse(execFileSync(cli, args, { cwd: root, encoding: 'utf8' }));
+  return JSON.parse(execFileSync('node', [cli, ...args], { cwd: root, encoding: 'utf8' }));
 }
 
 function providerKeys(index) {
@@ -46,7 +47,7 @@ registryTest('S-55 catalog and project overlay keep one public provider per type
     const indexPath = join(temp, 'index.json');
     assert.equal(run(['index', '--catalog', catalog, '--out', indexPath]).ok, true);
     const index = JSON.parse(await readFile(indexPath, 'utf8'));
-    assert.equal(index.entries.length, 13);
+    assert.equal(index.entries.length, 14);
     assert.equal(index.entries.some(entry => entry.ref.includes('artifact-workflow-worker')
       || entry.provider.skill.includes('artifact-workflow-worker')), false);
     const keys = providerKeys(index);
@@ -63,7 +64,7 @@ overrides:
     const overlayPath = join(temp, 'overlay-index.json');
     assert.equal(run(['index', '--catalog', catalog, '--project', projectPath, '--out', overlayPath]).ok, true);
     const overlay = JSON.parse(await readFile(overlayPath, 'utf8'));
-    assert.equal(overlay.entries.length, 13);
+    assert.equal(overlay.entries.length, 14);
     const reviews = overlay.entries.filter(entry => entry.ref === 'artifact.review');
     assert.equal(reviews.length, 1);
     assert.equal(reviews[0].provider.scope, 'project');

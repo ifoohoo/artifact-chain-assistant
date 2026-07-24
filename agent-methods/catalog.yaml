@@ -1,7 +1,7 @@
 schemaVersion: 1
 catalog:
   id: artifact-chain-assistant
-  version: "0.6.1"
+  version: "0.7.0"
 entries:
   - ref: artifact.prd-feature.default
     provider:
@@ -238,3 +238,23 @@ entries:
       - "从模板生成的制品文件"
     sideEffects:
       - write-project-artifacts
+
+  # ── 插件级发现入口 ──────────────────────────────────────────────────────
+
+  - ref: artifact-chain-help
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: artifact-chain-help
+    kind: operation
+    summary: "展示标准 Family API、bundled legacy 方法和安装后采用步骤"
+    match:
+      domains: [artifact]
+      artifactTypes: [design-spec, link, e2e, domain, contract, blueprint, verification, prd-feature, scenario-script]
+      intents: [help]
+    accepts:
+      - "帮助请求或能力查询"
+    produces:
+      - "标准能力概览和采用指导"
+    sideEffects:
+      - read-only

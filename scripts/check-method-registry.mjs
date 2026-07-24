@@ -108,10 +108,14 @@ function runRegistryExpectFail(args) {
 
   const index = JSON.parse(readFileSync(indexPath, 'utf-8'));
 
-  // ── 3. Exactly 13 entries, all workflow ──
-  assert(index.entries.length === 13, `expected 13 entries, got ${index.entries.length}`);
+  // ── 3. Exactly 14 entries ──
+  assert(index.entries.length === 14, `expected 14 entries, got ${index.entries.length}`);
   for (const entry of index.entries) {
-    assert(entry.kind === 'workflow', `entry ${entry.ref} should be workflow, got ${entry.kind}`);
+    if (entry.ref === 'artifact-chain-help') {
+      assert(entry.kind === 'operation', `entry ${entry.ref} should be operation, got ${entry.kind}`);
+    } else {
+      assert(entry.kind === 'workflow', `entry ${entry.ref} should be workflow, got ${entry.kind}`);
+    }
   }
 
   // ── 4. Expected refs ──
@@ -129,6 +133,7 @@ function runRegistryExpectFail(args) {
     'artifact.batch',
     'artifact.audit',
     'artifact.generate',
+    'artifact-chain-help',
   ];
   const actualRefs = index.entries.map(e => e.ref).sort();
   const sortedExpected = [...expectedRefs].sort();

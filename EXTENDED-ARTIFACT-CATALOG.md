@@ -309,4 +309,4 @@ are used only during bootstrap — they are not a runtime concept. The final sel
 
 - [README](README.md) — Plugin overview with full feature list
 - [INSTALL.md](INSTALL.md) — Installation, bootstrap flow, and profile expansion guide
-- [ADOPTION-GUIDE](https://github.com/mzdbxqh/artifact-chain-assistant/blob/main/templates/extended/ADOPTION-GUIDE.md) — Step-by-step template adoption and upgrade review guide
+- [ADOPTION-GUIDE](https://github.com/ifoohoo/artifact-chain-assistant/blob/main/templates/extended/ADOPTION-GUIDE.md) — Step-by-step template adoption and upgrade review guide
