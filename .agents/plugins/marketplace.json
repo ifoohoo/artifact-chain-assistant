@@ -1,0 +1,20 @@
+{
+  "name": "artifact-chain-assistant",
+  "interface": {
+    "displayName": "Artifact Chain Assistant"
+  },
+  "plugins": [
+    {
+      "name": "artifact-chain-assistant",
+      "source": {
+        "source": "local",
+        "path": "./adapters/codex"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

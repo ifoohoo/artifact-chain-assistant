@@ -1,0 +1,11 @@
+{
+  "name": "{{pluginName}}",
+  "displayName": "Artifact Chain Assistant",
+  "version": "{{version}}",
+  "description": "Artifact-chain intake, review/repair/batch/audit workflows, diagnostics, hooks, and version-lock maintenance helpers.",
+  "author": {
+    "name": "Artifact Graph Maintainers"
+  },
+  "license": "Apache-2.0",
+  "keywords": ["artifact-graph", "traceability", "codex", "claude-code"]
+}
