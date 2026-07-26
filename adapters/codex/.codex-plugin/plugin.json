@@ -1,0 +1,18 @@
+{
+  "name": "artifact-chain-assistant",
+  "displayName": "Artifact Chain Assistant",
+  "version": "0.8.2",
+  "description": "Artifact-chain intake, review/repair/batch/audit workflows, diagnostics, and version-lock maintenance helpers.",
+  "author": {
+    "name": "Artifact Graph Maintainers"
+  },
+  "license": "Apache-2.0",
+  "keywords": ["artifact-graph", "traceability", "codex", "claude-code"],
+  "skills": "./skills/",
+  "hooks": {},
+  "interface": {
+    "displayName": "Artifact Chain Assistant",
+    "shortDescription": "Artifact-chain context, review workflows, and version-lock maintenance.",
+    "category": "Productivity"
+  }
+}
