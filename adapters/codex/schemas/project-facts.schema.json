@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://artifact-chain.dev/schemas/project-facts.schema.json",
+  "title": "Project Facts Evidence Envelope",
+  "description": "Structured envelope capturing project identity, configuration, graph state, and evidence for registry/planner consumption",
+  "type": "object",
+  "required": ["schemaVersion", "projectRoot", "configDigest", "artifactGraphSummary", "targetArtifact", "contractRevisionDigest", "proofStatus", "versionLockStatus", "sourcesFreshness", "bindingFreshness", "evidenceDigest"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "projectRoot": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Project root identity (path or canonical identifier)"
+    },
+    "configDigest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "SHA-256 digest of artifact-graph.config.yaml content"
+    },
+    "policyDigest": {
+      "type": ["string", "null"],
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "SHA-256 digest of project policy overlay, or null if none"
+    },
+    "artifactGraphSummary": {
+      "type": "object",
+      "required": ["artifactCount", "edgeCount", "contextTargets"],
+      "additionalProperties": false,
+      "properties": {
+        "artifactCount": { "type": "integer", "minimum": 0 },
+        "edgeCount": { "type": "integer", "minimum": 0 },
+        "contextTargets": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "targetArtifact": {
+      "type": "object",
+      "required": ["type", "id"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "minLength": 1 },
+        "id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "contractRevisionDigest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "SHA-256 digest of the contract revision content"
+    },
+    "proofStatus": {
+      "type": "string",
+      "enum": ["present", "missing", "stale"]
+    },
+    "versionLockStatus": {
+      "type": "string",
+      "enum": ["fresh", "stale", "missing"]
+    },
+    "sourcesFreshness": {
+      "type": "string",
+      "enum": ["fresh", "stale", "missing"],
+      "description": "Freshness of the adopted catalog source set"
+    },
+    "bindingFreshness": {
+      "type": "string",
+      "enum": ["fresh", "stale", "missing"],
+      "description": "Freshness of the project provider binding"
+    },
+    "evidenceDigest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "SHA-256 digest of the envelope content excluding this field, using stable key serialization"
+    }
+  }
+}
