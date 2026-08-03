@@ -1,0 +1,235 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://artifact-chain.dev/schemas/family-api.schema.json",
+  "title": "Skill Family API",
+  "description": "Schema for standard Skill Family API definitions owned by artifact-chain-assistant",
+  "type": "object",
+  "required": ["schemaVersion", "api", "services"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "api": {
+      "type": "object",
+      "required": ["id", "major", "revisionDigest", "displayName", "summary"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^artifact\\.[a-z][a-z0-9-]*-family$",
+          "description": "Canonical family API identity in the artifact.* namespace"
+        },
+        "major": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Major version indicating compatibility family"
+        },
+        "revisionDigest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "description": "Immutable SHA-256 digest of canonical API content excluding this field"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifactTypes": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true,
+          "description": "Artifact types this family operates on"
+        }
+      }
+    },
+    "services": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/service"
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/capability"
+      },
+      "description": "Optional public capabilities (no implementation state)"
+    },
+    "dataTransferObjects": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/dataTransferObject" },
+      "description": "Family API 拥有的结构化中间或正式 DTO 声明；schema 仍由 family 提供，接口编译器只校验声明形状和服务引用。"
+    },
+    "qualificationKinds": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z][A-Za-z0-9]+$" },
+      "uniqueItems": true,
+      "description": "该 Family API 区分的资格种类名称；只声明种类，不把资格证据或成熟度写入接口。"
+    }
+  },
+  "definitions": {
+    "service": {
+      "type": "object",
+      "required": ["id", "required", "kind", "intents"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^artifact\\.[a-z][a-z0-9-]+\\.[a-z][a-z0-9-]+$",
+          "description": "Canonical service identity: artifact.<family>.<intent>"
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether this service is required for API conformance"
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["workflow", "operation"],
+          "description": "workflow = stateful multi-step; operation = stateless single-step"
+        },
+        "intents": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": ["default", "help", "author", "review", "repair", "route", "audit", "generate", "batch"]
+          },
+          "uniqueItems": true
+        },
+        "accepts": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              { "type": "string", "minLength": 1 },
+              { "$ref": "#/definitions/protocolRef" }
+            ]
+          },
+          "description": "Input contract references or natural language descriptions"
+        },
+        "produces": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              { "type": "string", "minLength": 1 },
+              { "$ref": "#/definitions/protocolRef" }
+            ]
+          },
+          "description": "Output contract references or natural language descriptions"
+        },
+        "sideEffectCeiling": {
+          "type": "string",
+          "enum": ["none", "read-only", "write-authorized-artifacts", "write-review-result", "write-project-artifacts"],
+          "description": "Maximum side effect level this service may produce"
+        },
+        "mixSafe": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this service can be bound to a different family implementation than other services in the same family"
+        },
+        "discoverable": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "default": {
+              "type": "boolean",
+              "description": "Whether this is the default entry point"
+            },
+            "help": {
+              "type": "boolean",
+              "description": "Whether this is the help entry point"
+            }
+          }
+        },
+        "modes": {
+          "$ref": "#/definitions/serviceModes"
+        }
+      }
+    },
+    "capability": {
+      "type": "object",
+      "required": ["id", "summary"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "serviceModes": {
+      "type": "object",
+      "required": ["supported", "default"],
+      "additionalProperties": false,
+      "properties": {
+        "supported": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+          "uniqueItems": true
+        },
+        "default": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }
+      }
+    },
+    "dataTransferObject": {
+      "type": "object",
+      "required": ["id", "schemaId", "schema", "version", "digestRule", "services"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "schemaId": { "type": "string", "minLength": 1 },
+        "schema": { "type": "string", "pattern": "^[^/\\\\~].*\\.json$" },
+        "version": { "type": "string", "minLength": 1 },
+        "digestRule": { "type": "string", "minLength": 1 },
+        "artifactBinding": { "type": "string", "minLength": 1 },
+        "services": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["service", "position"],
+            "additionalProperties": false,
+            "properties": {
+              "service": { "type": "string", "pattern": "^artifact\\.[a-z][a-z0-9-]+\\.[a-z][a-z0-9-]+$" },
+              "position": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    },
+    "contractRef": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*\\.[a-z][a-z0-9-]*@[0-9]+$",
+      "description": "Artifact Contract major identity reference (e.g., artifact.e2e-test@1)"
+    },
+    "protocolRef": {
+      "type": "object",
+      "required": ["protocol", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "protocol": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Protocol name when no formal Artifact Contract exists"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Protocol version"
+        },
+        "input": {
+          "type": "string",
+          "description": "Describes what the protocol accepts or produces"
+        }
+      }
+    }
+  }
+}

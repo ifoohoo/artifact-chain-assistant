@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "generatorDigest": "sha256:c82a4e548f72cdfa77a72c69cca684e0fcbe6d65d4bd63485270edac8a3971f9",
+  "entries": [
+    {
+      "name": "family-api",
+      "schemaPath": "family-apis/schema/family-api.schema.json",
+      "schemaDigest": "sha256:f6ec0f4ffc4a761214a3b22c909a9e7b89a63064bc2c6dad91a691ff48f6db0d",
+      "outputPath": "scripts/lib/generated/family-api-validator.generated.mjs",
+      "outputDigest": "sha256:9f23b1452f19695cef61121e76693bdd470e12b9f06527b87b86c32eb351c464"
+    },
+    {
+      "name": "project-facts",
+      "schemaPath": "schemas/project-facts.schema.json",
+      "schemaDigest": "sha256:67255ae925097eebfe84032bb232cee03e7991c26b39060bb50e5ca34d9930ad",
+      "outputPath": "scripts/lib/generated/project-facts-validator.generated.mjs",
+      "outputDigest": "sha256:e291029c1661cfc3aeeaf07bf820e2d806adc873bef867a8be1aaadb2fc537f7"
+    }
+  ]
+}
