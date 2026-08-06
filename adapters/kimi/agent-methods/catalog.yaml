@@ -1,0 +1,296 @@
+schemaVersion: 1
+catalog:
+  id: artifact-chain-assistant
+  version: "0.9.0"
+entries:
+  - ref: artifact.prd-feature.default
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: prd-feature
+    kind: workflow
+    summary: "PRD feature 默认路由入口，按意图分派到 author/review/repair"
+    match:
+      domains: [artifact]
+      artifactTypes: [prd-feature]
+      intents: [route]
+    accepts:
+      - "用户需求描述或 PRD 制品变更请求"
+    produces:
+      - "PRD feature 制品草稿、审阅报告或修复补丁"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.prd-feature.author
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: prd-feature/author
+    kind: workflow
+    summary: "PRD feature 制作入口，从需求描述生成 PRD feature 草稿"
+    match:
+      domains: [artifact]
+      artifactTypes: [prd-feature]
+      intents: [author]
+    accepts:
+      - "用户需求描述"
+    produces:
+      - "PRD feature 制品草稿"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.prd-feature.review
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: prd-feature/review
+    kind: workflow
+    summary: "PRD feature 审阅入口，检查制品完整性、追溯性和一致性"
+    match:
+      domains: [artifact]
+      artifactTypes: [prd-feature]
+      intents: [review]
+    accepts:
+      - "PRD feature 制品"
+    produces:
+      - "审阅报告"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.prd-feature.repair
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: prd-feature/repair
+    kind: workflow
+    summary: "PRD feature 修复入口，根据审阅报告修复制品问题"
+    match:
+      domains: [artifact]
+      artifactTypes: [prd-feature]
+      intents: [repair]
+    accepts:
+      - "审阅报告和待修复的 PRD feature 制品"
+    produces:
+      - "修复后的 PRD feature 制品"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.scenario-script.default
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: scenario-script
+    kind: workflow
+    summary: "场景剧本默认路由入口，按意图分派到 author/review/repair"
+    match:
+      domains: [artifact]
+      artifactTypes: [scenario-script]
+      intents: [route]
+    accepts:
+      - "需求描述或场景剧本变更请求"
+    produces:
+      - "场景剧本草稿、审阅报告或修复补丁"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.scenario-script.author
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: scenario-script/author
+    kind: workflow
+    summary: "场景剧作入口，从需求描述生成场景剧本草稿"
+    match:
+      domains: [artifact]
+      artifactTypes: [scenario-script]
+      intents: [author]
+    accepts:
+      - "需求描述"
+    produces:
+      - "场景剧本草稿"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.scenario-script.review
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: scenario-script/review
+    kind: workflow
+    summary: "场景剧本审阅入口，检查剧本完整性、场景覆盖和追溯关系"
+    match:
+      domains: [artifact]
+      artifactTypes: [scenario-script]
+      intents: [review]
+    accepts:
+      - "场景剧本"
+    produces:
+      - "审阅报告"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.scenario-script.repair
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: scenario-script/repair
+    kind: workflow
+    summary: "场景剧本修复入口，根据审阅报告修复剧本问题"
+    match:
+      domains: [artifact]
+      artifactTypes: [scenario-script]
+      intents: [repair]
+    accepts:
+      - "审阅报告和待修复的场景剧本"
+    produces:
+      - "修复后的场景剧本"
+    sideEffects:
+      - write-project-artifacts
+
+  # ── 通用跨类型入口 ──────────────────────────────────────────────────────
+
+  - ref: artifact.review
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: artifact-review
+    kind: workflow
+    summary: "通用制品审阅路由，按 domain 分派到类型专用 worker"
+    match:
+      domains: [artifact]
+      artifactTypes: [design-spec, link, e2e, domain, contract, blueprint, verification]
+      intents: [review]
+    accepts:
+      - "制品文件或目录路径"
+    produces:
+      - "Review Result Protocol v1.0 审阅结果"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.repair
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: artifact-repair
+    kind: workflow
+    summary: "通用制品修复入口，根据审阅结果修复 open findings"
+    match:
+      domains: [artifact]
+      artifactTypes: [design-spec, link, e2e, domain, contract, blueprint, verification]
+      intents: [repair]
+    accepts:
+      - "审阅结果 JSON 和待修复制品"
+    produces:
+      - "Review Result Protocol v1.0 修复结果"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.batch
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: artifact-batch
+    kind: workflow
+    summary: "通用批处理编排，确定性切分与合并 Review Result"
+    match:
+      domains: [artifact]
+      artifactTypes: [design-spec, link, e2e, domain, contract, blueprint, verification]
+      intents: [batch]
+    accepts:
+      - "制品目录和批处理参数"
+    produces:
+      - "Review Result Protocol v1.0 批次汇总"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.audit
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: artifact-audit
+    kind: workflow
+    summary: "制品链健康检查与能力审计"
+    match:
+      domains: [artifact]
+      artifactTypes: [design-spec, link, e2e, domain, contract, blueprint, verification]
+      intents: [audit, health]
+    accepts:
+      - "项目根路径"
+    produces:
+      - "健康检查报告或能力审计结果"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.generate
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: artifact-generate
+    kind: workflow
+    summary: "通用制品生成入口，从模板和 profile 配置生成非 PRD/scenario 类型制品"
+    match:
+      domains: [artifact]
+      artifactTypes: [design-spec, link, e2e, domain, contract, blueprint, verification]
+      intents: [generate]
+    accepts:
+      - "制品类型、目标路径和模板配置"
+    produces:
+      - "从模板生成的制品文件"
+    sideEffects:
+      - write-project-artifacts
+
+  # ── 插件级入口 ──────────────────────────────────────────────────────────
+
+  - ref: artifact.help
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: help
+    kind: operation
+    summary: "展示标准 Family API、bundled legacy 方法和安装后采用步骤"
+    match:
+      domains: [artifact]
+      artifactTypes: [design-spec, link, e2e, domain, contract, blueprint, verification, prd-feature, scenario-script]
+      intents: [help]
+    accepts:
+      - "帮助请求或能力查询"
+    produces:
+      - "标准能力概览和采用指导"
+    sideEffects:
+      - read-only
+
+  - ref: artifact.setup
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: setup
+    kind: operation
+    summary: "只读环境检查：插件闭包、CLI、config、版本锁、registry 可用性"
+    match:
+      domains: [artifact]
+      artifactTypes: [design-spec, link, e2e, domain, contract, blueprint, verification, prd-feature, scenario-script]
+      intents: [setup, diagnose]
+    accepts:
+      - "环境检查请求"
+    produces:
+      - "结构化状态报告和下一步建议"
+    sideEffects:
+      - read-only
+
+  - ref: artifact.quickstart
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: quickstart
+    kind: operation
+    summary: "按意图路由到正确的技能"
+    match:
+      domains: [artifact]
+      artifactTypes: [design-spec, link, e2e, domain, contract, blueprint, verification, prd-feature, scenario-script]
+      intents: [start]
+    accepts:
+      - "用户意图描述"
+    produces:
+      - "路由建议和目标技能推荐"
+    sideEffects:
+      - read-only
