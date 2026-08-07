@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "protocol": "canonical-json-v1",
+  "authorityDigest": "sha256:5f7d38cc2646d9b149f384f439870b7d71b9e6d8b5abfc0f2fee6f9f3b395e25",
+  "outputDigest": "sha256:5937d28fa9862399b654637ca130a51d0bad24350943e4e48ee7cab4c4c51350",
+  "vectorsDigest": "sha256:7b6ee3d871269e72cea6b79daac07bcd3ef57aae65c3cccd548e64dfa1298eef"
+}
