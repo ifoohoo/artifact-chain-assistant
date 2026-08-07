@@ -1,0 +1,18 @@
+# Notice
+
+Artifact Chain Assistant is an open-source project released under the Apache License 2.0.
+
+## Maintenance
+
+Artifact Chain Assistant is maintained by 广州市风荷科技有限公司 (Guangzhou
+Fenghe Technology Co., Ltd.), together with the Artifact Chain Assistant
+contributors. Copyright in the project is held by the Artifact Chain Assistant
+contributors and 广州市风荷科技有限公司 as stated in the LICENSE file. The
+transfer of the public GitHub repository to the `ifoohoo` organization is an
+administrative change of the hosting location and maintenance identity; it does
+not by itself constitute a copyright assignment or transfer.
+
+## Third-Party Dependencies
+
+This project is built on Node.js and the npm ecosystem. See `package.json`
+for the full list of dependencies.

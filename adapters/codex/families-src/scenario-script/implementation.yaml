@@ -1,0 +1,39 @@
+schemaVersion: 1
+familyImplementationId: com.github.mzdbxqh.scenario-script
+version: "0.6.1"
+targetApiStatus: pending
+lifecycle:
+  ownership: bundled
+  maturity: stable
+  channel: stable
+hostSupport:
+  codex:
+    skillPath: skills/scenario-script
+    available: true
+  claude:
+    skillPath: skills/scenario-script
+    available: true
+bundleRoots:
+  - skills-src/scenario-script
+services:
+  artifact.scenario-script.default:
+    skill: scenario-script
+    summary: "Scenario script default route entry"
+  artifact.scenario-script.author:
+    skill: scenario-script/author
+    summary: "Scenario script authoring entry"
+  artifact.scenario-script.review:
+    skill: scenario-script/review
+    summary: "Scenario script review entry"
+  artifact.scenario-script.repair:
+    skill: scenario-script/repair
+    summary: "Scenario script repair entry"
+conformance:
+  deterministicAttestation: null
+  behaviorQualification: null
+pendingApiStatus:
+  hasPublishedFamilyApi: false
+  reason: "No formal Family API published for scenario-script; migration sample only"
+  missingContracts:
+    - "artifact.scenario-script@1 (Artifact Contract not yet published)"
+notes: "Migration sample for bundled scenario-script family. No published Family API exists yet; targetApiStatus: pending. This descriptor does not claim Family API conformance. It records current bundled service mappings for future registry v2 migration."
