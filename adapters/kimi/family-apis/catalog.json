@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "catalog": {
+    "id": "artifact-chain-assistant",
+    "version": "0.9.4"
+  },
+  "families": [
+    {
+      "id": "artifact.e2e-test-family",
+      "major": 1,
+      "apiPath": "e2e-test/api.json",
+      "revisionDigest": "sha256:66cdd1098a93eb8d128c57010a9405dd1de55bee1e702ced44a93c202cc4b463",
+      "summary": "Standard E2E test skill family for authoring, reviewing, and repairing E2E test specifications"
+    }
+  ]
+}

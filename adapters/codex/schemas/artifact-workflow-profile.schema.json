@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://artifact-graph.dev/schemas/artifact-workflow-profile.schema.json",
+  "title": "Artifact Workflow Profile",
+  "description": "Project workflow profile for artifact-chain-assistant",
+  "type": "object",
+  "required": ["schema_version", "project", "workflows"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "project": {
+      "type": "object",
+      "required": ["id", "language"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "language": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "workflows": {
+      "type": "object",
+      "propertyNames": {
+        "enum": ["generate", "review", "repair", "audit", "batch"]
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "checklists": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "validators": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "templates": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "worker": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "skill": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Project workflow skill name, not a filesystem path"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
