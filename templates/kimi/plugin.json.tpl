@@ -1,0 +1,19 @@
+{
+  "name": "{{pluginName}}",
+  "version": "{{version}}",
+  "description": "Artifact-chain intake, review/repair/batch/audit workflows, diagnostics, and version-lock maintenance helpers.",
+  "author": {
+    "name": "广州市风荷科技有限公司"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/ifoohoo/artifact-chain-assistant#readme",
+  "keywords": ["artifact-graph", "traceability", "kimi-code"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Artifact Chain Assistant",
+    "shortDescription": "Artifact-chain context, review workflows, and version-lock maintenance.",
+    "longDescription": "Reusable skills for artifact-graph projects, including intake routing, generic artifact review/repair/batch/audit workflows, diagnostics, and version-lock refresh guidance.",
+    "developerName": "广州市风荷科技有限公司",
+    "websiteURL": "https://github.com/ifoohoo/artifact-chain-assistant"
+  }
+}
