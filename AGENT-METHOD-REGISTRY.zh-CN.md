@@ -172,7 +172,7 @@ review 或 repair 步骤。
 
 ## Registry 不可用时的 fallback 行为
 
-`agent-method-registry` 未安装或有效索引不存在时，`where-am-i` 按以下方式回退：
+`agent-method-registry` 未安装或有效索引不存在时，`artifact-chain-where-am-i` 按以下方式回退：
 
 1. 输出 `"registry unavailable"` 诊断信息。
 2. 对于有契约支撑的服务，返回 `NEEDS_INPUT` 并附带 registry 不可用信息——**不会回落到内置或配置路由**。

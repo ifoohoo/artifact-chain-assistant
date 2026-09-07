@@ -29,7 +29,7 @@
 <main>
   <section class="card">
     <h1>命令参考</h1>
-    <p>下面的清单以 <code>cli.ts</code> 的 <code>helpText()</code> 为<strong>唯一真源</strong>——工程里改了命令，这份表就以代码为准，不另写一份会过期的文档。拿不准某个命令怎么用，先跑 <code>--help</code>；更拿不准「该用哪个能力」，在插件里跑 <dfn data-term="help">help</dfn> 或 <dfn data-term="quickstart">quickstart</dfn>，让它按你的意图指路。</p>
+    <p>下面的清单以 <code>cli.ts</code> 的 <code>helpText()</code> 为<strong>唯一真源</strong>——工程里改了命令，这份表就以代码为准，不另写一份会过期的文档。拿不准某个命令怎么用，先跑 <code>--help</code>；更拿不准「该用哪个能力」，在插件里跑 <dfn data-term="artifact-chain-help">artifact-chain-help</dfn> 或 <dfn data-term="artifact-chain-quickstart">artifact-chain-quickstart</dfn>，让它按你的意图指路。</p>
   </section>
 
   <section class="card do-now">
@@ -37,7 +37,7 @@
     <pre><code>artifact-graph --help
 artifact-graph version-lock --help   # 看 version-lock 的子命令
 artifact-graph contract --help      # 看 contract 的子命令</code></pre>
-    <p>插件侧的 <dfn data-term="help">help</dfn> 列出的是当前项目可用的 Family API 与采用步骤（见「方法注册表」页）；CLI 命令本身，永远以 <code>--help</code> 为准。</p>
+    <p>插件侧的 <dfn data-term="artifact-chain-help">artifact-chain-help</dfn> 列出的是当前项目可用的 Family API 与采用步骤（见「方法注册表」页）；CLI 命令本身，永远以 <code>--help</code> 为准。</p>
   </section>
 
   <section class="card">
@@ -132,12 +132,12 @@ artifact-graph contract --help      # 看 contract 的子命令</code></pre>
 
   <section class="card">
     <h2>装好之后第一跑什么</h2>
-    <p>新接一个项目，建议的顺序是：<code>init</code> 建配置 → <code>doctor</code> 体检 → <code>validate --warning-only</code> 看链路 → <code>version-lock refresh</code> 建基线。前面几步在插件里分别由 <dfn data-term="bootstrap">bootstrap</dfn>（建配置）、<dfn data-term="setup">setup</dfn>（体检）、<dfn data-term="help">help</dfn>（看能力）带着你走，不用硬记命令。</p>
+    <p>新接一个项目，建议的顺序是：<code>init</code> 建配置 → <code>doctor</code> 体检 → <code>validate --warning-only</code> 看链路 → <code>version-lock refresh</code> 建基线。前面几步在插件里分别由 <dfn data-term="bootstrap">bootstrap</dfn>（建配置）、<dfn data-term="artifact-chain-setup">artifact-chain-setup</dfn>（体检）、<dfn data-term="artifact-chain-help">artifact-chain-help</dfn>（看能力）带着你走，不用硬记命令。</p>
   </section>
 
   <section class="card ticket">🎫 出口·速记卡
     <ul>
-      <li>命令以 cli.ts 为唯一真源；拿不准就 <code>--help</code>，或插件 help / quickstart 指路。</li>
+      <li>命令以 cli.ts 为唯一真源；拿不准就 <code>--help</code>，或插件 artifact-chain-help / artifact-chain-quickstart 指路。</li>
       <li>顶层命令 16 个；<code>version-lock</code> / <code>contract</code> / <code>hooks</code> 是带子命令的族。</li>
       <li>audit 是 version-lock 的子命令；family 不是 CLI；hooks 的真实动作是 install-git。</li>
     </ul>

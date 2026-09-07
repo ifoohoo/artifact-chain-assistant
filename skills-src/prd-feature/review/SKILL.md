@@ -30,7 +30,7 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
 - `status: BLOCKED`：展示 diagnostics，不继续执行。返回 `BLOCKED` 终态。
 - 状态原样传播，不转换为成功状态。
 
-### 1. inspect（参见 references/inspect.md）
+### 1. inspect（参见 `../references/inspect.md`）
 
 - 读取目标 PRD 制品的 frontmatter 和正文
 - 从 `artifact-graph.config.yaml` 加载 ID pattern、类型配置和制品路径
@@ -68,6 +68,8 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
 **只读模式**：输出 `review.findings` 后终止，不进入 repair；不得添加 schema 未定义的旧顶层字段。
 
 ## 输出契约（Machine-Readable）
+
+编写规则和验证细则见 `../references/compose.md` 与 `../references/validate.md`。
 
 最终机器结果必须使用 Review Result Protocol v1.0；未知旧顶层字段会被 validator 拒绝：
 

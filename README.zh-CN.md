@@ -13,13 +13,13 @@ Qoder 以技能兼容宿主身份复用同一套共享技能。
 > 刷新版本锁、发布包或写入远端。项目初始化以及任何写入或发布动作都需要单独明确授权。
 
 <!-- release-skill:capability:safe-first-command -->
-> **安全的第一步：** 安装后先使用只读的 `help` 技能查看 Family API 和采用步骤；
-> 用 `setup` 做只读环境诊断；不确定该用哪个技能时用 `quickstart`。
+> **安全的第一步：** 安装后先使用只读的 `artifact-chain-help` 技能查看 Family API 和采用步骤；
+> 用 `artifact-chain-setup` 做只读环境诊断；不确定该用哪个技能时用 `artifact-chain-quickstart`。
 
 最小安全示例——把下面这句话发送给已安装插件的助手：
 
 ```text
-请使用 help 展示可用的 Family API 和采用步骤，不要修改项目。
+请使用 artifact-chain-help 展示可用的 Family API 和采用步骤，不要修改项目。
 ```
 
 如果这项只读检查失败，先确认当前宿主已安装并启用 `artifact-chain-assistant`，再按照
@@ -30,12 +30,22 @@ Qoder 以技能兼容宿主身份复用同一套共享技能。
 
 ### 技能
 
-- **`where-am-i`** — 入口分诊与路由。开始实现前先检索项目制品图，再路由到 bootstrap、
+- **`artifact-chain-where-am-i`** — 入口分诊与路由。开始实现前先检索项目制品图，再路由到 bootstrap、
   maintainer 或直接实现。
 - **`artifact-chain-bootstrap`** — 显式调用的项目初始化。引导首次搭建、迁移或修复，
   11 步流程覆盖配置、AGENTS/CLAUDE 补丁、验证、版本锁和 hook 安装。
 - **`artifact-chain-maintainer`** — 日常维护。面向已建成制品链的项目，覆盖版本锁
   刷新/审计、doctor 诊断和 Git hook 更新。
+- **`artifact-chain-requirements`** — 从需求到交付。把未细化想法保存在项目需求池中，
+  将选中的需求承接到增量 SPEC，并逐项记录验收证据与当前制品去向。
+
+需求条目、需求池、当前制品、迭代 SPEC、ADR 和验证证据各自承担不同职责。默认目录是
+`artifacts/requirements/` 与 `artifacts/specs/`；项目必须在 `artifact-graph.config.yaml`
+中显式登记两个自定义类型，图查询才能发现它们。插件 starter 只提供采用起点，复制后的项目模板
+与项目配置才是权威来源。
+
+工作流分别报告批准、实现、验证与发布。图边、追溯注释、测试文件、新鲜锁和发布输入清单只构成
+声明证据，不能证明行为已经成功执行或版本已经发布；缺少权威执行或发布结果时保持 `unknown`。
 
 ### 扩展制品目录
 
@@ -55,9 +65,10 @@ Qoder 以技能兼容宿主身份复用同一套共享技能。
 
 ### 按证据启用
 
-bootstrap 只在本地确实存在相应文件或目录时才启用扩展制品类型。例如：检测到
-OpenAPI/Swagger 规范文件才启用 `api_contract`；检测到 Flyway/Liquibase 迁移文件才启用
-`database_migration`。绝不凭猜测启用任何类型。
+项目形态与采用阶段只生成 `candidate_types`，不证明每项候选能力都已存在。`enabled_types`
+只包含有效图配置、已有 workflow profile 或 `--types` 显式选择支持的候选。随后分别检查
+类型登记、模板与可执行方法。插件自带的需求/SPEC 技能可以满足制作入口；没有实际配置审阅方法时，
+review 仍报告缺口。只读命令见[安装说明](INSTALL.md#project-shape-and-stage-readiness)。
 
 ### 项目形态分类
 
@@ -67,7 +78,7 @@ OpenAPI/Swagger 规范文件才启用 `api_contract`；检测到 Flyway/Liquibas
   桌面/全栈应用 · Agent/插件工具包 · Parent/发布治理仓库 ·
   已有成熟制品仓库 · 首次尝试的小型项目
 
-bootstrap 技能会先对目标项目分类，只启用有稳定本地来源的类型。
+bootstrap 技能会先对目标项目分类，再按上述证据确定哪些候选类型已启用。
 
 ### Starter 模板与采用指南
 
@@ -201,13 +212,13 @@ catalog 还包含 `artifact.generate`，用于从模板和 profile 配置生成 
 
 | 插件 | 运行时 | 安装 |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.10.0 | `artifact-graph` 0.10.0 | `pnpm add -D artifact-graph@0.10.0` |
+| `artifact-chain-assistant` 0.11.0 | `artifact-graph` 0.11.0 | `pnpm add -D artifact-graph@0.11.0` |
 
 ## 安装
 
 ```bash
 # 运行时（必需）
-npm install --save-dev artifact-graph@0.10.0
+npm install --save-dev artifact-graph@0.11.0
 ```
 
 ```bash
@@ -229,7 +240,7 @@ codex plugin add artifact-chain-assistant@artifact-skill-set
 
 > **市场说明**：`ifoohoo/artifact-skill-set` 是外部独立市场，插件载荷仍由
 > `ifoohoo/artifact-chain-assistant` 发布。市场条目必须先发布并启用
-> `artifact-chain-assistant` 0.10.0，上述安装命令才能生效。
+> `artifact-chain-assistant` 0.11.0，上述安装命令才能生效。
 
 ```text
 # Kimi Code 插件（交互式，user 作用域）
@@ -256,7 +267,7 @@ Qoder 当前承诺的边界是技能安装与发现；不提供 Claude Code 的 
 
 ## 快速开始
 
-1. 安装插件 0.10.0（见上文）和运行时：`pnpm add -D artifact-graph@0.10.0`。
+1. 安装插件 0.11.0（见上文）和运行时：`pnpm add -D artifact-graph@0.11.0`。
 2. 运行 `artifact-graph doctor --root . --format json` 验证运行时。
 3. 首次搭建，进入 bootstrap 技能。
 4. 日常工作，进入 maintainer 技能。
@@ -264,13 +275,18 @@ Qoder 当前承诺的边界是技能安装与发现；不提供 Claude Code 的 
 
 ## Agent 提示词
 
+> 接入时先确认代码追溯范围：bootstrap 和 maintainer 管理已声明关系的版本锁，
+> 严格审计通过不代表发布文件与制品已全部覆盖。技能 Markdown 需要配置扫描路径和追溯注释，
+> 详见运行时的[代码追溯接入说明](https://github.com/ifoohoo/artifact-graph/blob/main/INSTALL.md#code-traceability-and-coverage-boundaries)。
+> 发布清单覆盖与显式豁免仍由项目既有验收负责。
+
 ```text
 请使用 artifact-chain-bootstrap，为当前项目初始化制品链。
 先检查现有配置和制品，不要覆盖已有项目规则，也不要自动执行 bootstrap --force。
 ```
 
 ```text
-请使用 where-am-i 分析这个需求在当前制品链中的位置。
+请使用 artifact-chain-where-am-i 分析这个需求在当前制品链中的位置。
 先检索已有制品，再推荐应加载的 context/packet 和后续入口技能。
 ```
 

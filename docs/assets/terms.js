@@ -120,7 +120,7 @@ window.TERMS = [
     role: "命令"
   },
   {
-    key: "help",
+    key: "artifact-chain-help",
     cat: "技能 [已实现]",
     full: "artifact.help",
     cn: "帮助技能",
@@ -129,7 +129,7 @@ window.TERMS = [
     role: "发现"
   },
   {
-    key: "setup",
+    key: "artifact-chain-setup",
     cat: "技能 [已实现]",
     full: "artifact.setup",
     cn: "诊断技能",
@@ -138,11 +138,11 @@ window.TERMS = [
     role: "诊断"
   },
   {
-    key: "quickstart",
+    key: "artifact-chain-quickstart",
     cat: "技能 [已实现]",
     full: "artifact.quickstart",
     cn: "上手路由技能",
-    plain: "你拿不准该用哪个技能时，它按你的意图把你引到正确的那个：能力问题找 help、环境问题找 setup、要初始化就走 bootstrap",
+    plain: "你拿不准该用哪个技能时，它按你的意图把你引到正确的那个：能力问题找 artifact-chain-help、环境问题找 artifact-chain-setup、要初始化就走 artifact-chain-bootstrap",
     it: "类似客服的「转接」分流，但它分的是研发技能",
     role: "路由"
   },

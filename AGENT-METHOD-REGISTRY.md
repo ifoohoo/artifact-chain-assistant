@@ -181,7 +181,7 @@ planner should not schedule separate review or repair steps for a workflow entry
 ## Registry Unavailable: Fallback Behavior
 
 When `agent-method-registry` is not installed or the effective index does not exist,
-`where-am-i` follows this behavior:
+`artifact-chain-where-am-i` follows this behavior:
 
 1. Outputs a `"registry unavailable"` diagnostic.
 2. For contract-backed services, returns `NEEDS_INPUT` with registry unavailable message — **no fallback to builtin or config routing**.

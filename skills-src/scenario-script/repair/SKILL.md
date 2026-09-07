@@ -109,6 +109,8 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
 
 ## 修复边界
 
+检查、编写、默认结构和验证细则见 `../references/inspect.md`、`../references/compose.md`、`../references/default-template.md` 与 `../references/validate.md`；语言修复继续遵循 `../references/writing-style.md`。
+
 - **可自动修复**：项目规则明确且不改变业务语义的结构、格式和表述问题
 - **需人工决策**：验收口径内容补充（Given 前置状态、Then 预期结果、变体覆盖范围）、关联制品是否应创建（含发现级暂态下是否补齐功能挂接）、status 变更
 - **不自动修改**：代码文件、需求制品、设计文档

@@ -38,6 +38,7 @@ export async function renderHelp({ projectionPath, pluginRoot } = {}) {
   sections.push(statusSection);
 
   // 4. Adoption steps
+  sections.push(renderPublicWorkflowDivision());
   sections.push(renderAdoptionSteps());
 
   return sections.join('\n---\n\n');
@@ -192,9 +193,23 @@ function renderAdoptionSteps() {
   return `## Getting Started
 
 1. **Learn**: Review the Standard Family API above to understand available capabilities.
-2. **Bootstrap**: Run \`artifact-chain-bootstrap\` (with user authorization) to set up your project.
-3. **Orient**: Run \`where-am-i\` to get project-specific recommendations based on your current state.
-4. **Adopt**: Follow where-am-i recommendations to adopt specific families and services.`;
+2. **Check**: Run \`artifact-chain-setup\` for read-only environment diagnosis; review its plan before authorizing mechanical installation.
+3. **Capture**: Run \`artifact-chain-requirements\` to save or query ideas even when project config and Registry are absent.
+4. **Bootstrap**: Run \`artifact-chain-bootstrap\` (with user authorization) for project-level configuration decisions.
+5. **Orient**: Run \`artifact-chain-where-am-i\` to inventory the project or locate a concrete task.
+6. **Adopt**: Follow artifact-chain-where-am-i recommendations to adopt specific families and services.`;
+}
+
+function renderPublicWorkflowDivision() {
+  return `## Demand-to-delivery responsibilities
+
+- Skills preserve requirements, route artifact work, and record incremental SPEC acceptance.
+- \`artifact-graph query --from <type>:<id>\`, \`context --target <type>:<id>\`, and \`validate\` provide deterministic graph operations.
+- The Node API exposes \`loadConfig\`, \`scanArtifacts\`, and \`queryGraph\` for programmatic use.
+- Actual test and E2E run results prove verification; test files and traceability declarations alone do not.
+- The target project's release tools prove publishing and must report the exact released version.
+
+Use \`artifact-chain-setup\` and \`artifact-graph doctor\` for environment diagnosis. Use \`artifact-audit\` for graph health. Missing evidence leaves approval, implementation, verification, or release status unknown.`;
 }
 
 async function loadApi(path) {

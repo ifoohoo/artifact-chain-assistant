@@ -1,5 +1,54 @@
 # Changelog
 
+## Unreleased
+
+## 0.11.0
+
+### Added
+
+- Added `artifact-chain-requirements` for preserving requirement entries, creating incremental
+  SPECs, and recording item-level acceptance with evidence and current-artifact destinations.
+- Added requirement and SPEC starter templates, requirement transition checks, project-shape and
+  adoption-stage readiness guidance, and matching routes across generated host adapters.
+
+### Changed
+
+- Project inventory and task orientation report approval, implementation, verification, and
+  release separately. Graph declarations, locks, test files, and release input lists no longer
+  stand in for authoritative execution or publication results.
+
+### Breaking Changes
+
+- **Entry skills renamed with the `artifact-chain-` prefix.** In multi-plugin environments the
+  bare entry names collided with same-named skills from other plugins and their descriptions
+  claimed bare global prompts. The four entries are now `artifact-chain-help` (was `help`),
+  `artifact-chain-setup` (was `setup`), `artifact-chain-quickstart` (was `quickstart`), and
+  `artifact-chain-where-am-i` (was `where-am-i`) — consistent with the existing
+  `artifact-chain-bootstrap` and `artifact-chain-maintainer` naming. No compatibility aliases or
+  symlinks are kept. Update prompts, scripts, and docs that referenced the old bare names.
+  Method registry refs (`artifact.help`, `artifact.setup`, `artifact.quickstart`) are unchanged;
+  only the provider skill names moved.
+
+### Changed
+
+- **`artifact-chain-setup` is now a general install skill.** It still starts with read-only
+  diagnostics (plugin closure, Node/CLI, doctor, config, version lock, registry) and a PASS/WARN/FAIL
+  report, but after showing a mechanical install plan and receiving explicit user confirmation it
+  executes the mechanical steps itself: installing the `artifact-graph` CLI from the plugin's pinned
+  install spec, installing/updating Git hooks, injecting the minimal `AGENTS.md` trigger block, and
+  creating the thin `CLAUDE.md` pointer — then re-runs diagnostics to verify. Steps are idempotent,
+  and outdated existing blocks are reported for user decision instead of being overwritten.
+  Project-level decisions (artifact type trimming, `artifact-graph.config.yaml` contract content,
+  version-lock bootstrap, full workflow-methodology sections) remain with `artifact-chain-bootstrap`.
+  Autonomous or overwriting installs without user confirmation remain forbidden.
+- Entry descriptions and the quickstart routing vectors are domain-qualified: they respond to
+  artifact-chain/artifact-graph/制品链/版本锁 cues only and no longer claim bare global prompts
+  such as "hello", "what can you do", or "is my environment ready". The vague `ask` routing
+  target is retired; unclear domain input still gets a clarifying question instead of a guessed
+  route.
+- Runtime compatibility, installation commands, plugin manifests, Family API metadata, and adapter
+  catalogs are synchronized with `artifact-graph@0.11.0`.
+
 ## 0.10.0
 
 ### Added

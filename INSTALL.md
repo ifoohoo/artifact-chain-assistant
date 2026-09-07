@@ -15,7 +15,7 @@ instructions.
 ## Prerequisites
 
 - Node.js `>=22.0.0`.
-- `artifact-graph` 0.10.0 installed in the target project.
+- `artifact-graph` 0.11.0 installed in the target project.
 - **GitHub SSH key** — Claude Code clones `source: github` entries over SSH by default. If you
   have not configured a GitHub SSH key, set `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` in your shell
   profile, or add the marketplace with an explicit `https://` URL. Codex users can check
@@ -27,24 +27,24 @@ instructions.
 
 | Plugin | Verified Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.10.0 | `artifact-graph` 0.10.0 | `pnpm add -D artifact-graph@0.10.0` |
+| `artifact-chain-assistant` 0.11.0 | `artifact-graph` 0.11.0 | `pnpm add -D artifact-graph@0.11.0` |
 
 ### Install The Runtime
 
 The default installation path uses the npm registry with a precise version:
 
 ```bash
-pnpm add -D artifact-graph@0.10.0
+pnpm add -D artifact-graph@0.11.0
 ```
 
 If the npm registry is unavailable, use the explicit GitHub fallback pinned to the verified tag:
 
 ```bash
-pnpm add -D github:ifoohoo/artifact-graph#artifact-graph-v0.10.0
+pnpm add -D github:ifoohoo/artifact-graph#artifact-graph-v0.11.0
 ```
 
 > **Never** install with an unlocked range (`artifact-graph`, `artifact-graph@latest`,
-> `artifact-graph@^0.10.0`) or an unpinned GitHub URL (`github:ifoohoo/artifact-graph`).
+> `artifact-graph@^0.11.0`) or an unpinned GitHub URL (`github:ifoohoo/artifact-graph`).
 > Unlocked installs produce non-reproducible dependency trees and break version-lock audit.
 
 With pnpm 10+, projects that install `artifact-graph` must allow the native `better-sqlite3`
@@ -71,7 +71,7 @@ allowBuilds:
 
 The plugin's `doctor` command validates the installed runtime version before running any
 diagnostic. If it detects a version mismatch or missing CLI, it reports the exact remediation
-command (`pnpm add -D artifact-graph@0.10.0`) and exits non-zero.
+command (`pnpm add -D artifact-graph@0.11.0`) and exits non-zero.
 
 ### CLI Resolution Order
 
@@ -86,6 +86,16 @@ Do not hard-code a machine-specific path such as `/absolute/path/to/artifact-gra
 instructions, hooks, or generated prompts.
 
 ## Install The Plugin
+
+### Before treating locks as release coverage
+
+Bootstrap and maintainer workflows establish and refresh declared graph relationships. A strict
+version-lock audit can pass with no implementation locks; it does not check that every shipped
+file has an artifact link or that every artifact has an implementation or approved exception.
+Configure source paths and annotations, inspect the version index, and keep the project's
+release-payload coverage check separate. See the runtime's
+[code traceability guide](https://github.com/ifoohoo/artifact-graph/blob/main/INSTALL.md#code-traceability-and-coverage-boundaries)
+for comment syntax, Markdown skills, unsupported Python comments, scan scope and exemption limits.
 
 ### Codex
 
@@ -146,7 +156,7 @@ wrappers, and Stop-hook guardrail. These assistant controls do not replace Git h
 
 > **Marketplace note**: `ifoohoo/artifact-skill-set` is an external independent marketplace. The
 > plugin payload is still published from `ifoohoo/artifact-chain-assistant`. The marketplace entry
-> must publish and enable `artifact-chain-assistant` 0.10.0 before the install commands above will
+> must publish and enable `artifact-chain-assistant` 0.11.0 before the install commands above will
 > succeed.
 
 ### Kimi Code
@@ -208,36 +218,59 @@ adapter doctor.
 
 ## Post-Installation Discovery
 
-After installing the plugin, use these entry points to understand available capabilities:
+After installing the plugin, use these entry points to understand available capabilities.
+All entry skills carry the `artifact-chain-` prefix so they coexist with other plugins that
+ship same-named skills, and their descriptions only respond to artifact-chain/artifact-graph
+domain cues — bare global prompts like "hello" or "what can you do" are not claimed by this
+plugin.
 
-1. **`help`** — Run this skill when you ask "what can this plugin do" or "how does the artifact
-   chain work". It shows the standard Family API catalog and bundled legacy methods — the plugin's
-   capabilities and what the artifact chain is for — without claiming any are installed, enabled, or
-   verified for your project. Installation of the plugin does NOT mean families are bound or providers
-   are active. If the Registry is missing, it still runs and honestly lists which standard services
-   are not yet executable.
+1. **`artifact-chain-help`** — Run this skill when you ask "how does the artifact chain work"
+   or "what can artifact-chain-assistant do". It shows the standard Family API catalog and
+   bundled legacy methods — the plugin's capabilities and what the artifact chain is for —
+   without claiming any are installed, enabled, or verified for your project. Installation of
+   the plugin does NOT mean families are bound or providers are active. If the Registry is
+   missing, it still runs and honestly lists which standard services are not yet executable.
 
-2. **`setup`** — Run this skill when you ask "is my environment ready". It performs read-only
-   environment diagnostics: plugin closure integrity, Node/CLI
-   availability, doctor output, project config, version lock, and registry availability. It outputs a structured status
-   report with PASS/WARN/FAIL for each check plus precise next steps, and writes nothing without explicit authorization.
+2. **`artifact-chain-setup`** — Run this skill when you ask "is my artifact-chain environment
+   ready" or when you want the mechanical install steps done. It starts with read-only
+   environment diagnostics: plugin closure integrity, Node/CLI availability, doctor output,
+   project config, version lock, and registry availability. It outputs a structured status
+   report with PASS/WARN/FAIL for each check plus a mechanical install plan (install the
+   `artifact-graph` CLI from the plugin's pinned install spec, install/update Git hooks,
+   inject the minimal `AGENTS.md` trigger block, create the thin `CLAUDE.md` pointer). The
+   plan is shown first and executed only after your explicit confirmation; steps are
+   idempotent, outdated existing blocks are reported for your decision instead of being
+   overwritten, and diagnostics are re-run afterwards to verify.
 
-3. **`quickstart`** — Run this skill when getting started or unsure which skill to use. It routes your intent to the correct skill via a deterministic routing table covering common Chinese/English requests:
-   capability questions go to `help`, environment checks to `setup`, initialization to `setup` then bootstrap,
-   project triage to `where-am-i`, maintenance to `maintainer`, and explicit artifact tasks to the matching family/service.
+3. **`artifact-chain-quickstart`** — Run this skill when getting started with the artifact
+   chain or unsure which skill to use inside this plugin. It routes your intent to the correct
+   skill via a deterministic routing table covering common Chinese/English domain-qualified
+   requests: capability questions go to `artifact-chain-help`, environment checks to
+   `artifact-chain-setup`, initialization to `artifact-chain-setup` then bootstrap, project
+   triage to `artifact-chain-where-am-i`, maintenance to `artifact-chain-maintainer`, and
+   explicit artifact tasks to the matching family/service.
 
-4. **`where-am-i`** — Use this skill for project-specific triage. It searches your project configuration, artifact
-   graph, and current state to produce a structured project-facts envelope and Method Query candidate (5 top-level keys),
+4. **`artifact-chain-where-am-i`** — Use this skill for project-specific triage. It searches
+   your project configuration, artifact graph, and current state to produce a structured
+   project-facts envelope and Method Query candidate (5 top-level keys),
    then queries Registry for dynamic service discovery and recommends next steps. A process-local
    `preparedQueryHandle`, full Method Query, provider resolution, and run lock remain Registry-only execution capabilities.
 
-5. **Adoption still requires `artifact-chain-bootstrap` and user authorization** — The help, setup, and triage skills are
-   read-only discovery tools. Actually configuring the artifact chain, binding services, or writing artifacts requires
-   running the bootstrap skill with explicit user approval.
+5. **Project-level adoption still requires `artifact-chain-bootstrap` and user authorization** — The help and triage skills are
+   read-only discovery tools, and setup writes only the mechanical install steps listed above after your confirmation.
+   Deciding the artifact type profile, writing the `artifact-graph.config.yaml` contract, bootstrapping the version lock,
+   and writing full project workflow instructions require running the bootstrap skill with explicit user approval.
 
 > **Important**: Installing the plugin does NOT enable or bind any family implementation. Standard API entries are
-> visible via help, but no E2E provider, review provider, or other family implementation is installed or verified
+> visible via artifact-chain-help, but no E2E provider, review provider, or other family implementation is installed or verified
 > until explicitly adopted through bootstrap and registry binding (when available).
+
+> **Migration from ≤ 0.10.x**: The four bare-name entry skills were renamed in 0.11.0
+> (breaking change, no aliases or symlinks are kept): `help` → `artifact-chain-help`,
+> `setup` → `artifact-chain-setup`, `quickstart` → `artifact-chain-quickstart`,
+> `where-am-i` → `artifact-chain-where-am-i`. Update any prompts, scripts, or docs that
+> referenced the old bare names. Method registry refs (`artifact.help`, `artifact.setup`,
+> `artifact.quickstart`) are unchanged.
 
 ## Prepare A Target Project
 
@@ -257,10 +290,14 @@ The plugin should not move these files into the plugin repository.
 
 For a first-time setup, the end-to-end sequence is:
 
-1. **Install the CLI** — `pnpm add -D artifact-graph@0.10.0` (see Prerequisites above).
+1. **Install the CLI** — `pnpm add -D artifact-graph@0.11.0` (see Prerequisites above). The
+   `artifact-chain-setup` skill can run this and the other mechanical install steps for you
+   after showing a plan and getting your confirmation.
 2. **Install the plugin** — follow the Codex or Claude Code section above.
-3. **Run bootstrap** — ask the assistant to use the `artifact-chain-bootstrap` skill (see prompt
-   below). The skill will:
+3. **Run setup, then bootstrap** — ask the assistant to use the `artifact-chain-setup` skill for
+   read-only diagnostics and the confirmed mechanical steps (Git hooks, the minimal `AGENTS.md`
+   trigger block, the thin `CLAUDE.md` pointer); then use the `artifact-chain-bootstrap` skill
+   (see prompt below) for project-level decisions. The bootstrap skill will:
    - classify your project shape (docs repo, TypeScript library, API service, agent toolkit, etc.);
    - select the minimum viable artifact profile based on what exists on disk;
    - generate or patch `artifact-graph.config.yaml` with correct `types`, `paths`, and `idPatterns`;
@@ -268,7 +305,8 @@ For a first-time setup, the end-to-end sequence is:
      the value narrative rules (business purpose, project value, chain value, risk changes,
      verification evidence) — see the "Recommended `AGENTS.md` Section" below;
    - validate the graph, bootstrap or refresh the version lock, and audit it;
-   - offer Git hook installation after validation passes.
+   - decide whether Git hooks are ready and route the actual installation to
+     `artifact-chain-setup` after validation passes.
 4. **Smoke test** — run the commands in the Smoke Test section below.
 5. **Commit** — stage `artifact-graph.config.yaml`, `AGENTS.md`, `CLAUDE.md`,
    `artifacts/traceability-version-lock.json`, and any created `artifacts/` directories.
@@ -875,7 +913,7 @@ planner should not schedule separate review or repair steps for a workflow entry
 ### Registry Unavailable: Fallback Behavior
 
 When `agent-method-registry` is not installed or the effective index does not exist,
-`where-am-i` follows this behavior:
+`artifact-chain-where-am-i` follows this behavior:
 
 1. Outputs a `"registry unavailable"` diagnostic.
 2. For contract-backed services, returns `NEEDS_INPUT` with registry unavailable message — **no fallback to builtin or config routing**.
@@ -886,6 +924,170 @@ When `agent-method-registry` is not installed or the effective index does not ex
 
 The bootstrap skill selects a minimum viable profile for your project shape. As the project matures,
 you may need additional artifact types (API contracts, deployment manifests, security reviews, etc.).
+
+### Project shape and stage readiness
+
+Use the existing workflow-profile checker to calculate adoption readiness without writing project
+files. The flags below are the public CLI contract; omit `--types` unless the user explicitly selected
+types that are not yet present in config or a workflow profile:
+
+```bash
+node "$PLUGIN_ROOT/scripts/check-workflow-profile.mjs" \
+  --root . \
+  --project-shape cli-library \
+  --adoption-stage daily-iteration \
+  --types requirement,spec \
+  --format json
+```
+
+`candidate_types` contains shape and stage suggestions. `enabled_types` contains only candidates
+backed by the effective `artifact-graph.config.yaml`, an existing workflow profile, or explicit
+`--types` selection. Candidate-only entries are not readiness gaps. For enabled types, the report
+checks registration, starter templates, and generate/review methods separately. Requirement and SPEC
+generation can report `bundled-skill`; its presence never implies that review is ready. A review
+method must be configured in the workflow profile. The checker loads the effective graph config
+through the artifact-graph runtime and does not maintain a second YAML interpretation.
+
+### Requirement pool and iteration SPEC
+
+Use `artifact-chain-requirements` to preserve ideas, query or update their disposition, create an
+incremental SPEC, and record acceptance item by item. Without a project convention it saves
+requirements under `artifacts/requirements/` and SPECs under `artifacts/specs/`. It never creates
+an inbox or migrates IDs later. `captured` and `proposed` mean recorded but not approved;
+`implemented`, `verified`, and `released` require their own authoritative evidence.
+
+Register both types in the target project's `artifact-graph.config.yaml`; the runtime does not add
+software-domain types to its defaults:
+
+```yaml
+types:
+  requirement:
+    paths: ["artifacts/requirements/**/*.md"]
+    displayName: Requirement
+    role: context
+    layer: requirements
+    aliases: [requirements]
+    target: true
+    extraFields:
+      - { name: demand_kind, type: enum, enum: [business, it, mixed, unknown] }
+      - { name: requirement_level, type: enum, enum: [source, development] }
+      - { name: parent_requirement, type: string }
+  spec:
+    paths: ["artifacts/specs/**/*.md"]
+    displayName: Iteration specification
+    role: context
+    layer: requirements
+    aliases: [specs]
+    target: true
+    extraFields:
+      - { name: baseline, type: string }
+idPatterns:
+  requirement: '^REQ-\d+$'
+  spec: '^SPEC-\d+$'
+statuses:
+  - planned
+  - active
+  - done
+  - deprecated
+  - accepted
+  - open
+  - captured
+  - proposed
+  - approved
+  - implemented
+  - verified
+  - released
+statusViews:
+  open: planned
+  done: history
+relationSemantics:
+  decomposes:
+    label: "decomposed from"
+    targetTypes: [requirement]
+    fields: [parent_requirement]
+  derives-from:
+    label: "derived from"
+    targetTypes: [requirement]
+    fields: [derived_from]
+```
+
+`statuses` replaces the whole project list rather than merging individual values. The list above is
+a base example; keep any additional project statuses when adopting it. Extend existing core type
+definitions without dropping their paths, and keep aliases for targets referenced through fields
+such as `related_features`, `related_scenarios`, `related_design_docs`, or `related_decisions`.
+
+#### Source and development requirements / 原始需求与开发需求
+
+`demand_kind` records whether the demand itself is `business`, `it`, `mixed`, or `unknown`.
+`requirement_level` separately records whether the entry preserves a source goal (`source`) or
+expresses a development requirement (`development`). Missing optional fields remain `unknown`; they do not make an
+older entry invalid. Do not infer either dimension from the other.
+
+`demand_kind` 记录诉求本身属于业务、IT、混合或未知；`requirement_level` 独立记录条目是保留原始目标的 `source`，还是已整理成可开发要求的 `development`。旧条目缺少可选字段时，对应维度为 `unknown`，条目仍然有效。两个维度不能互相推导。
+
+A child uses `parent_requirement` to point to a parent at the same level. A development entry uses
+the `derived_from` array to point to one or more source entries. Both edges point upstream: child to
+parent for `decomposes`, and development to source for `derives-from`.
+
+子条目用 `parent_requirement` 指向同层父条目；开发条目用 `derived_from` 数组指向一个或多个来源原始条目。两种边都指向上游：`decomposes` 从子到父，`derives-from` 从开发需求到来源需求。
+
+Assume `REQ-10` and `REQ-12` are existing source requirements. Store the following entries in two
+separate files. / 假设 `REQ-10` 和 `REQ-12` 是已经登记的原始需求。以下两个条目应分别保存为两个文件。
+
+Source child / 原始需求的同层子项：
+
+```yaml
+---
+id: REQ-11
+source: user-interview-2026-09-07
+demand_kind: business
+requirement_level: source
+parent_requirement: REQ-10
+---
+```
+
+Development requirement derived from two sources / 由两个来源派生的开发需求：
+
+```yaml
+---
+id: REQ-20
+source: refinement-session-2026-09-07
+demand_kind: mixed
+requirement_level: development
+derived_from: [REQ-11, REQ-12]
+---
+```
+
+The `development` value describes the expression level; it does not prove that work may start.
+Readiness still depends on unresolved questions and approval. The development entry must add an
+observable result, scope, and acceptance scenario in its body.
+When a user's direct input already has those three elements, record it directly as `development`
+and preserve the original `source`; do not create a duplicate source entry. Before writing either
+relationship, confirm that targets exist, levels are valid, and the new edge is neither self-referential
+nor cyclic. A verified child never makes its parent or source automatically verified or released.
+
+`development` 只描述需求的表达层次，不代表已经可以开工；是否可开工仍取决于待澄清问题和批准。开发条目正文必须给出可观察结果、范围和验收场景。直接输入已经具备这三项时，可直接记录为 `development` 并保留原始 `source`，无需复制一条内容相同的 source 需求。写关系前要核对目标存在、层次正确，并排除自引用和循环。子项通过验证不会自动把父项或来源项改成 verified 或 released。
+
+Copy `templates/core/requirement-entry.starter.md` and `templates/core/spec-entry.starter.md` into
+the project's authority template location before customization. A SPEC stays `open` while any
+change item is open or failed. Mark it `done` only after every item passed and records both evidence
+and its current-artifact destination; archiving a SPEC does not change requirement status.
+
+```bash
+artifact-graph validate --root . --warning-only
+artifact-graph query --from requirement:REQ-1 --format json
+artifact-graph context --target spec:SPEC-1 --view planned --format json
+node "$PLUGIN_ROOT/scripts/requirement-state-check.mjs" \
+  artifacts/requirements/REQ-1.md --from approved --to implemented --evidence reports/acceptance.json
+```
+
+The state checker validates allowed fields and requires a non-empty evidence reference for
+`implemented`, `verified`, or `released`; it does not enforce adjacent or linear transitions and
+does not edit the entry. It reports the reference as unverified. The requirements skill must read
+the actual object, version, and result before recording the corresponding fact. An
+`implements`/`verifies` edge, source annotation, test file, fresh lock, or release input list is
+declaration evidence only. The requirements skill reports approval, implementation, verification,
+and release separately and leaves missing authoritative results as `unknown`.
 
 ### Starter Templates
 
@@ -1055,7 +1257,7 @@ with append-only behavior; it does not overwrite local rules.
 ### Recovery Steps
 
 ```bash
-# 1. Install dependencies from lockfile (gets artifact-graph@0.10.0)
+# 1. Install dependencies from lockfile (gets artifact-graph@0.11.0)
 pnpm install --frozen-lockfile
 
 # 2. Install plugin per your host (Codex / Claude Code / Kimi Code)
@@ -1122,7 +1324,7 @@ pnpm exec artifact-graph hooks install-git --hook all
 ### Enterprise Mirror
 
 If the corporate environment cannot access the public npm registry or GitHub, mirror both
-`artifact-graph@0.10.0` and the plugin marketplace repository on an internal registry. The mirror
+`artifact-graph@0.11.0` and the plugin marketplace repository on an internal registry. The mirror
 does not change the state ownership model: Git-tracked files remain authoritative, local caches
 remain derived.
 
@@ -1142,7 +1344,7 @@ categories:
 | Value narrative rules | 5-dimension reporting in AGENTS/CLAUDE | `INSTALL.md` "Recommended AGENTS.md Section" |
 | Extended templates | New starter templates for contracts, ops, agent types | `templates/extended/` |
 | Completion gates | Pre-commit/pre-push/CI check commands | Skills' "Completion Gate" sections |
-| Skill collaboration boundaries | Routing rules between where-am-i/bootstrap/maintainer | Skills' "Skill Collaboration Boundary" sections |
+| Skill collaboration boundaries | Routing rules between artifact-chain-where-am-i/bootstrap/maintainer | Skills' "Skill Collaboration Boundary" sections |
 | New scenarios | Additional behavior scripts | [Upgrade Checklist](#upgrade-checklist), then review the target project's local scenario coverage |
 | New E2E tests | Additional test cases | [Upgrade Checklist](#upgrade-checklist), then review the target project's local E2E coverage |
 
@@ -1249,13 +1451,14 @@ Do not remove project-local state:
 
 ## Skill Collaboration Workflow
 
-The Artifact Chain Assistant provides three core skills that collaborate across the project lifecycle:
+The Artifact Chain Assistant provides four core skills that collaborate across the project lifecycle:
 
 ### Skill Responsibilities
 
 | Skill | Primary Responsibility | When to Use |
 |-------|----------------------|-------------|
-| **where-am-i** | Entry triage and routing | User has a vague requirement; need to determine project stage |
+| **artifact-chain-where-am-i** | Entry triage and routing | User has a vague requirement; need to determine project stage |
+| **artifact-chain-requirements** | Requirement pool and incremental SPEC | Preserve or update ideas; start an iteration; record acceptance and current-artifact destinations |
 | **artifact-chain-bootstrap** | Project initialization and profile trimming | First-time setup; profile expansion; configuration repair |
 | **artifact-chain-maintainer** | Daily version-lock, doctor, hook, refresh | Routine development; lock refresh/audit; hook management |
 
@@ -1266,7 +1469,7 @@ Project Adoption
     ↓
 ┌─────────────────────────────────────────────┐
 │ First-time Setup                            │
-│ → where-am-i routes to bootstrap            │
+│ → artifact-chain-where-am-i routes to bootstrap            │
 │ → bootstrap initializes config, lock, hooks │
 │ → handoff to maintainer                     │
 └─────────────────────────────────────────────┘
@@ -1275,7 +1478,8 @@ Daily Development
     ↓
 ┌─────────────────────────────────────────────┤
 │ Routine Operations                          │
-│ → where-am-i triages vague requests         │
+│ → artifact-chain-where-am-i triages vague requests         │
+│ → artifact-chain-requirements preserves demand and SPECs   │
 │ → maintainer refreshes/audits locks         │
 │ → maintainer manages hooks                  │
 └─────────────────────────────────────────────┘
@@ -1284,7 +1488,7 @@ Profile Expansion / Configuration Change
     ↓
 ┌─────────────────────────────────────────────┤
 │ Configuration Changes                       │
-│ → where-am-i detects config issues          │
+│ → artifact-chain-where-am-i detects config issues          │
 │ → bootstrap adds new artifact types         │
 │ → bootstrap restructures config             │
 │ → handoff back to maintainer                │
@@ -1293,18 +1497,24 @@ Profile Expansion / Configuration Change
 
 ### Routing Rules
 
-**From where-am-i to bootstrap**:
+**From artifact-chain-where-am-i to bootstrap**:
 - No `artifact-graph.config.yaml` exists
 - Configuration severely inconsistent with project structure
 - Project shape changed significantly (e.g., CLI → API service)
 - Need to add new artifact types to profile
 - `artifact-graph doctor` reports configuration corruption
 
-**From where-am-i to maintainer**:
+**From artifact-chain-where-am-i to maintainer**:
 - Project has complete artifact-chain configuration
 - Daily version-lock refresh/audit needed
 - Git hook installation or update needed
 - Stale locks or orphan artifacts detected
+
+**From artifact-chain-where-am-i to artifact-chain-requirements**:
+- A new or unrefined idea must be preserved
+- Existing requirements need query, merge, deferral, rejection, or handoff updates
+- Approved requirements are entering an incremental SPEC
+- An open SPEC needs item-level acceptance or current-artifact writeback
 
 **From maintainer back to bootstrap**:
 - Configuration needs major restructuring
@@ -1318,11 +1528,16 @@ Add this section to your project's `AGENTS.md`:
 ```markdown
 ## Artifact Chain Skills
 
-This project uses three Artifact Chain Assistant skills:
+This project uses four Artifact Chain Assistant skills:
 
-### Entry Triage (where-am-i)
+### Entry Triage (artifact-chain-where-am-i)
 - Use when you have a vague requirement or need to determine project stage
-- Routes to bootstrap for initialization, maintainer for daily work, or direct implementation
+- Inventory mode reports capabilities, evidence gaps, unknowns, and next steps before checking optional method providers
+- Task orientation routes to requirements, bootstrap, maintainer, or direct implementation
+
+### Requirement And Iteration Records (artifact-chain-requirements)
+- Use to preserve, query, merge, defer, reject, or hand off requirement entries
+- Use to create incremental SPECs and record each accepted item with evidence and its current-artifact destination
 
 ### Project Initialization (artifact-chain-bootstrap)
 - Use for first-time setup, profile expansion, or configuration repair
@@ -1371,12 +1586,14 @@ Add this section to your project's `CLAUDE.md`:
 
 Use the installed `artifact-chain-assistant` plugin for artifact-chain operations:
 
-1. **Entry triage**: Use `where-am-i` skill for vague requirements
-2. **Initialization**: Use `artifact-chain-bootstrap` skill for setup/repair
-3. **Daily maintenance**: Use `artifact-chain-maintainer` skill for lock/hook management
+1. **Entry triage**: Use `artifact-chain-where-am-i` skill for vague requirements
+2. **Requirement and SPEC records**: Use `artifact-chain-requirements` to preserve demand and record item-level acceptance
+3. **Initialization**: Use `artifact-chain-bootstrap` skill for setup/repair
+4. **Daily maintenance**: Use `artifact-chain-maintainer` skill for lock/hook management
 
 ### Skill Routing
 - No config → bootstrap
+- New idea or open SPEC → artifact-chain-requirements
 - Config exists but stale → maintainer
 - Config complete and fresh → direct implementation
 

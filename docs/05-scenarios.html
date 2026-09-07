@@ -29,7 +29,7 @@
 <main>
   <section class="card">
     <h1>场景剧本</h1>
-    <p>这一页不跟你讲概念，直接带你走最常见的五个场景。每个场景都是「动手做」，遇到分叉再用 <dfn data-term="quickstart">quickstart</dfn> 指路。所有命令都以 <code>cli.ts</code> 帮助文本为唯一真源，凡是 CLI 能跑的都标了命令，凡是插件侧才有的标了 <code>artifact.*</code>。</p>
+    <p>这一页不跟你讲概念，直接带你走最常见的五个场景。每个场景都是「动手做」，遇到分叉再用 <dfn data-term="artifact-chain-quickstart">artifact-chain-quickstart</dfn> 指路。所有命令都以 <code>cli.ts</code> 帮助文本为唯一真源，凡是 CLI 能跑的都标了命令，凡是插件侧才有的标了 <code>artifact.*</code>。</p>
   </section>
 
   <section class="card do-now">
@@ -110,7 +110,7 @@ artifact-graph validate --root . --warning-only</code></pre>
 
   <section class="card do-now">
     <h2>场景四 · 接 Codex / Claude</h2>
-    <p>把助手能力接进你的 AI 开发会话（按对应平台的插件安装方式装上 artifact-chain-assistant）。日常靠 <dfn data-term="help">help</dfn> / <dfn data-term="setup">setup</dfn> 体检与指路：</p>
+    <p>把助手能力接进你的 AI 开发会话（按对应平台的插件安装方式装上 artifact-chain-assistant）。日常靠 <dfn data-term="artifact-chain-help">artifact-chain-help</dfn> / <dfn data-term="artifact-chain-setup">artifact-chain-setup</dfn> 体检与指路：</p>
     <pre><code># 装好插件后，会话里先看能力清单
 artifact.help
 # Agent 会按 Family API 调用具体能力，不用你记命令
@@ -134,7 +134,7 @@ artifact-graph packet-prompt --target design:DESIGN-xxx --out prompt.md</code></
       <li>接新项目：bootstrap 向导带做，或 CLI init + doctor 体检。</li>
       <li>加制品类型：改配置 paths / idPatterns，再 refresh + validate。</li>
       <li>卡提交：hooks install-git --hook all 让校验自动跑（pre-commit）。</li>
-      <li>接 AI：装插件后用 help 看能力、按 Family API 干活、用 context 取上下文。</li>
+      <li>接 AI：装插件后用 artifact-chain-help 看能力、按 Family API 干活、用 context 取上下文。</li>
     </ul>
   </section>
   <section class="card kit">⚙ 实战装备包

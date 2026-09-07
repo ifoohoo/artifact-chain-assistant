@@ -65,7 +65,7 @@ description: Use when a user wants to write, review, or repair a scenario-script
 - **Given/When/Then 可验证性**：`### Given` 写可构造的具体前置状态；`### When` 写用户或外部动作，编号步骤；`### Then` 写可观察、可验证的结果（输出、退出码、状态、记录）。小节标题形式从项目模板派生。
 - **变体覆盖**：关键分支、边界、异常写成紧随主场景的变体节点，复用主场景语境、只写差异，每个变体同样声明字段块。
 - **追溯一致（暂缺不判 fail）**：场景允许先于功能制品存在——发现级场景尚未挂接功能时，按项目模板约定处理 `关联功能` 行（省略或标注"尚无功能制品"），如实报告，不编造 ID，不判 fail；关联功能存在时，`关联功能` 只引用图中已存在的功能 ID，且功能制品 frontmatter 的 `scenarios` 字段必须回列本场景（双向一致，CLI 校验强制）。CLI 的 `ORPHAN_SCENARIO` 是对无功能关联场景的 warning、不阻断（exit 0）：发现级场景下该警告属预期，review 可按 warning 接受，不强制消灭。注意：场景→决策边只对 `D-XXX-数字` 形式的决策 ID 成边（CLI 硬编码），`ADR-\d{4}` 类编号只做文档级追溯，不得承诺其成边。
-- **语体**：写可构造的状态、具体的动作、可观察的事实；不写口号、不写宣传、不写设计理由。场景正文不得出现本机绝对路径（如 `<用户主目录>/xxx`、`~/xxx`）：用项目相对路径或占位符表达。去 AI 味行文规则见 `references/writing-style.md`；项目无模板时的默认格式见 `references/compose.md` 与 `references/default-template.md`。
+- **语体**：写可构造的状态、具体的动作、可观察的事实；不写口号、不写宣传、不写设计理由。场景正文不得出现机器私有路径：用项目相对路径或占位符表达。检查和验证细则见 `references/inspect.md` 与 `references/validate.md`；去 AI 味行文规则见 `references/writing-style.md`；项目无模板时的默认格式见 `references/compose.md` 与 `references/default-template.md`。
 
 ## 技能协作边界
 

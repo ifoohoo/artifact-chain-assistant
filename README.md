@@ -16,14 +16,14 @@ project-local configuration, and maintain traceability version locks.
 > authorization.
 
 <!-- release-skill:capability:safe-first-command -->
-> **Safe first command:** After installation, start with the read-only `help` skill
-> to inspect the available Family APIs and adoption steps. Use `setup` for read-only environment
-> diagnostics, or `quickstart` when unsure which skill to use.
+> **Safe first command:** After installation, start with the read-only `artifact-chain-help` skill
+> to inspect the available Family APIs and adoption steps. Use `artifact-chain-setup` for read-only environment
+> diagnostics, or `artifact-chain-quickstart` when unsure which skill to use.
 
 Minimal safe example — send this prompt to the installed assistant:
 
 ```text
-Use help to show the available Family APIs and adoption steps. Do not modify the project.
+Use artifact-chain-help to show the available Family APIs and adoption steps. Do not modify the project.
 ```
 
 If this read-only check fails, first confirm that `artifact-chain-assistant` is installed and enabled
@@ -35,13 +35,27 @@ passes.
 
 ### Skills
 
-- **`where-am-i`** — intake and routing. Searches the project artifact graph before
+- **`artifact-chain-where-am-i`** — intake and routing. Searches the project artifact graph before
   implementation begins and routes to bootstrap, maintainer, or direct implementation.
 - **`artifact-chain-bootstrap`** — opt-in project initialization. Guides first-time setup,
   migration, or repair with an 11-step flow covering config, AGENTS/CLAUDE patching, validation,
   version lock, and hook installation.
 - **`artifact-chain-maintainer`** — daily maintenance. Covers version-lock refresh/audit, doctor
   diagnostics, and Git hook updates for projects with an established artifact chain.
+- **`artifact-chain-requirements`** — demand-to-delivery workflow. Preserves unrefined ideas in a
+  project requirement pool, links selected requirements to an incremental SPEC, and records each
+  accepted change with evidence and its current-artifact destination.
+
+Requirement entries, the requirement pool, current artifacts, iteration SPECs, ADRs, and
+verification evidence have separate responsibilities. The default locations are
+`artifacts/requirements/` and `artifacts/specs/`; a project must register both custom types in
+`artifact-graph.config.yaml` before graph queries can discover them. The plugin starters remain
+guidance, while the project's copied templates and configuration are authoritative.
+
+The workflow reports approval, implementation, verification, and release separately. Graph edges,
+annotations, test files, fresh locks, and release input lists are declaration evidence. They do not
+prove that behavior ran successfully or that a version was published; missing authoritative
+execution or release results remain `unknown`.
 
 ### Extended Artifact Catalog
 
@@ -61,11 +75,12 @@ lifecycle rules, and review checkpoints.
 
 ### Evidence-Based Enablement & Project Classification
 
-Bootstrap activates extended artifact types only when local files or directories exist (e.g.
-`api_contract` when OpenAPI specs are present). Nine project profiles — docs repo, TS library,
-API service, JVM, desktop app, agent toolkit, governance repo, mature repo, small first project —
-each map to a recommended starter set. Deferred types and their evidence conditions are recorded
-in the project's artifact catalog.
+Project shape and adoption stage produce `candidate_types`; they do not assert that every suggested
+capability exists. `enabled_types` contains only candidates supported by the effective graph config,
+an existing workflow profile, or explicit `--types` selection. Readiness then checks registration,
+templates, and executable methods separately. The bundled requirement/SPEC skill can satisfy
+generation, while review remains a gap until a review method is actually configured. See
+[INSTALL.md](INSTALL.md#project-shape-and-stage-readiness) for the read-only command.
 
 ### Professional Skill Families
 
@@ -154,13 +169,13 @@ override, compact query, fallback behavior, and `PLUGIN_ROOT` discovery, see
 
 | Plugin | Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.10.0 | `artifact-graph` 0.10.0 | `pnpm add -D artifact-graph@0.10.0` |
+| `artifact-chain-assistant` 0.11.0 | `artifact-graph` 0.11.0 | `pnpm add -D artifact-graph@0.11.0` |
 
 ## Install
 
 ```bash
 # Runtime (required)
-npm install --save-dev artifact-graph@0.10.0
+npm install --save-dev artifact-graph@0.11.0
 ```
 
 ```bash
@@ -182,7 +197,7 @@ codex plugin add artifact-chain-assistant@artifact-skill-set
 
 > **Marketplace note**: `ifoohoo/artifact-skill-set` is an external independent marketplace. The
 > plugin payload is still published from `ifoohoo/artifact-chain-assistant`. The marketplace entry
-> must publish and enable `artifact-chain-assistant` 0.10.0 before the install commands above will
+> must publish and enable `artifact-chain-assistant` 0.11.0 before the install commands above will
 > succeed.
 
 ```text
@@ -211,7 +226,7 @@ For the full installation guide, quick start, Agent prompts, and clone onboardin
 
 ## Quick Start
 
-1. Install plugin 0.10.0 (above) and runtime: `pnpm add -D artifact-graph@0.10.0`.
+1. Install plugin 0.11.0 (above) and runtime: `pnpm add -D artifact-graph@0.11.0`.
 2. Run `artifact-graph doctor --root . --format json` to verify the runtime.
 3. For first-time setup, use the bootstrap skill.
 4. For daily work, use the maintainer skill.
@@ -225,7 +240,7 @@ For the full installation guide, quick start, Agent prompts, and clone onboardin
 ```
 
 ```text
-请使用 where-am-i 分析这个需求在当前制品链中的位置。
+请使用 artifact-chain-where-am-i 分析这个需求在当前制品链中的位置。
 先检索已有制品，再推荐应加载的 context/packet 和后续入口技能。
 ```
 

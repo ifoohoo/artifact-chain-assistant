@@ -29,7 +29,7 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
 - `status: NEEDS_INPUT` 或 `BLOCKED`：展示 diagnostics，不继续执行。状态原样传播。
 - 消费 `profile_resolution` 中的 checklist_paths 和 validators 作为审阅依据。
 
-### 1. inspect（参见 references/inspect.md）
+### 1. inspect（参见 `../references/inspect.md`）
 
 - 读取目标场景剧本的 frontmatter 和正文
 - 从 `artifact-graph.config.yaml` 加载 ID pattern、类型配置和制品路径
@@ -74,7 +74,7 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
 #### 语言风格
 - 语体为结构化验收场景：可构造的状态、具体的动作、可观察的事实；无宣传收束、
   无观点评论、无设计理由（行文规则见 `../references/writing-style.md`）
-- 正文不得出现本机绝对路径（如 `<用户主目录>/xxx`、`~/xxx`）：路径用项目相对形式或占位符
+- 正文不得出现机器私有路径：路径用项目相对形式或占位符
 - 去 AI 味检查项：空洞词、排队连接词、凑对仗、三连排比、四字堆砌、万能连接词、
   口号与拟人煽情（清单与密度原则见 `../references/writing-style.md`）
 - 词汇可懂性检查项（细则见 `../references/writing-style.md` 的"词汇可懂性纪律"节）：
@@ -83,7 +83,7 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
   视角叙述；业务/机器术语首次出现是否用独立句给出大白话定义（不用"概念（解释）"
   式括注）；技能 slug 是否只出现在字段块（入口编号）而未混入正文
 - 写作惯性检查项（细则见 `../references/writing-style.md` 的"写作惯性约束"节）：
-  视角是否在"用户/你"间切换；语体是否夹口语；有无"术语A（术语A的大白话解释）"
+  视角是否在用户称谓与第二人称之间切换；语体是否夹口语；有无"术语A（术语A的大白话解释）"
   式括号翻译；一句内是否并列三个及以上同级概念；有无正反双保险、元分类、预防性
   插入语；Then 是否写正向状态（否定句至多一条划边界）
 - 密度原则：单发命中不报，短段落内反复堆叠或脱离具体内容才报
@@ -96,6 +96,8 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
 **只读模式**：输出 `review.findings` 后终止，不进入 repair；不得添加 schema 未定义的旧顶层字段。
 
 ## 输出契约（Machine-Readable）
+
+编写、默认结构和验证细则见 `../references/compose.md`、`../references/default-template.md` 与 `../references/validate.md`。
 
 最终机器结果必须使用 Review Result Protocol v1.0；未知旧顶层字段会被 validator 拒绝：
 
@@ -135,9 +137,9 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
 - `SS-F-012`：语言风格（AI 腔模式命中，须附密度判断；`message` 含问题句字面引用）
 - `SS-F-013`：无据断言（场景的 Given/Then 与关联功能/决策制品内容矛盾，或验收了制品中不存在的行为）
 - `SS-F-014`：可读性（节点标题与场景代码不能传达场景意图，读者无法判断该场景验收什么）
-- `SS-F-015`：正文出现本机绝对路径（如 `<用户主目录>/xxx`、`~/xxx`），应改用项目相对路径或占位符
+- `SS-F-015`：正文出现机器私有路径，应改用项目相对路径或占位符
 - `SS-F-016`：词汇可懂性/黑话裸用（"外行三问"——是什么、谁在做、我看到什么——答不上来的词；系统内部动词如物化、收束、密封、栅栏、编排裸用于用户视角叙述；业务/机器术语首次出现未用独立句给出大白话定义，或用了"概念（大白话解释）"式括注——机器标识、枚举值首现给中文名的写法如"无变更接受（`NOOP_ACCEPTED`）"属术语表纪律，不算括号翻译，不判发现；技能 slug 出现在字段块入口编号以外的正文；`message` 含问题句字面引用）
-- `SS-F-017`：写作惯性（视角在"用户/你"间切换；语体夹口语——一句话放进微信聊天不违和即不该出现在 BDD 用例；"术语A（术语A的大白话解释）"式括号翻译；一句内用顿号、逗号并列三个及以上同级概念；正反各说一遍的双保险或"这属于XX阶段"式元分类；Then 连续两条否定句、未写正向状态；"需要注意的是""值得一提"类预防性插入语；细则见 `../references/writing-style.md` 的"写作惯性约束"节，`message` 含问题句字面引用）
+- `SS-F-017`：写作惯性（视角在用户称谓与第二人称之间切换；语体夹口语——一句话放进微信聊天不违和即不该出现在 BDD 用例；"术语A（术语A的大白话解释）"式括号翻译；一句内用顿号、逗号并列三个及以上同级概念；正反各说一遍的双保险或"这属于XX阶段"式元分类；Then 连续两条否定句、未写正向状态；"需要注意的是""值得一提"类预防性插入语；细则见 `../references/writing-style.md` 的"写作惯性约束"节，`message` 含问题句字面引用）
 - `SS-F-*`：其他发现使用递增编号
 
 ## 质量要求

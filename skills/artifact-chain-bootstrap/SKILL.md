@@ -1,6 +1,6 @@
 ---
 name: artifact-chain-bootstrap
-description: Use when a target project is adopting artifact-chain-assistant, after reading INSTALL.md, or when bootstrapping artifact-graph.config.yaml, AGENTS.md, CLAUDE.md, version locks, Git hooks, or artifact type trimming for a project.
+description: Use when a target project is adopting artifact-chain-assistant, after reading INSTALL.md, or when making project-level configuration decisions — artifact type trimming, artifact-graph.config.yaml contract content, version-lock bootstrap decisions, and full project workflow sections in AGENTS.md/CLAUDE.md. Mechanical install steps (CLI install, Git hook install, minimal AGENTS.md trigger block) belong to artifact-chain-setup (D-ACA-31).
 ---
 
 # artifact-chain-bootstrap
@@ -60,6 +60,31 @@ projects should copy relevant templates to `artifacts/templates/` and customize 
 Prefer a small correct graph over a large noisy one. Add more types only after the project has
 templates, ID patterns, and review rules for them. See `../../EXTENDED-ARTIFACT-CATALOG.md` for
 per-type recommended paths, ID patterns, lifecycle rules, and review checkpoints.
+
+### 形态与采用阶段的实际就绪度
+
+把项目实际证据归到一种形态：`cli-library`、`web`、`desktop` 或 `skill-plugin`；再选择当前阶段：`initial`（初建）、`legacy-backfill`（存量补档）或 `daily-iteration`（日常迭代）。运行同一个只读计算入口：
+
+```bash
+node <plugin-root>/scripts/check-workflow-profile.mjs \
+  --root <project-root> \
+  --project-shape <cli-library|web|desktop|skill-plugin> \
+  --adoption-stage <initial|legacy-backfill|daily-iteration> \
+  --types <explicitly-selected-type,...> \
+  --format json
+```
+
+`--types` 只传已经由用户明确选择、但尚未写入配置或 profile 的类型；没有这种选择时省略。形态只产生候选，不证明项目拥有对应能力。库没有 CLI、静态 Web 没有 API、技能插件没有 hook 时，让相应契约留在 `candidate_types`，不要要求补齐。以脚本结果为准：
+
+- `candidate_types` 列出形态和阶段建议，并说明是否由有效配置、已有 profile 或明确选择启用；
+- `enabled_types` 只包含有上述依据的候选，候选本身不算缺口；
+- `registration.ready` 同时检查有效类型、ID 模式、路径声明和目录；
+- `template.ready` 检查插件 starter 是否真实存在；
+- `methods.generate` 与 `methods.review` 复用当前 workflow profile 解析结果；需求/SPEC 的直接制作入口标为 `bundled-skill`，没有审阅方法时如实报告缺口；
+- `project_specific_method_ready` 只在实际解析到 `project-worker` 时为 true；`bundled-skill`、`public-worker` 和 `project-worker` 分开报告；
+- `gaps` 给出当前组合缺少的类型、目录、模板或方法，不把缺口写成已启用能力。
+
+无配置项目仍能用 `artifact-chain-requirements` 把想法保存到 `artifacts/requirements/`。不要为了收集需求先强迫用户完成 bootstrap；需要把需求纳入图、建立当前制品或运行专业方法时，再按这里的结果补最小配置。
 
 ### Enterprise Java/Spring/JVM Service Case Study
 
@@ -155,7 +180,9 @@ DATA-001 (data_contract)
    relationships are reviewed. For an existing project, prefer `artifact-graph version-lock refresh
    --all --format markdown`.
 9. Run `artifact-graph version-lock audit --root <root> --strict-missing-lock`.
-10. Offer `artifact-graph hooks install-git --hook all` only after validation and audit pass.
+10. Git hook installation is a mechanical step owned by `artifact-chain-setup` (D-ACA-31); bootstrap only
+    decides whether hooks are ready and routes the user to setup for `artifact-graph hooks install-git
+    --hook all` after validation and audit pass.
 11. **Document available extended types for future enablement.** In `artifacts/README.md` or the
     project's equivalent catalog file, record which extended types were considered but deferred,
     along with the evidence condition that would trigger their enablement (e.g., "enable
@@ -168,6 +195,20 @@ Generate config from evidence. Common path patterns:
 
 ```yaml
 types:
+  requirement:
+    paths: ["artifacts/requirements/**/*.md"]
+    role: context
+    aliases: [requirements]
+    target: true
+    extraFields:
+      - { name: demand_kind, type: enum, enum: [business, it, mixed, unknown] }
+      - { name: requirement_level, type: enum, enum: [source, development] }
+      - { name: parent_requirement, type: string }
+  spec:
+    paths: ["artifacts/specs/**/*.md"]
+    role: context
+    aliases: [specs]
+    target: true
   feature:
     paths: ["artifacts/prd/features/**/*.md"]
   scenario:
@@ -183,14 +224,51 @@ types:
   e2e_test:
     paths: ["artifacts/tests/e2e/**/*.md"]
 idPatterns:
+  requirement: "^REQ-\\d+$"
+  spec: "^SPEC-[A-Z0-9]+(?:-[A-Z0-9]+)*$"
   feature: "^[A-Z]{1,4}\\d+$"
   scenario: "^S-\\d+[a-z]?$"
   decision: "^D-[A-Z]+-\\d+$"
   design: "^[A-Za-z0-9._-]+$"
   test: "^.+\\.(ts|tsx|js|jsx)$"
+statuses:
+  - planned
+  - active
+  - done
+  - deprecated
+  - accepted
+  - open
+  - captured
+  - proposed
+  - approved
+  - implemented
+  - verified
+  - released
+statusViews:
+  planned: planned
+  open: planned
+  done: history
+  deprecated: history
+  active: current
+  accepted: current
+relationSemantics:
+  decomposes:
+    label: "分解自"
+    targetTypes: [requirement]
+    fields: [parent_requirement]
+  derives-from:
+    label: "派生自"
+    targetTypes: [requirement]
+    fields: [derived_from]
+context:
+  universal_baseline: false
 ```
 
 Remove any type whose `paths` do not exist and are not part of the immediate adoption plan.
+The relation direction is child to parent: a child uses `parent_requirement` to point to a parent
+with the same `requirement_level`, while a development requirement uses `derived_from` to point to
+one or more source requirements. `derived_from` is an array-valued relation field and remains available in
+raw frontmatter; do not misdeclare it as a scalar `extraFields` value.
 
 Example config additions when evidence supports the four common ops/domain types:
 
@@ -265,6 +343,27 @@ AGENTS.md: do not just list what was done; explain why it matters to the project
 
 ## Skill Collaboration Boundary
 
+### Division of Labor with artifact-chain-setup (D-ACA-31)
+
+`artifact-chain-setup` is the general install skill: read-only diagnosis, then a mechanical install
+plan, then user confirmation, then authorized execution, then re-verification. The mechanical steps
+— installing the `artifact-graph` CLI from `compatibility.json`'s `artifactGraph.installSpec`,
+installing/updating Git hooks, injecting the minimal `## Artifact Chain` trigger block into
+`AGENTS.md`, and creating the thin `CLAUDE.md` pointer — belong to setup, not bootstrap.
+
+Bootstrap keeps only the project-level decisions that require human judgment:
+
+- artifact type trimming (project shape classification and evidence);
+- `artifact-graph.config.yaml` contract content (`types`/`paths`/`idPatterns`);
+- version-lock bootstrap/refresh decisions, including any `bootstrap --force` approval;
+- the full workflow-methodology sections in `AGENTS.md`/`CLAUDE.md` (value narrative rules,
+  completion gates, project-local ownership).
+
+If setup's minimal trigger block already exists in `AGENTS.md`, bootstrap expands it into the full
+project section through a reviewed patch rather than adding a duplicate block. Bootstrap may reuse
+setup's diagnostic output but must re-verify the preconditions for its own writes and stay
+fail-closed (unchanged from before D-ACA-31).
+
 ### Upgrade Scenario
 
 When a target project upgrades `artifact-chain-assistant` to a new version, bootstrap is the
@@ -329,9 +428,9 @@ After bootstrap completes successfully, the project transitions to **maintainer*
 - Fixing stale locks or orphan artifacts (use maintainer)
 - Adding traceability annotations to code (use maintainer)
 
-### Collaboration with where-am-i
+### Collaboration with artifact-chain-where-am-i
 
-The `where-am-i` skill routes to bootstrap when:
+The `artifact-chain-where-am-i` skill routes to bootstrap when:
 - Project has no `artifact-graph.config.yaml`
 - Configuration is severely inconsistent with actual project structure
 - Project shape has changed significantly

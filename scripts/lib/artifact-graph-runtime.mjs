@@ -3,6 +3,7 @@
 // @decision D-ACA-15
 import { access, readFile, realpath } from 'node:fs/promises';
 import { delimiter, join, dirname, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { loadCompatibilityPolicy } from './compatibility-policy.mjs';
 
 /**
@@ -96,6 +97,26 @@ export async function inspectArtifactGraphRuntime({ projectRoot, env }) {
     actualVersion: version,
     expectedVersion,
   };
+}
+
+/** Load the effective project schema through the verified artifact-graph runtime. */
+export async function loadArtifactGraphConfig({ projectRoot, env } = {}) {
+  const runtime = await inspectArtifactGraphRuntime({ projectRoot: resolve(projectRoot), env });
+  if (!runtime.ok) return { ok: false, runtime, schema: null, reason: runtime.reason };
+  try {
+    const packageRoot = dirname(runtime.packagePath);
+    const packageJson = JSON.parse(await readFile(runtime.packagePath, 'utf8'));
+    const exportPath = packageJson.exports?.['.']?.import?.default ?? packageJson.module ?? packageJson.main;
+    if (typeof exportPath !== 'string' || exportPath.length === 0) {
+      throw new Error('artifact-graph package has no import entry');
+    }
+    const api = await import(pathToFileURL(join(packageRoot, exportPath)).href);
+    if (typeof api.loadConfig !== 'function') throw new Error('artifact-graph runtime does not export loadConfig');
+    const schema = await api.loadConfig(resolve(projectRoot));
+    return { ok: true, runtime, schema, reason: null };
+  } catch (error) {
+    return { ok: false, runtime, schema: null, reason: `config_load_failed: ${error.message}` };
+  }
 }
 
 /**

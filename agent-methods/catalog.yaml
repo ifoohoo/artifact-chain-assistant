@@ -1,7 +1,7 @@
 schemaVersion: 1
 catalog:
   id: artifact-chain-assistant
-  version: "0.10.0"
+  version: "0.11.0"
 entries:
   - ref: artifact.prd-feature.default
     provider:
@@ -245,9 +245,9 @@ entries:
     provider:
       scope: plugin
       plugin: artifact-chain-assistant
-      skill: help
+      skill: artifact-chain-help
     kind: operation
-    summary: "能力说明入口：回答\"能做什么\"、\"制品链怎么用\"，展示标准 Family API、bundled legacy 方法和采用步骤；Registry 缺失时诚实降级"
+    summary: "制品链能力说明入口：回答\"这个项目的制品链怎么用\"、\"artifact-chain-assistant 有哪些能力\"，展示标准 Family API、bundled legacy 方法和采用步骤；Registry 缺失时诚实降级"
     match:
       domains: [artifact]
       artifactTypes: [design-spec, link, e2e, domain, contract, blueprint, verification, prd-feature, scenario-script]
@@ -263,17 +263,18 @@ entries:
     provider:
       scope: plugin
       plugin: artifact-chain-assistant
-      skill: setup
+      skill: artifact-chain-setup
     kind: operation
-    summary: "环境诊断入口：回答\"环境准备好了吗\"，只读检查插件闭包、CLI、config、版本锁、registry 可用性，输出 PASS/WARN/FAIL"
+    summary: "制品链环境诊断与授权安装入口：回答\"我的制品链环境准备好了吗\"，默认只读检查插件闭包、CLI、config、版本锁、registry 可用性并输出 PASS/WARN/FAIL；机械安装步骤经用户确认后执行并复验"
     match:
       domains: [artifact]
       artifactTypes: [design-spec, link, e2e, domain, contract, blueprint, verification, prd-feature, scenario-script]
       intents: [setup, diagnose]
     accepts:
       - "环境检查请求"
+      - "机械安装请求"
     produces:
-      - "结构化状态报告和下一步建议"
+      - "结构化状态报告、机械安装计划和下一步建议"
     sideEffects:
       - read-only
 
@@ -281,9 +282,9 @@ entries:
     provider:
       scope: plugin
       plugin: artifact-chain-assistant
-      skill: quickstart
+      skill: artifact-chain-quickstart
     kind: operation
-    summary: "上手路径入口：不知道用哪个技能时，按确定性路由表把自然语言需求路由到 help/setup/where-am-i 等正确入口"
+    summary: "制品链上手路径入口：不知道用哪个技能时的统一路由入口，按确定性路由表把制品链/artifact-graph 需求路由到 artifact-chain-help/artifact-chain-setup/artifact-chain-where-am-i 等正确入口"
     match:
       domains: [artifact]
       artifactTypes: [design-spec, link, e2e, domain, contract, blueprint, verification, prd-feature, scenario-script]

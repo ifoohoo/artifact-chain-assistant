@@ -29,7 +29,7 @@
 <main>
   <section class="card">
     <h1>排错与兼容</h1>
-    <p>跑不起来、结果不对，先别猜。这一页是 <dfn data-term="setup">setup</dfn> / <dfn data-term="doctor">doctor</dfn> 的主场——它们只读地帮你把环境看个明白。插件侧等价的第一步是 <code>artifact.setup</code>，CLI 侧是 <code>artifact-graph doctor</code>。先把这两个跑了，再往下看症状。</p>
+    <p>跑不起来、结果不对，先别猜。这一页是 <dfn data-term="artifact-chain-setup">artifact-chain-setup</dfn> / <dfn data-term="doctor">doctor</dfn> 的主场——它们只读地帮你把环境看个明白。插件侧等价的第一步是 <code>artifact.setup</code>，CLI 侧是 <code>artifact-graph doctor</code>。先把这两个跑了，再往下看症状。</p>
   </section>
 
   <section class="card do-now">
@@ -96,7 +96,7 @@ artifact.setup</code></pre>
 
   <section class="card ticket">🎫 出口·速记卡
     <ul>
-      <li>先 doctor / setup 体检，再谈排错。</li>
+      <li>先 doctor / artifact-chain-setup 体检，再谈排错。</li>
       <li>首次非零退出 → 查 universal_baseline（默认 true，缺 19 基线文件会退）。</li>
       <li>missing binding → 核对 pnpm 原生构建白名单（better-sqlite3）。</li>
       <li>锁漂移 → refresh 重建基线再提交；断头边 → 补缺失制品或改 id；unknown command → 以 cli.ts 帮助文本为准。</li>

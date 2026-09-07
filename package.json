@@ -1,6 +1,6 @@
 {
   "name": "artifact-chain-assistant",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Codex, Claude Code, and Kimi Code assistant plugin for artifact-chain projects",
   "license": "Apache-2.0",
   "type": "module",
@@ -27,7 +27,7 @@
     "check:family-api": "node scripts/check-family-api.mjs",
     "check:schema-validators": "node scripts/generate-schema-validators.mjs --check",
     "check:canonical-json": "node scripts/generate-canonical-json-protocol.mjs --check",
-    "typecheck": "node --check runtime/claude/version-lock-stop.mjs && node --check scripts/build-adapters.mjs && node --check scripts/build-runtime-bundles.mjs && node --check scripts/generate-schema-validators.mjs && node --check scripts/generate-canonical-json-protocol.mjs && node --check scripts/check-templates.mjs && node --check scripts/doctor.mjs && node --check scripts/install-git-hooks.mjs && node --check scripts/sync-skills.mjs && node --check scripts/check-method-registry.mjs && node --check scripts/check-compatibility.mjs && node --check scripts/lib/compatibility-policy.mjs && node --check scripts/lib/artifact-graph-runtime.mjs && node --check scripts/lib/inline-yaml-parser.mjs && node --check scripts/lib/workflow-profile.mjs && node --check scripts/lib/generated/canonical-json-v1.generated.mjs && node --check scripts/lib/generated/family-api-validator.generated.mjs && node --check scripts/lib/generated/project-facts-validator.generated.mjs && node --check scripts/batch-split.mjs && node --check scripts/batch-merge.mjs && node --check scripts/check-workflow-profile.mjs && node --check scripts/run-artifact-workflow.mjs && node --check scripts/lib/family-api-validator.mjs && node --check scripts/lib/method-query.mjs && node --check scripts/check-family-api.mjs && node --check scripts/family-compile.mjs && node --check scripts/family-help-render.mjs && node --check scripts/method-query.mjs && node --check scripts/setup-checks.mjs",
+    "typecheck": "node --check runtime/claude/version-lock-stop.mjs && node --check scripts/build-adapters.mjs && node --check scripts/build-runtime-bundles.mjs && node --check scripts/generate-schema-validators.mjs && node --check scripts/generate-canonical-json-protocol.mjs && node --check scripts/check-templates.mjs && node --check scripts/doctor.mjs && node --check scripts/install-git-hooks.mjs && node --check scripts/sync-skills.mjs && node --check scripts/check-method-registry.mjs && node --check scripts/check-compatibility.mjs && node --check scripts/lib/compatibility-policy.mjs && node --check scripts/lib/artifact-graph-runtime.mjs && node --check scripts/lib/inline-yaml-parser.mjs && node --check scripts/lib/workflow-profile.mjs && node --check scripts/lib/adoption-readiness.mjs && node --check scripts/lib/generated/canonical-json-v1.generated.mjs && node --check scripts/lib/generated/family-api-validator.generated.mjs && node --check scripts/lib/generated/project-facts-validator.generated.mjs && node --check scripts/batch-split.mjs && node --check scripts/batch-merge.mjs && node --check scripts/check-workflow-profile.mjs && node --check scripts/requirement-state-check.mjs && node --check scripts/run-artifact-workflow.mjs && node --check scripts/lib/family-api-validator.mjs && node --check scripts/lib/method-query.mjs && node --check scripts/check-family-api.mjs && node --check scripts/family-compile.mjs && node --check scripts/family-help-render.mjs && node --check scripts/method-query.mjs && node --check scripts/setup-checks.mjs",
     "sync:skills": "node scripts/sync-skills.mjs",
     "sync:skills:check": "node scripts/sync-skills.mjs --check",
     "build:adapters": "node scripts/build-adapters.mjs",
@@ -99,6 +99,6 @@
   },
   "devDependencies": {
     "ajv": "^8.20.0",
-    "artifact-graph": "0.10.0"
+    "artifact-graph": "0.11.0"
   }
 }

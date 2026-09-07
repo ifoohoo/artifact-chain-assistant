@@ -39,7 +39,7 @@ for (const host of hosts) {
     const content = await readFile(source.sourcePath, 'utf-8');
     outputs.push({
       path: join(root, `adapters/${host.id}/skills/${source.name}/SKILL.md`),
-      content: source.template ? render(content, host) : content,
+      content: renderGeneratedSkill(source.template ? render(content, host) : content, source.name),
     });
   }
 }
@@ -50,7 +50,7 @@ for (const source of sources) {
   const content = await readFile(source.sourcePath, 'utf-8');
   outputs.push({
     path: join(root, `skills/${source.name}/SKILL.md`),
-    content: source.template ? render(content, claudeHost) : content,
+    content: renderGeneratedSkill(source.template ? render(content, claudeHost) : content, source.name),
   });
 }
 
@@ -265,6 +265,11 @@ function render(source, vars) {
     }
     return vars[key];
   }).trimEnd()}\n`;
+}
+
+function renderGeneratedSkill(content, skillName) {
+  if (!skillName.includes('/')) return content;
+  return content.replaceAll('../references/', 'references/');
 }
 
 function relativeToRoot(filePath) {

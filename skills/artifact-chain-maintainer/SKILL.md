@@ -118,9 +118,9 @@ description: 维护 artifact-graph 项目的制品链版本锁、诊断、hook �
    - `artifact-graph.config.yaml` 需要重大结构调整
    - 项目从一个 artifact-chain 设置迁移到另一个
 
-### 与 where-am-i 的协作
+### 与 artifact-chain-where-am-i 的协作
 
-当 `where-am-i` 路由到 maintainer 时，应确认：
+当 `artifact-chain-where-am-i` 路由到 maintainer 时，应确认：
 
 1. 项目已有完整的 `artifact-graph.config.yaml`
 2. 制品目录结构与配置一致

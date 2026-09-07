@@ -58,12 +58,12 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
 #### 风格修复（SS-F-012 至 SS-F-014、SS-F-016 至 SS-F-017）
 - 按密度原则处理风格发现：单发命中不修，短段落内反复堆叠或脱离具体内容才修
 - 风格修复只改表述，不改变场景的事实内容（前置状态、动作、预期结果保持原样）；
-  语体保持结构化验收场景，行文规则见 `../references/writing-style.md`
-- 词汇可懂性修复（SS-F-016，细则见 `../references/writing-style.md` 的"词汇可懂性纪律"节）：
+  语体保持结构化验收场景，行文规则见 `references/writing-style.md`
+- 词汇可懂性修复（SS-F-016，细则见 `references/writing-style.md` 的"词汇可懂性纪律"节）：
   把内部动词和生造词改写成可观察事实，或为首次出现的业务/机器术语用独立句补大白话
   定义（不用"概念（解释）"式括注）；混入正文的技能 slug 移回字段块（入口编号），
   正文改用"入口技能""该命令"指代
-- 写作惯性修复（SS-F-017，细则见 `../references/writing-style.md` 的"写作惯性约束"节）：
+- 写作惯性修复（SS-F-017，细则见 `references/writing-style.md` 的"写作惯性约束"节）：
   只改表达——统一称呼、去口语、拆并列、删插入语、把连续否定改成正向状态划边界——
   不改变任何行为断言的事实内容
 - 无据断言（SS-F-013）不得靠"写得模糊"蒙混：使 Given/Then 与关联功能/决策制品对齐，
@@ -108,6 +108,8 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
 ```
 
 ## 修复边界
+
+检查、编写、默认结构和验证细则见 `references/inspect.md`、`references/compose.md`、`references/default-template.md` 与 `references/validate.md`；语言修复继续遵循 `references/writing-style.md`。
 
 - **可自动修复**：项目规则明确且不改变业务语义的结构、格式和表述问题
 - **需人工决策**：验收口径内容补充（Given 前置状态、Then 预期结果、变体覆盖范围）、关联制品是否应创建（含发现级暂态下是否补齐功能挂接）、status 变更

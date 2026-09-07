@@ -23,6 +23,7 @@ const sharedFiles = [
   'scripts/method-query.mjs',
   'scripts/export-family-api.mjs',
   'scripts/setup-checks.mjs',
+  'scripts/requirement-state-check.mjs',
 ];
 const sharedDirectories = ['templates/core', 'templates/extended', 'scripts/lib', 'schemas', 'agent-methods', 'family-apis', 'families-src'];
 

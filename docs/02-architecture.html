@@ -35,12 +35,12 @@
   <section class="card do-now">
     <h2>动手做 · 现场验架构</h2>
     <p>装好之后，两步走就能看见架构在不在：</p>
-    <pre><code># 第一步：只读体检，看环境齐不齐（doctor 的插件同名能力就是 setup）
+    <pre><code># 第一步：只读体检，看环境齐不齐（doctor 的插件侧对应能力就是 artifact-chain-setup）
 artifact-graph doctor --format markdown
 
 # 第二步：验链路，看制品之间的关系对不对、闭没闭合
 artifact-graph validate --root . --warning-only</code></pre>
-    <p>两条都绿，说明底层图内核和你的项目已经接上了。插件侧等价的第一步是 <dfn data-term="setup">setup</dfn>——拿不准环境，先跑它。</p>
+    <p>两条都绿，说明底层图内核和你的项目已经接上了。插件侧等价的第一步是 <dfn data-term="artifact-chain-setup">artifact-chain-setup</dfn>——拿不准环境，先跑它。</p>
   </section>
 
   <section class="card">
@@ -94,7 +94,7 @@ artifact-graph validate --root . --warning-only</code></pre>
   <section class="card">
     <h2>能力怎么长出来：Contract Kernel + Family API</h2>
     <p><dfn data-term="contract-kernel">Contract Kernel</dfn> 是内核对外能力的稳定边界，相当于内核的「系统调用表」——上层不必关心内核怎么实现，只对着契约说话。<dfn data-term="family-api">标准 Family API</dfn> 是各业务族接入内核的统一接口（D-ACA-18，<strong>[已实现]</strong>）。两者合起来，让「新增一类制品 / 一种能力」变成填配置，而不是改内核代码。</p>
-    <p>想在插件侧看现在有哪些 Family API 和采用步骤？装好后跑 <dfn data-term="help">help</dfn> 就一目了然；拿不准从哪下手，<dfn data-term="quickstart">quickstart</dfn> 按你的意图分流。</p>
+    <p>想在插件侧看现在有哪些 Family API 和采用步骤？装好后跑 <dfn data-term="artifact-chain-help">artifact-chain-help</dfn> 就一目了然；拿不准从哪下手，<dfn data-term="artifact-chain-quickstart">artifact-chain-quickstart</dfn> 按你的意图分流。</p>
   </section>
 
   <section class="card ticket">🎫 出口·速记卡

@@ -5,6 +5,8 @@ description: Use when a user wants to write, review, or repair a PRD feature art
 
 # prd-feature
 
+编写、检查和验收细则分别见 `references/compose.md`、`references/inspect.md`、`references/validate.md`。
+
 ## 目的
 
 为 artifact-graph 项目的 PRD 功能特性制品提供编写、审阅和修复的统一入口。根据用户意图路由到对应的子流程，确保 PRD 制品从起草到终态的完整闭环。

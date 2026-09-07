@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 // @feature ACA21 @scenario S-87 @scenario S-92 @decision D-ACA-26
+// @decision D-ACA-31
 // setup 技能的产品自持确定性执行器（F-09-P05：唯一 setup 业务逻辑实现）。
 //
-// skills-src/setup/SKILL.md 描述检查合同；本脚本是该合同的唯一代码实现，
+// skills-src/artifact-chain-setup/SKILL.md 描述检查合同；本脚本是该合同的唯一代码实现，
 // 测试与宿主入口都必须经由此执行器，不得在测试里维护第二份 setup 业务逻辑。
+// D-ACA-31：本脚本保持只读诊断器定位；setup 的机械安装写入由技能引导用户确认后
+// 用包管理器命令、`artifact-graph hooks install-git` 与幂等文件 patch 完成，不经由本脚本。
 //
 // F-09-P01：doctor 涉及两个独立合同——
 //   1. 结构化检查项状态：doctor JSON 的 nativeBinding（ok/cause/failedStage/suggestion）；
@@ -94,7 +97,7 @@ export function checkDoctor({ projectRoot, env, artifactGraphCommand }) {
 }
 
 /**
- * 机械执行 skills-src/setup/SKILL.md 的七项只读检查序列与 Registry 降级探测。
+ * 机械执行 skills-src/artifact-chain-setup/SKILL.md 的七项只读检查序列与 Registry 降级探测。
  * @param {object} options
  * @param {string} options.installRoot 插件安装根（宿主 adapter 副本）
  * @param {string} options.projectRoot 目标项目根

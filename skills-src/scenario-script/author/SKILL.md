@@ -23,14 +23,14 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
 - `status: OK`：继续下一步，将 `profile_resolution` 传递给后续步骤。
 - `status: NEEDS_INPUT` 或 `BLOCKED`：展示 diagnostics，不继续执行。状态原样传播。
 
-### 1. inspect（参见 references/inspect.md）
+### 1. inspect（参见 `../references/inspect.md`）
 
 - 读取 `artifact-graph.config.yaml` 确认项目配置、制品类型注册和路径
 - 从配置中派生已有制品扫描路径，确认 ID 空间和命名模式
 - 读取目标项目的模板、artifacts/README、治理文档，派生场景剧本的字段、status 枚举和章节结构
 - 盘点图中已有功能特性/决策制品，确定可挂接的关联对象：场景剧本先于/驱动 PRD 与功能特性，允许先于功能制品存在；待关联制品暂缺时不阻塞，如实记录盘点结果，不编造 ID
 
-### 2. compose（参见 references/compose.md）
+### 2. compose（参见 `../references/compose.md`；项目没有模板时参见 `../references/default-template.md`）
 
 基于 inspect 结果编写场景剧本。frontmatter 和正文结构从项目模板和已有制品派生，不硬编码字段名或章节。
 
@@ -41,7 +41,7 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
 - Then：可观察、可验证的结果（输出、退出码、状态、记录）
 - 变体：关键分支、边界、异常写成变体节点，只写与主场景的差异，同样声明字段块
 - 追溯：关联功能存在时只引用图中已存在的 ID，功能制品 frontmatter `scenarios` 回列本场景；场景先于功能制品时按项目模板约定省略或标注 `关联功能` 行，暂缺不判 fail，不编造 ID
-- 正文不出现本机绝对路径（如 `<用户主目录>/xxx`、`~/xxx`）：用项目相对路径或占位符
+- 正文不出现机器私有路径：用项目相对路径或占位符
 
 行文遵循 `../references/writing-style.md` 的去 AI 味规则。
 
@@ -51,7 +51,7 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
 - 业务/机器术语首次出现必须有大白话解释或括注（示例：技术尝试（同一任务换一个全新进程再跑一次）），之后可沿用中文名、机器标识放反引号
 - 技能 slug 只在字段块（入口编号）出现，正文用"入口技能""该命令"指代
 
-### 3. validate（参见 references/validate.md）
+### 3. validate（参见 `../references/validate.md`）
 
 - 运行 `artifact-graph validate --root . --warning-only` 确认无新增制品链警告
 - 检查 ID 唯一性和 pattern 匹配（从项目 idPatterns 派生）
@@ -96,7 +96,7 @@ quality_dimensions:
 - 行文遵循 `../references/writing-style.md` 的去 AI 味规则
 - 词汇可懂性为强制项（细则见 `../references/writing-style.md` 的"词汇可懂性纪律"节）：正文通过"外行三问"（是什么、谁在做、我看到什么）；系统内部动词不裸用于用户视角叙述；业务/机器术语首次出现有大白话解释或括注；技能 slug 只在字段块（入口编号）出现
 - 所有项目专属字段和结构从目标项目派生，不硬编码
-- 不得泄漏项目私有实现细节；正文不得出现本机绝对路径（如 `<用户主目录>/xxx`、`~/xxx`），用项目相对路径或占位符
+- 不得泄漏项目私有实现细节；正文不得出现机器私有路径，用项目相对路径或占位符
 
 ## Profile 与 Worker Contract
 
