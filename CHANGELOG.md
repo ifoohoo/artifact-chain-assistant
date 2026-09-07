@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 0.12.0
+
+### Changed
+
+- Declared pnpm `10.30.0` for source development.
+- Runtime compatibility, installation commands, plugin manifests, Family API metadata, and adapter
+  catalogs are synchronized with `artifact-graph@0.12.0`.
+- Foundation runtime wiring and the existing generated-skill checks are unchanged.
+
 ## 0.11.0
 
 ### Added

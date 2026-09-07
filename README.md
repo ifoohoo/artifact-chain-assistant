@@ -169,13 +169,13 @@ override, compact query, fallback behavior, and `PLUGIN_ROOT` discovery, see
 
 | Plugin | Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.11.0 | `artifact-graph` 0.11.0 | `pnpm add -D artifact-graph@0.11.0` |
+| `artifact-chain-assistant` 0.12.0 | `artifact-graph` 0.12.0 | `pnpm add -D artifact-graph@0.12.0` |
 
 ## Install
 
 ```bash
 # Runtime (required)
-npm install --save-dev artifact-graph@0.11.0
+npm install --save-dev artifact-graph@0.12.0
 ```
 
 ```bash
@@ -197,7 +197,7 @@ codex plugin add artifact-chain-assistant@artifact-skill-set
 
 > **Marketplace note**: `ifoohoo/artifact-skill-set` is an external independent marketplace. The
 > plugin payload is still published from `ifoohoo/artifact-chain-assistant`. The marketplace entry
-> must publish and enable `artifact-chain-assistant` 0.11.0 before the install commands above will
+> must publish and enable `artifact-chain-assistant` 0.12.0 before the install commands above will
 > succeed.
 
 ```text
@@ -226,7 +226,7 @@ For the full installation guide, quick start, Agent prompts, and clone onboardin
 
 ## Quick Start
 
-1. Install plugin 0.11.0 (above) and runtime: `pnpm add -D artifact-graph@0.11.0`.
+1. Install plugin 0.12.0 (above) and runtime: `pnpm add -D artifact-graph@0.12.0`.
 2. Run `artifact-graph doctor --root . --format json` to verify the runtime.
 3. For first-time setup, use the bootstrap skill.
 4. For daily work, use the maintainer skill.

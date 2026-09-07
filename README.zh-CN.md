@@ -212,13 +212,13 @@ catalog 还包含 `artifact.generate`，用于从模板和 profile 配置生成 
 
 | 插件 | 运行时 | 安装 |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.11.0 | `artifact-graph` 0.11.0 | `pnpm add -D artifact-graph@0.11.0` |
+| `artifact-chain-assistant` 0.12.0 | `artifact-graph` 0.12.0 | `pnpm add -D artifact-graph@0.12.0` |
 
 ## 安装
 
 ```bash
 # 运行时（必需）
-npm install --save-dev artifact-graph@0.11.0
+npm install --save-dev artifact-graph@0.12.0
 ```
 
 ```bash
@@ -240,7 +240,7 @@ codex plugin add artifact-chain-assistant@artifact-skill-set
 
 > **市场说明**：`ifoohoo/artifact-skill-set` 是外部独立市场，插件载荷仍由
 > `ifoohoo/artifact-chain-assistant` 发布。市场条目必须先发布并启用
-> `artifact-chain-assistant` 0.11.0，上述安装命令才能生效。
+> `artifact-chain-assistant` 0.12.0，上述安装命令才能生效。
 
 ```text
 # Kimi Code 插件（交互式，user 作用域）
@@ -267,7 +267,7 @@ Qoder 当前承诺的边界是技能安装与发现；不提供 Claude Code 的 
 
 ## 快速开始
 
-1. 安装插件 0.11.0（见上文）和运行时：`pnpm add -D artifact-graph@0.11.0`。
+1. 安装插件 0.12.0（见上文）和运行时：`pnpm add -D artifact-graph@0.12.0`。
 2. 运行 `artifact-graph doctor --root . --format json` 验证运行时。
 3. 首次搭建，进入 bootstrap 技能。
 4. 日常工作，进入 maintainer 技能。

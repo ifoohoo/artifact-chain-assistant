@@ -18,7 +18,7 @@ instructions.
 ## Prerequisites
 
 - Node.js `>=22.0.0`.
-- `artifact-graph` 0.11.0 installed in the target project.
+- `artifact-graph` 0.12.0 installed in the target project.
 - **GitHub SSH key** — Claude Code clones `source: github` entries over SSH by default. If you
   have not configured a GitHub SSH key, set `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` in your shell
   profile, or add the marketplace with an explicit `https://` URL. Codex users can check
@@ -30,24 +30,24 @@ instructions.
 
 | Plugin | Verified Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.11.0 | `artifact-graph` 0.11.0 | `pnpm add -D artifact-graph@0.11.0` |
+| `artifact-chain-assistant` 0.12.0 | `artifact-graph` 0.12.0 | `pnpm add -D artifact-graph@0.12.0` |
 
 ### Install The Runtime
 
 The default installation path uses the npm registry with a precise version:
 
 ```bash
-pnpm add -D artifact-graph@0.11.0
+pnpm add -D artifact-graph@0.12.0
 ```
 
 If the npm registry is unavailable, use the explicit GitHub fallback pinned to the verified tag:
 
 ```bash
-pnpm add -D github:ifoohoo/artifact-graph#artifact-graph-v0.11.0
+pnpm add -D github:ifoohoo/artifact-graph#artifact-graph-v0.12.0
 ```
 
 > **Never** install with an unlocked range (`artifact-graph`, `artifact-graph@latest`,
-> `artifact-graph@^0.11.0`) or an unpinned GitHub URL (`github:ifoohoo/artifact-graph`).
+> `artifact-graph@^0.12.0`) or an unpinned GitHub URL (`github:ifoohoo/artifact-graph`).
 > Unlocked installs produce non-reproducible dependency trees and break version-lock audit.
 
 With pnpm 10+, projects that install `artifact-graph` must allow the native `better-sqlite3`
@@ -74,7 +74,7 @@ allowBuilds:
 
 The plugin's `doctor` command validates the installed runtime version before running any
 diagnostic. If it detects a version mismatch or missing CLI, it reports the exact remediation
-command (`pnpm add -D artifact-graph@0.11.0`) and exits non-zero.
+command (`pnpm add -D artifact-graph@0.12.0`) and exits non-zero.
 
 ### CLI Resolution Order
 
@@ -159,7 +159,7 @@ wrappers, and Stop-hook guardrail. These assistant controls do not replace Git h
 
 > **Marketplace note**: `ifoohoo/artifact-skill-set` is an external independent marketplace. The
 > plugin payload is still published from `ifoohoo/artifact-chain-assistant`. The marketplace entry
-> must publish and enable `artifact-chain-assistant` 0.11.0 before the install commands above will
+> must publish and enable `artifact-chain-assistant` 0.12.0 before the install commands above will
 > succeed.
 
 ### Kimi Code
@@ -293,7 +293,7 @@ The plugin should not move these files into the plugin repository.
 
 For a first-time setup, the end-to-end sequence is:
 
-1. **Install the CLI** — `pnpm add -D artifact-graph@0.11.0` (see Prerequisites above). The
+1. **Install the CLI** — `pnpm add -D artifact-graph@0.12.0` (see Prerequisites above). The
    `artifact-chain-setup` skill can run this and the other mechanical install steps for you
    after showing a plan and getting your confirmation.
 2. **Install the plugin** — follow the Codex or Claude Code section above.
@@ -1260,7 +1260,7 @@ with append-only behavior; it does not overwrite local rules.
 ### Recovery Steps
 
 ```bash
-# 1. Install dependencies from lockfile (gets artifact-graph@0.11.0)
+# 1. Install dependencies from lockfile (gets artifact-graph@0.12.0)
 pnpm install --frozen-lockfile
 
 # 2. Install plugin per your host (Codex / Claude Code / Kimi Code)
@@ -1327,7 +1327,7 @@ pnpm exec artifact-graph hooks install-git --hook all
 ### Enterprise Mirror
 
 If the corporate environment cannot access the public npm registry or GitHub, mirror both
-`artifact-graph@0.11.0` and the plugin marketplace repository on an internal registry. The mirror
+`artifact-graph@0.12.0` and the plugin marketplace repository on an internal registry. The mirror
 does not change the state ownership model: Git-tracked files remain authoritative, local caches
 remain derived.
 

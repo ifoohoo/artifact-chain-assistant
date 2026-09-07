@@ -9,7 +9,7 @@ Thanks for your interest in contributing.
 
 ## Development
 
-Use Node.js `>=22.0.0`.
+Use Node.js `>=22.0.0` and pnpm `10.30.0`.
 
 ```bash
 pnpm install
