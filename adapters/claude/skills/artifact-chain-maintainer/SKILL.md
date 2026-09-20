@@ -88,6 +88,9 @@ description: 维护 artifact-graph 项目的制品链版本锁、诊断、hook �
 - 项目形态重新分类（路由到 bootstrap）
 - 首次建立版本锁（路由到 bootstrap）
 - 补充 AGENTS.md/CLAUDE.md 缺失的升级内容（路由到 bootstrap）
+- 拆分制品、拆分身份、跨文件移动或重编号（路由到 `artifact-chain-restructure`）
+
+`artifact-chain-restructure` 完成真实文件应用后，maintainer 才接管计划明确列出的精确锁收尾。计划阶段、候选复审结果和写前拒绝都不构成刷新锁的前提；只有文件集合已经提交、消费者核对完成，才用 `version-lock refresh --changed-only --worktree --remove-orphan-edge <edgeId>` 传入计划派生且属于本次授权的孤儿编号。不能用全局 `--remove-orphans` 清理本次迁移之外的旧问题，也不能用 `version-lock bootstrap --force` 重建基线；指定编号不能明确匹配时保留全部锁并报告，而不是改用全局清理。文件迁移、精确锁收尾与全项目严格审计分别观察、分别报告。
 
 ### 插件升级后的维护流程
 

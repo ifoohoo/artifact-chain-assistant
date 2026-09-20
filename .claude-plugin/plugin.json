@@ -1,6 +1,6 @@
 {
   "name": "artifact-chain-assistant",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "Artifact-chain intake, review/repair/batch/audit workflows, diagnostics, hooks, and version-lock maintenance helpers.",
   "author": {
     "name": "广州市风荷科技有限公司"

@@ -82,6 +82,22 @@ artifact-graph context --target <type>:<id> --mode implementation
 
 只有分诊已经明确指向某个制作、审阅或修复服务时，才检查 `<project>/.agent-method-registry/effective-index.json`、Registry CLI、binding 和 worker。缺少配置、有效索引、binding 或 worker 时，保留前面的盘点/定位结论，把专业服务标为“已发现但尚不可执行”。只有用户要求立即调用该服务且缺口无法补齐时，输出 `NEEDS_INPUT`。
 
+### v1 overlay 与 v2 binding 不混用
+
+- Registry v1 从 catalog 和可选的 `ProjectOverlayData` 构建有效索引。项目覆盖源通常是
+  `agent-methods/project.yaml`；`overrides[ref]`、`entries` 和 `disabled` 只表达 v1 入口覆盖，
+  不能当作 v2 binding。
+- Registry v2 使用已经选定并解析为 `BindingData` 的原始绑定文档。调用方把 `familyApi`、
+  `implementations`、`inventory` 和完整 `bindings` 文档传给包根公开函数
+  `buildEffectiveIndex(...)`，再把返回的 index 与本技能产出的 `methodQueryCandidate` 传给
+  `queryEffectiveIndex({ index, methodQueryCandidate, purpose: 'recommendation' })`。
+- recommendation 只按 Registry 返回的服务身份 `serviceId`、`apiId`、`apiMajor`、
+  `apiRevisionDigest` 和原生状态 `executable`、`installation`、`enablement`、`compatibility`、
+  `trust`、`resolution`、`selectionSource` 做建议。本技能不得把实现身份复制进图配置、
+  workflow profile 或制品正文。
+- 制品侧采用记录只保存绑定源引用和服务身份。项目内部 worker 不等于 Registry binding；
+  文档中出现的路径也不构成自动发现协议，调用方必须显式选择并读取输入。
+
 ### Method Query Candidate 输出
 
 调用插件安装根中的 `<plugin-root>/scripts/method-query.mjs`，依次执行 `build-envelope`、`validate-envelope` 和 `build-candidate`。Candidate 有 5 个顶层键：`mode`、`intent`、`kind`、`projectFactsEvidence`、`authorization`。不要手工计算 digest，也不要把缺失事实写成全零或 fresh。
@@ -100,11 +116,14 @@ agent-method-registry query \
 
 不得自行解析提供方路径或读取第三方 `SKILL.md`。contract-backed service 不使用 builtin/config fallback；写入型 candidate 必须携带明确授权状态。
 
+Registry、有效索引或所需 binding 缺失时，只把动态专业服务标为不可执行。静态 help、普通图查询和已有固定直调入口继续按各自合同工作；不得据此宣布动态 projection 已接入。
+
 ## 后续路由
 
 - 保存、查询、合并、延期、拒绝需求，或建立/验收增量 SPEC：`artifact-chain-requirements`。
 - 首次建立配置、项目形态变化或扩展类型：`artifact-chain-bootstrap`。
 - 锁刷新、审计与日常追溯维护：`artifact-chain-maintainer`。
+- 制品拆分、身份拆分、跨文件移动或重编号：`artifact-chain-restructure`。只分析请求停在映射、候选计划和必要的独立复审；完整人工映射或纯确定性路径不强制调用模型。授权覆盖真实写入且复审通过后，同一入口继续路由应用、恢复与清理，并把文件迁移与精确锁收尾分别报告。
 - 明确制品制作、审阅或修复：在 Registry 确认可执行后路由对应 family/service。
 - 单纯环境诊断：`artifact-chain-setup`；单纯图健康检查：`artifact-audit`。
 

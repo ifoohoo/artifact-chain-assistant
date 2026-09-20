@@ -16,6 +16,9 @@ description: 制品链能力说明入口。当用户询问 artifact-chain-assist
 - **动态 projection 当前 fail-closed**：Registry v2 verifier 尚未接入时，无论是否提供 projection 都只显示 `NOT_AVAILABLE / REGISTRY_V2_REQUIRED`。
 - **不读取第三方 `SKILL.md`**：不解析项目 sources/bindings，不自行计算 provider 状态。
 - **不猜测安装/启用/信任状态**：没有 projection 时不输出 `NOT_INSTALLED` 或 `ENABLED`。
+- **区分就绪与通过**：配置可读取、目录存在或 Registry 可用，只说明对应入口具备运行前提，不代表图健康、技能族规范通过或发布就绪。
+- **遵守专业分工**：Audit 定义技能族制品规范，助手协助目标项目采用，`artifact-graph` 只给出类型、结构、关系、版本与新鲜度等通用图检查结果。规范来源缺失、不可读或公共合同尚未发布时，只把相应专业判断标为 `unknown` 或待采用，不判目标违规。
+- **治理检查保持只读**：只读取静态清单、项目制品和已有结果材料，不以审计名义运行目标项目的测试、构建、validator、hook 或业务工作流。
 
 ## 渲染内容
 
@@ -85,16 +88,18 @@ Registry projection: NOT_AVAILABLE (REGISTRY_V2_REQUIRED)
 
 1. **Learn**: Review the Standard Family API above to understand available capabilities.
 2. **Check**: Run `artifact-chain-setup` (read-only diagnosis by default) to verify the environment; it can also execute mechanical install steps — CLI install, Git hooks, the minimal `AGENTS.md` trigger block — after your explicit confirmation.
-3. **Bootstrap**: Run `artifact-chain-bootstrap` for project-level configuration decisions (artifact type trimming, config contract, version-lock decisions) only after the user explicitly authorizes it.
+3. **Bootstrap**: Run `artifact-chain-bootstrap` for project-level configuration decisions (artifact type trimming, config contract, version-lock decisions) after the user authorizes the exact write scope. Reuse authorization already given for that scope; ask again only when the target or action expands.
 4. **Capture**: Run `artifact-chain-requirements` to save, query, merge, defer, reject, or carry requirements into an incremental SPEC. Capturing and querying work before project config or Registry exists.
 5. **Orient**: Run `artifact-chain-where-am-i` to inventory current capabilities or locate a concrete task.
-6. **Adopt**: Follow artifact-chain-where-am-i recommendations to adopt specific families and services.
+6. **Restructure**: Run `artifact-chain-restructure` to inspect and plan artifact splits, identity splits, cross-file moves, or renumbering. A complete manual mapping or deterministic move stays on the CLI path; semantic decisions require one independent read-only review. Once the authorization covers real writes and the review has passed, the same entry routes `restructure apply`, `recover`, and `prune-recovery` — apply needs the operator's `--confirm-cooperative-writers`, recover needs both maintenance confirmations, and file migration is reported separately from the precise lock closure.
+7. **Adopt**: Follow artifact-chain-where-am-i recommendations to adopt specific families and services.
 ```
 
 ## 从需求到交付的公开分工
 
 - **技能负责工作方法**：`artifact-chain-requirements` 保存原始诉求、处置与 SPEC 承接；`artifact-chain-where-am-i` 盘点和定位；制作、审阅、修复技能根据可执行 profile 工作。
 - **artifact-graph CLI 负责确定性图操作**：用 `artifact-graph query --from <type>:<id>` 查询关系，用 `artifact-graph context --target <type>:<id> --mode implementation` 组装上下文，用 `artifact-graph validate --root <root> --warning-only` 检查图。
+- **制品重组技能只补语义判断**：`artifact-chain-restructure` 调用 `artifact-graph restructure inspect/plan` 生成候选；完整人工映射和纯确定性路径直接使用 CLI。授权覆盖且独立复审通过后，同一入口才路由 `restructure apply`、`recover`、`prune-recovery`：apply 需要操作者给出 `--confirm-cooperative-writers`，recover 需要两项维护确认，prune 的普通路径同样需要合作式声明。文件迁移与锁收尾分别报告；计划阶段结果不得报告为已经迁移。
 - **Node API 负责程序化组合**：从 `artifact-graph` 导入 `loadConfig`、`scanArtifacts` 与 `queryGraph`，读取项目配置后扫描，再按 `{ from: '<type>:<id>', schema }` 查询；调用方负责展示或消费结果。
 - **测试与 E2E 负责行为验证**：测试文件或 `verifies` 声明只表明验证意图；只有实际运行结果或验收记录能证明验证事实。
 - **目标项目的发布工具负责发布**：插件不代替 npm、GitHub、应用商店或部署系统。发布事实必须引用工具结果和精确版本。

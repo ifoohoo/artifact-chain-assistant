@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+## 0.13.0
+
+### Added
+
+- Added `artifact-chain-restructure` for reviewed record splits, identity splits, cross-file moves,
+  renumbering, deterministic apply and recovery routing, and precise orphan-lock cleanup.
+- Added workflow-profile resolution for bundled public workers while preserving explicit project
+  worker overrides and stable checker output fields.
+
+### Changed
+
+- Raised the supported Node.js range to `>=22.22.2 <23` and synchronized runtime compatibility with
+  `artifact-graph@0.13.0`.
+- The restructuring apply and recovery path uses the exactly pinned Foundation `0.22.0` public
+  file-set capability at `candidate` maturity, qualified only for Darwin / arm64 / APFS.
+- Moved the packaged knowledge-site output to `site/` and retained the Codex, Claude Code, and Kimi
+  Code adapter surfaces.
+
 ## 0.12.0
 
 ### Changed

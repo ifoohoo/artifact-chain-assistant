@@ -40,9 +40,48 @@ npm install agent-method-registry@0.2.0
 
 安装后即可使用 `agent-method-registry` CLI。
 
-## 构建有效索引
+## v1 覆盖层与 v2 绑定
 
-有效索引由目录加上可选的项目覆盖层构建。首先通过宿主 CLI 定位已安装的插件根目录。
+Registry 0.2.0 同时公开两套输入，调用方必须按版本分别传递：
+
+- v1 使用 catalog 与可选的 `ProjectOverlayData`。项目覆盖源通常是
+  `agent-methods/project.yaml`，其中 `overrides[ref]`、`entries` 和 `disabled` 参与 v1
+  有效索引构建。它不是 v2 binding。
+- v2 使用调用方显式选择并解析的原始 `BindingData` 文档。该文档包含 `bindings`，也可以
+  包含 `serviceBindings`。调用方把完整文档作为 `bindings` 参数传给包根公开函数，而不是
+  把某条覆盖项或内部 worker 改写成 binding。
+
+v2 的最小公开调用关系如下。`familyApi`、`implementations`、`inventory`、`bindings` 和
+`methodQueryCandidate` 都由调用方从各自权威输入读取或构建：
+
+```js
+import { buildEffectiveIndex, queryEffectiveIndex } from 'agent-method-registry';
+
+const built = buildEffectiveIndex({
+  familyApi,
+  implementations,
+  inventory,
+  bindings,
+});
+if (!built.ok || !built.index) throw new Error('Registry v2 index build failed');
+
+const recommendation = queryEffectiveIndex({
+  index: built.index,
+  methodQueryCandidate,
+  purpose: 'recommendation',
+});
+```
+
+制品入口消费 recommendation 时，保存绑定源引用和服务身份 `serviceId`、`apiId`、
+`apiMajor`、`apiRevisionDigest`，并直接使用 Registry 返回的 `executable`、`installation`、
+`enablement`、`compatibility`、`trust`、`resolution` 与 `selectionSource`。不要把
+`familyImplementationId`、`serviceImplementationId` 或 provider 路径复制到图配置、
+workflow profile 或制品正文。项目内部 worker 不是 Registry binding；文档中的来源路径
+也不会自动变成发现协议，调用方仍须显式选择并读取绑定输入。
+
+## 构建 v1 有效索引
+
+以下 CLI 示例属于 v1：有效索引由目录加上可选的项目覆盖层构建。首先通过宿主 CLI 定位已安装的插件根目录。
 **不要**使用 `require.resolve`——marketplace 安装不会把插件放进目标项目的 `node_modules`。
 
 **Codex**——使用 `codex plugin list --json` 和 `CODEX_HOME` 缓存布局：
@@ -136,8 +175,9 @@ overrides:
 
 ## 有效索引是生成缓存
 
-`.agent-method-registry/effective-index.json` 是**生成的构建产物**，不是事实来源，
-由 `catalog.yaml` 加上可选的 `project.yaml` 覆盖层派生而来。
+v1 的 `.agent-method-registry/effective-index.json` 是**生成的构建产物**，不是事实来源，
+由 `catalog.yaml` 加上可选的 `project.yaml` 覆盖层派生而来。v2 index 同样只能从
+Family API、实现目录、inventory 和原始 binding 输入通过 Registry 公开入口构建，不能手写。
 
 - 不要手工编辑。
 - 目录或项目覆盖层变更后要重新构建。
@@ -172,11 +212,11 @@ review 或 repair 步骤。
 
 ## Registry 不可用时的 fallback 行为
 
-`agent-method-registry` 未安装或有效索引不存在时，`artifact-chain-where-am-i` 按以下方式回退：
+`agent-method-registry` 未安装、有效索引不存在或所需 binding 缺失时，`artifact-chain-where-am-i` 按以下方式回退：
 
 1. 输出 `"registry unavailable"` 诊断信息。
-2. 对于有契约支撑的服务，返回 `NEEDS_INPUT` 并附带 registry 不可用信息——**不会回落到内置或配置路由**。
-3. 对于无契约支撑的通用条目，可回落到现有项目配置和插件路由逻辑。
+2. 对于有契约支撑的动态专业服务，返回 `NEEDS_INPUT` 并附带缺失信息——**不会回落到内置或配置路由**。
+3. 静态 help、普通图查询、无契约支撑的通用条目和已有固定直调入口继续按各自合同工作。
 4. **不会**尝试手工合并目录，也不会创建空的有效索引。
 
 ## 定位插件根目录

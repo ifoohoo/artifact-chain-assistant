@@ -38,6 +38,15 @@ Qoder 以技能兼容宿主身份复用同一套共享技能。
   刷新/审计、doctor 诊断和 Git hook 更新。
 - **`artifact-chain-requirements`** — 从需求到交付。把未细化想法保存在项目需求池中，
   将选中的需求承接到增量 SPEC，并逐项记录验收证据与当前制品去向。
+- **`artifact-chain-restructure`** — 制品重组。把自然语言重组请求编译成可检查的映射与候选计划，
+  覆盖记录拆分、编号身份拆分、跨文件移动与重编号，并在授权与操作者确认齐备后路由真实应用与恢复。
+
+重组技能判断能力边界、共同约束、验收项去向与模糊关系目标，自己不写文件；`artifact-graph
+restructure` 负责确定性地编译完整映射并应用文件集合。候选必须经过一次独立只读复审；
+结构合法的复审结果不等于候选已被接受。计划不等于已应用：只有 `applicable` 为真且授权覆盖写入
+时才能应用，仅到"分析并生成迁移计划"的授权不得创建或修改目标文件。写入能力成熟度为
+`candidate`，资格环境仅为 Darwin / arm64 / APFS，以合作式写者为前提，需要操作者显式确认，
+恢复材料默认保留。命令序列与限制见 [INSTALL.md](INSTALL.md#restructuring-artifacts)。
 
 需求条目、需求池、当前制品、迭代 SPEC、ADR 和验证证据各自承担不同职责。默认目录是
 `artifacts/requirements/` 与 `artifacts/specs/`；项目必须在 `artifact-graph.config.yaml`
@@ -46,6 +55,18 @@ Qoder 以技能兼容宿主身份复用同一套共享技能。
 
 工作流分别报告批准、实现、验证与发布。图边、追溯注释、测试文件、新鲜锁和发布输入清单只构成
 声明证据，不能证明行为已经成功执行或版本已经发布；缺少权威执行或发布结果时保持 `unknown`。
+
+### 治理分工与判定边界
+
+Audit 定义技能族制品规范，助手帮助项目采用适用的类型、路径、引用和模板，`artifact-graph`
+只检查通用的图结构、关系、版本、新鲜度与影响范围。配置可以读取、目录存在或 Registry 可用，
+只说明对应入口具备运行前提，不代表图健康、专业规范通过或发布就绪；发布事实仍由目标项目的
+发布工具和结果材料证明。
+
+治理检查只读取静态清单、项目制品和已有结果材料，不运行目标项目的测试、构建、validator、hook
+或业务工作流。规范来源缺失、不可读，或所需公共合同尚未发布时，只把相应专业判断记为
+`unknown` 或待采用，不把目标判为违规。项目已经明确授权同一目标和动作时可以沿用该授权；范围
+扩大时仍需重新确认。
 
 ### 扩展制品目录
 
@@ -107,7 +128,7 @@ bootstrap 技能会先对目标项目分类，再按上述证据确定哪些候�
 - **`artifact-review`** — 解析项目的审阅 worker，输出 Review Result Protocol v1.0。
 - **`artifact-repair`** — 修复全部 open findings，并要求提供 re-review 证据。
 - **`artifact-batch`** — 确定性地切分输入，并合并通过协议校验的批次结果。
-- **`artifact-audit`** — 只读运行 health 与 release gate 诊断。
+- **`artifact-audit`** — 只读检查 health、capability 与 release gate，消费静态材料和已有结果，不运行目标项目脚本。
 
 先按安装章节的说明解析当前宿主的 `PLUGIN_ROOT`，再运行
 `node "$PLUGIN_ROOT/scripts/check-workflow-profile.mjs"`。缺少项目标记或 worker 映射时
@@ -153,7 +174,7 @@ workflows:
 
 只读的公共审计中，只要项目已有 `artifact-graph.config.yaml` 和 `artifacts/`，`health`
 和 `capability` 就不需要 workflow profile。`release-gate` 要求更严格：至少配置一个安全的
-checklist 或 validator（或项目 worker），并在审计前运行 checker：
+checklist，并在审计前运行只读 checker：
 
 ```yaml
 schema_version: 1
@@ -163,8 +184,8 @@ project:
 workflows:
   audit:
     release-gate:
-      validators:
-        - scripts/validate-release.mjs
+      checklists:
+        - artifacts/checklists/release-readiness.md
 ```
 
 ```bash
@@ -172,8 +193,9 @@ node "$PLUGIN_ROOT/scripts/check-workflow-profile.mjs" \
   --root . --action audit --domain release-gate --format json
 ```
 
-公共 `release-gate` 映射缺失或为空时返回 `NEEDS_INPUT`；资源不安全或 validator 执行
-失败时返回 `BLOCKED`。
+公共 `release-gate` 映射缺失或为空时返回 `NEEDS_INPUT`，资源路径不安全时返回 `BLOCKED`。
+profile 中的 validator 或项目 worker 只作为静态声明报告；审计不执行它们。已有执行结果需要由
+项目另行提供，缺少结果时相关事实保持 `unknown`。
 
 ### Generate 入口
 
@@ -212,13 +234,13 @@ catalog 还包含 `artifact.generate`，用于从模板和 profile 配置生成 
 
 | 插件 | 运行时 | 安装 |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.12.0 | `artifact-graph` 0.12.0 | `pnpm add -D artifact-graph@0.12.0` |
+| `artifact-chain-assistant` 0.13.0 | `artifact-graph` 0.13.0 | `pnpm add -D artifact-graph@0.13.0` |
 
 ## 安装
 
 ```bash
 # 运行时（必需）
-npm install --save-dev artifact-graph@0.12.0
+npm install --save-dev artifact-graph@0.13.0
 ```
 
 ```bash
@@ -240,7 +262,7 @@ codex plugin add artifact-chain-assistant@artifact-skill-set
 
 > **市场说明**：`ifoohoo/artifact-skill-set` 是外部独立市场，插件载荷仍由
 > `ifoohoo/artifact-chain-assistant` 发布。市场条目必须先发布并启用
-> `artifact-chain-assistant` 0.12.0，上述安装命令才能生效。
+> `artifact-chain-assistant` 0.13.0，上述安装命令才能生效。
 
 ```text
 # Kimi Code 插件（交互式，user 作用域）
@@ -267,7 +289,7 @@ Qoder 当前承诺的边界是技能安装与发现；不提供 Claude Code 的 
 
 ## 快速开始
 
-1. 安装插件 0.12.0（见上文）和运行时：`pnpm add -D artifact-graph@0.12.0`。
+1. 安装插件 0.13.0（见上文）和运行时：`pnpm add -D artifact-graph@0.13.0`。
 2. 运行 `artifact-graph doctor --root . --format json` 验证运行时。
 3. 首次搭建，进入 bootstrap 技能。
 4. 日常工作，进入 maintainer 技能。

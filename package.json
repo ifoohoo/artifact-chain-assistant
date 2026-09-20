@@ -1,6 +1,6 @@
 {
   "name": "artifact-chain-assistant",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "Codex, Claude Code, and Kimi Code assistant plugin for artifact-chain projects",
   "license": "Apache-2.0",
   "type": "module",
@@ -14,7 +14,7 @@
     "agent-tools"
   ],
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.22.2 <23"
   },
   "scripts": {
     "build": "node scripts/generate-schema-validators.mjs && node scripts/sync-skills.mjs && node scripts/build-adapters.mjs && node scripts/build-runtime-bundles.mjs",
@@ -57,21 +57,22 @@
     ".codex-plugin",
     ".kimi-plugin",
     "adapters",
-    "docs/.nojekyll",
-    "docs/00-matrix.html",
-    "docs/01-what.html",
-    "docs/02-architecture.html",
-    "docs/03-concepts.html",
-    "docs/04-cli.html",
-    "docs/05-scenarios.html",
-    "docs/06-method-registry.html",
-    "docs/07-glossary.html",
-    "docs/08-maintainer.html",
-    "docs/09-troubleshoot.html",
-    "docs/10-roadmap.html",
-    "docs/assets/style.css",
-    "docs/assets/terms.js",
-    "docs/index.html",
+    "site/.nojekyll",
+    "site/00-matrix.html",
+    "site/01-what.html",
+    "site/02-architecture.html",
+    "site/03-concepts.html",
+    "site/04-cli.html",
+    "site/05-scenarios.html",
+    "site/06-method-registry.html",
+    "site/07-glossary.html",
+    "site/08-maintainer.html",
+    "site/09-troubleshoot.html",
+    "site/10-roadmap.html",
+    "site/assets/editorial/mark.svg",
+    "site/assets/editorial/site.js",
+    "site/assets/editorial/style.css",
+    "site/index.html",
     "skills",
     "skills-src",
     "templates",
@@ -99,6 +100,6 @@
   },
   "devDependencies": {
     "ajv": "^8.20.0",
-    "artifact-graph": "0.12.0"
+    "artifact-graph": "0.13.0"
   }
 }

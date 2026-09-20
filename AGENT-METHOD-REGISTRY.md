@@ -43,9 +43,52 @@ npm install agent-method-registry@0.2.0
 
 The CLI is available as `agent-method-registry` after installation.
 
-## Building the Effective Index
+## v1 Overlay and v2 Binding
 
-The effective index is built from the catalog plus an optional project overlay. First, locate
+Registry 0.2.0 exposes two distinct input models. Callers must keep them separate:
+
+- v1 builds from catalogs and an optional `ProjectOverlayData`. The usual project source is
+  `agent-methods/project.yaml`; its `overrides[ref]`, `entries`, and `disabled` fields participate in
+  the v1 effective-index build. It is not a v2 binding.
+- v2 uses a raw `BindingData` document explicitly selected and parsed by the caller. The document
+  contains `bindings` and may contain `serviceBindings`. Pass the complete document through the
+  public package-root `bindings` input; do not reinterpret an overlay entry or internal worker as a
+  binding.
+
+The minimal v2 public call chain is below. The caller reads or builds `familyApi`,
+`implementations`, `inventory`, `bindings`, and `methodQueryCandidate` from their respective
+authoritative inputs:
+
+```js
+import { buildEffectiveIndex, queryEffectiveIndex } from 'agent-method-registry';
+
+const built = buildEffectiveIndex({
+  familyApi,
+  implementations,
+  inventory,
+  bindings,
+});
+if (!built.ok || !built.index) throw new Error('Registry v2 index build failed');
+
+const recommendation = queryEffectiveIndex({
+  index: built.index,
+  methodQueryCandidate,
+  purpose: 'recommendation',
+});
+```
+
+Artifact-side adoption records keep the binding-source reference and service identity:
+`serviceId`, `apiId`, `apiMajor`, and `apiRevisionDigest`. Consumers use the Registry-returned
+`executable`, `installation`, `enablement`, `compatibility`, `trust`, `resolution`, and
+`selectionSource` states directly. Do not copy `familyImplementationId`,
+`serviceImplementationId`, or provider paths into graph configuration, workflow profiles, or
+artifact bodies. An internal project worker is not a Registry binding, and a source path mentioned
+in prose does not create an automatic discovery protocol; the caller must still select and read the
+binding input explicitly.
+
+## Building the v1 Effective Index
+
+The CLI examples below are v1. The effective index is built from the catalog plus an optional project overlay. First, locate
 the installed plugin root from the host CLI. Do **not** use `require.resolve` — marketplace
 installations do not place the plugin into the target project's `node_modules`.
 
@@ -144,8 +187,10 @@ The project overlay can also add new entries (via `entries`) and disable plugin 
 
 ## Effective Index Is a Generated Cache
 
-`.agent-method-registry/effective-index.json` is a **generated build artifact**, not a source
-of truth. It is derived from `catalog.yaml` plus the optional `project.yaml` overlay.
+The v1 `.agent-method-registry/effective-index.json` is a **generated build artifact**, not a source
+of truth. It is derived from `catalog.yaml` plus the optional `project.yaml` overlay. A v2 index must
+likewise be built through the Registry public API from Family API, implementation, inventory, and raw
+binding inputs; it must not be handwritten.
 
 - Do not edit it manually.
 - Rebuild it when the catalog or project overlay changes.
@@ -180,12 +225,12 @@ planner should not schedule separate review or repair steps for a workflow entry
 
 ## Registry Unavailable: Fallback Behavior
 
-When `agent-method-registry` is not installed or the effective index does not exist,
+When `agent-method-registry` is not installed, the effective index does not exist, or a required binding is missing,
 `artifact-chain-where-am-i` follows this behavior:
 
 1. Outputs a `"registry unavailable"` diagnostic.
-2. For contract-backed services, returns `NEEDS_INPUT` with registry unavailable message — **no fallback to builtin or config routing**.
-3. For generic non-contract-backed entries, may fall back to existing project configuration and plugin routing logic.
+2. For dynamic contract-backed professional services, returns `NEEDS_INPUT` with the missing-input message — **no fallback to builtin or config routing**.
+3. Static help, ordinary graph queries, generic non-contract-backed entries, and existing fixed direct calls continue under their own contracts.
 4. Does **not** attempt to merge catalogs manually or create an empty effective index.
 
 ## Locating the Plugin Root

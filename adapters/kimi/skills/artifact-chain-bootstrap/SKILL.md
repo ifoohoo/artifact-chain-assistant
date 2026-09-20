@@ -86,6 +86,33 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
 
 无配置项目仍能用 `artifact-chain-requirements` 把想法保存到 `artifacts/requirements/`。不要为了收集需求先强迫用户完成 bootstrap；需要把需求纳入图、建立当前制品或运行专业方法时，再按这里的结果补最小配置。
 
+### Skill-family specification adoption
+
+When the target is an agent, plugin, or skill-family project, keep professional specification
+adoption separate from generic graph setup:
+
+- Use only a specification source explicitly selected by the user, readable by the current task, and
+  identified by a verifiable revision. A private Audit specification may be adopted when the user
+  selects it and its current working-copy bytes are identified by a verifiable digest. Treat a source
+  repository HEAD only as the repository baseline unless the selected files are tracked at that
+  commit. Private location alone does not authorize trusting an arbitrary source.
+- If the selected source is missing, unreadable, or has no verifiable commit or working-copy digest,
+  pause only that professional judgment and do not report a target violation. If an integration
+  specifically requires a published public contract, its absence blocks only that public-dependency
+  path; it does not block an authorized private-reference adoption.
+- Let Audit own skill-family artifact semantics and applicability. This assistant helps adopt the
+  selected types, paths, identifiers, templates, and references. `artifact-graph` validates generic
+  graph structure, relations, versions, freshness, and impact; configuration readiness does not prove
+  professional conformance.
+- Reference the selected specification and record the locally adopted scope in the target project's
+  artifact catalog. Do not copy the specification, create a parallel specification lock, or introduce
+  a second graph solely for adoption.
+- Governance checks consume static source material and existing result records. They do not launch
+  target tests, builds, validators, hooks, or business workflows. Authorized authoring, repair, and
+  professional-provider work keeps its existing execution contract.
+- Reuse an explicit authorization already given for the same project and exact writes. Ask again only
+  if bootstrap discovers a new target, action, overwrite, or external effect.
+
 ### Enterprise Java/Spring/JVM Service Case Study
 
 For enterprise Java/Spring Boot projects delivering digital business capabilities (order fulfillment, customer management, financial reconciliation), the delivery chain follows these phases:

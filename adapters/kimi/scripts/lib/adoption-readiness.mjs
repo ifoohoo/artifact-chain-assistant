@@ -92,6 +92,7 @@ async function methodReadiness({ projectRoot, profilePath, profile, type, action
       profilePath,
       intent: action,
       domain: profileDomain(type),
+      runValidatorCommands: false,
     });
     return {
       status: checked.status,

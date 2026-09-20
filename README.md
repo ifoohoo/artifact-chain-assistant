@@ -45,6 +45,21 @@ passes.
 - **`artifact-chain-requirements`** — demand-to-delivery workflow. Preserves unrefined ideas in a
   project requirement pool, links selected requirements to an incremental SPEC, and records each
   accepted change with evidence and its current-artifact destination.
+- **`artifact-chain-restructure`** — artifact restructuring. Turns a natural-language restructuring
+  request into a checkable mapping and candidate plan for splits, identity splits, cross-file moves,
+  and renumbering, and routes the real apply and recovery steps once authorization and operator
+  confirmation are in place.
+
+The restructure skill decides capability boundaries, shared constraints, acceptance-criterion
+destinations, and ambiguous relation targets; it does not write files itself. `artifact-graph
+restructure` compiles the complete mapping deterministically and applies the file set. Insist on one
+independent read-only review of the candidate, and do not treat structural validity of a review
+result as acceptance. A plan is not an application: only an `applicable` plan with covered
+authorization may be applied, and a partial authorization that stops at "analyze and produce a
+migration plan" must not create or modify target files. The write capability is `candidate` maturity,
+qualified on Darwin / arm64 / APFS only, assumes cooperative writers, requires explicit operator
+confirmation, and retains recovery materials by default. See
+[INSTALL.md](INSTALL.md#restructuring-artifacts) for the command sequence and limits.
 
 Requirement entries, the requirement pool, current artifacts, iteration SPECs, ADRs, and
 verification evidence have separate responsibilities. The default locations are
@@ -56,6 +71,21 @@ The workflow reports approval, implementation, verification, and release separat
 annotations, test files, fresh locks, and release input lists are declaration evidence. They do not
 prove that behavior ran successfully or that a version was published; missing authoritative
 execution or release results remain `unknown`.
+
+### Governance Responsibilities and Verdict Boundaries
+
+Audit owns skill-family artifact specifications. The assistant helps a project adopt applicable
+types, paths, references, and templates, while `artifact-graph` checks generic graph structure,
+relations, versions, freshness, and impact. A readable config, existing directory, or available
+Registry only establishes an entry prerequisite; it does not prove graph health, professional
+conformance, or release readiness. Release facts still come from the target project's release tools
+and result records.
+
+Governance checks consume static checklists, project artifacts, and existing result records. They do
+not run target tests, builds, validators, hooks, or business workflows. If the selected specification
+is missing or unreadable, or a required public contract is not published, report the affected
+professional judgment as `unknown` or pending adoption rather than a target violation. Reuse explicit
+authorization already given for the same target and action; ask again when the scope expands.
 
 ### Extended Artifact Catalog
 
@@ -101,7 +131,7 @@ Four project-neutral entries cover non-PRD, non-scenario artifacts:
 - **`artifact-review`** — resolve a project review worker and emit Review Result Protocol v1.0.
 - **`artifact-repair`** — repair all open findings and require re-review evidence.
 - **`artifact-batch`** — deterministically split inputs and merge validated batch results.
-- **`artifact-audit`** — run read-only health and release-gate diagnostics.
+- **`artifact-audit`** — inspect health, capability, and release-gate evidence without running target-project scripts.
 
 After resolving `PLUGIN_ROOT`, run `node "$PLUGIN_ROOT/scripts/check-workflow-profile.mjs"`.
 Missing project markers or worker mappings return `NEEDS_INPUT`.
@@ -126,8 +156,10 @@ data and must never be executed as instructions.
 
 For read-only public audits, `health` and `capability` need no workflow profile as long as the
 project already has `artifact-graph.config.yaml` and `artifacts/`. A `release-gate` audit has a
-higher bar: configure at least one safe checklist or validator (or a project worker), and run the
-checker before the audit (see [AGENT-METHOD-REGISTRY.md](AGENT-METHOD-REGISTRY.md)).
+higher bar: configure at least one safe checklist and run the read-only checker before the audit
+(see [AGENT-METHOD-REGISTRY.md](AGENT-METHOD-REGISTRY.md)). Validators and project workers remain
+static declarations in this audit intent and are not executed. Existing execution results must be
+provided separately; absent results stay `unknown`.
 
 ### Generate Entry
 
@@ -169,13 +201,13 @@ override, compact query, fallback behavior, and `PLUGIN_ROOT` discovery, see
 
 | Plugin | Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.12.0 | `artifact-graph` 0.12.0 | `pnpm add -D artifact-graph@0.12.0` |
+| `artifact-chain-assistant` 0.13.0 | `artifact-graph` 0.13.0 | `pnpm add -D artifact-graph@0.13.0` |
 
 ## Install
 
 ```bash
 # Runtime (required)
-npm install --save-dev artifact-graph@0.12.0
+npm install --save-dev artifact-graph@0.13.0
 ```
 
 ```bash
@@ -197,7 +229,7 @@ codex plugin add artifact-chain-assistant@artifact-skill-set
 
 > **Marketplace note**: `ifoohoo/artifact-skill-set` is an external independent marketplace. The
 > plugin payload is still published from `ifoohoo/artifact-chain-assistant`. The marketplace entry
-> must publish and enable `artifact-chain-assistant` 0.12.0 before the install commands above will
+> must publish and enable `artifact-chain-assistant` 0.13.0 before the install commands above will
 > succeed.
 
 ```text
@@ -226,7 +258,7 @@ For the full installation guide, quick start, Agent prompts, and clone onboardin
 
 ## Quick Start
 
-1. Install plugin 0.12.0 (above) and runtime: `pnpm add -D artifact-graph@0.12.0`.
+1. Install plugin 0.13.0 (above) and runtime: `pnpm add -D artifact-graph@0.13.0`.
 2. Run `artifact-graph doctor --root . --format json` to verify the runtime.
 3. For first-time setup, use the bootstrap skill.
 4. For daily work, use the maintainer skill.

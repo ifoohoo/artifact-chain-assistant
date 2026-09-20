@@ -13,7 +13,14 @@ export { checkAdoptionReadiness };
 
 export async function checkWorkflowProfile({ root = process.cwd(), action = 'review', domain, profilePath, target } = {}) {
   const projectRoot = resolve(root);
-  const checker = await buildCheckerOutput({ root: projectRoot, profilePath, intent: action, domain, target });
+  const checker = await buildCheckerOutput({
+    root: projectRoot,
+    profilePath,
+    intent: action,
+    domain,
+    target,
+    runValidatorCommands: false,
+  });
   return {
     ...checker,
     root: projectRoot,

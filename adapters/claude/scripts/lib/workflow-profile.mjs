@@ -606,11 +606,10 @@ export async function buildCheckerOutput({ root, profilePath, intent = 'review',
       if (needsProfileResources && intent === 'generate' && templatePaths.length === 0) {
         problems.push('Generate requires at least one template');
       }
-      if (executionMode === 'public-worker' && intent === 'audit' && domain === 'release-gate'
-        && checklistPaths.length === 0 && validatorPaths.length === 0) {
-        problems.push('Audit release-gate public worker requires at least one checklist or validator');
+      if (intent === 'audit' && domain === 'release-gate' && checklistPaths.length === 0) {
+        problems.push('Audit release-gate requires at least one readable checklist; validator or worker declarations are not reviewable release material');
       }
-      if (runValidatorCommands) {
+      if (runValidatorCommands && intent !== 'audit') {
         const validatorRun = runValidators(validatorPaths, { root: executionRoot, intent, domain, target });
         validators = validatorRun.results;
         problems.push(...validatorRun.diagnostics);
