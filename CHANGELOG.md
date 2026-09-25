@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## 0.14.0
+
+### Added
+
+- `artifact-audit health` now routes graph checks through `artifact-graph check-professional` and
+  reads existing graph proofs through `read-proof`. Its human-facing result distinguishes a graph
+  pass, findings, incomplete checks, and unavailable evidence; capability and release-gate audits
+  retain their existing scope.
+
+### Changed
+
+- Synchronized runtime compatibility with `artifact-graph@0.14.0`.
+
 ## 0.13.0
 
 ### Added

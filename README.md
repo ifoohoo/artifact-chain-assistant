@@ -82,10 +82,13 @@ conformance, or release readiness. Release facts still come from the target proj
 and result records.
 
 Governance checks consume static checklists, project artifacts, and existing result records. They do
-not run target tests, builds, validators, hooks, or business workflows. If the selected specification
-is missing or unreadable, or a required public contract is not published, report the affected
-professional judgment as `unknown` or pending adoption rather than a target violation. Reuse explicit
-authorization already given for the same target and action; ask again when the scope expands.
+not run target tests, builds, validators, hooks, or business workflows. `artifact-audit health`
+routes to `artifact-graph check-professional` and `read-proof` for graph professional scan and proof
+read; capability and release-gate keep their existing scopes. A graph `pass` does not prove content
+semantics, method execution, or publication. If the selected specification is missing or unreadable,
+or a required public contract is not published, report the affected professional judgment as
+`unknown` or pending adoption rather than a target violation. Reuse explicit authorization already
+given for the same target and action; ask again when the scope expands.
 
 ### Extended Artifact Catalog
 
@@ -201,13 +204,13 @@ override, compact query, fallback behavior, and `PLUGIN_ROOT` discovery, see
 
 | Plugin | Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.13.0 | `artifact-graph` 0.13.0 | `pnpm add -D artifact-graph@0.13.0` |
+| `artifact-chain-assistant` 0.14.0 | `artifact-graph` 0.14.0 | `pnpm add -D artifact-graph@0.14.0` |
 
 ## Install
 
 ```bash
 # Runtime (required)
-npm install --save-dev artifact-graph@0.13.0
+npm install --save-dev artifact-graph@0.14.0
 ```
 
 ```bash
@@ -229,7 +232,7 @@ codex plugin add artifact-chain-assistant@artifact-skill-set
 
 > **Marketplace note**: `ifoohoo/artifact-skill-set` is an external independent marketplace. The
 > plugin payload is still published from `ifoohoo/artifact-chain-assistant`. The marketplace entry
-> must publish and enable `artifact-chain-assistant` 0.13.0 before the install commands above will
+> must publish and enable `artifact-chain-assistant` 0.14.0 before the install commands above will
 > succeed.
 
 ```text
@@ -258,7 +261,7 @@ For the full installation guide, quick start, Agent prompts, and clone onboardin
 
 ## Quick Start
 
-1. Install plugin 0.13.0 (above) and runtime: `pnpm add -D artifact-graph@0.13.0`.
+1. Install plugin 0.14.0 (above) and runtime: `pnpm add -D artifact-graph@0.14.0`.
 2. Run `artifact-graph doctor --root . --format json` to verify the runtime.
 3. For first-time setup, use the bootstrap skill.
 4. For daily work, use the maintainer skill.

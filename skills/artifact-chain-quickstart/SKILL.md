@@ -176,6 +176,16 @@ description: artifact-chain-assistant 插件内的统一路由入口。用户用
 
 **最小提示词**：`请先盘点项目事实和规范适用性，再说明配置采用、通用图检查与专业判断各由谁负责。`
 
+### 图专业证明或 health 扫描
+
+**匹配关键词**：图专业证明、check-professional、read-proof、制品链 health、图健康扫描、读取图证明
+
+**路由目标**：`artifact-audit`
+
+**理由**：`artifact-audit health` 路由到 `artifact-graph check-professional` 与 `read-proof`。capability 和 release-gate 仍走原范围，不把图通过当成内容语义、方法执行或发布事实。
+
+**最小提示词**：`请用 artifact-audit health 做图专业扫描；若需要证明文件，再给出绝对输出路径并用 read-proof 阅读。`
+
 ### 意图不明确
 
 **行为**：输出追问，不猜测路由。
