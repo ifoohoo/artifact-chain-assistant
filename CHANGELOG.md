@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.14.1
+
+### Changed
+
+- Synchronized runtime compatibility with `artifact-graph@0.14.1`. Install commands and compatibility metadata pin that exact graph version. In this pair, `doctor` classifies `better-sqlite3` from the selected CLI installation, including the nested dependency of a pnpm consumer that does not declare `better-sqlite3` directly.
+
 ## 0.14.0
 
 ### Added

@@ -1,9 +1,9 @@
 {
   "schemaVersion": "1.0",
-  "pluginVersion": "0.14.0",
+  "pluginVersion": "0.14.1",
   "artifactGraph": {
-    "verifiedVersion": "0.14.0",
-    "installSpec": "artifact-graph@0.14.0",
-    "githubFallbackSpec": "github:ifoohoo/artifact-graph#artifact-graph-v0.14.0"
+    "verifiedVersion": "0.14.1",
+    "installSpec": "artifact-graph@0.14.1",
+    "githubFallbackSpec": "github:ifoohoo/artifact-graph#artifact-graph-v0.14.1"
   }
 }
