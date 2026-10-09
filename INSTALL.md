@@ -27,7 +27,7 @@ instructions.
 
 | Plugin | Verified Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.14.1 | `artifact-graph` 0.14.1 | `pnpm add -D artifact-graph@0.14.1` |
+| `artifact-chain-assistant` 0.14.2 | `artifact-graph` 0.14.1 | `pnpm add -D artifact-graph@0.14.1` |
 
 ### Install The Runtime
 
@@ -156,7 +156,7 @@ wrappers, and Stop-hook guardrail. These assistant controls do not replace Git h
 
 > **Marketplace note**: `ifoohoo/artifact-skill-set` is an external independent marketplace. The
 > plugin payload is still published from `ifoohoo/artifact-chain-assistant`. The marketplace entry
-> must publish and enable `artifact-chain-assistant` 0.14.1 before the install commands above will
+> must publish and enable `artifact-chain-assistant` 0.14.2 before the install commands above will
 > succeed.
 
 ### Kimi Code

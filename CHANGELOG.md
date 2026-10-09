@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.14.2
+
+### Fixed
+
+- Resolve `design-spec` profiles as the `design` artifact type. Preserve each action's existing method precedence: use the configured `design` key first, then fall back to its associated `design-spec` profile alias if the key is missing; a missing method still reports `NEEDS_INPUT`.
+- Derive `artifact-chain-assistant` and `artifact-graph` release coordinates from their respective package versions. The assistant-only 0.14.2 update retains the verified Graph 0.14.1 dependency and installation coordinates; version-field and adapter drift continue to fail checks.
+
 ## 0.14.1
 
 ### Changed

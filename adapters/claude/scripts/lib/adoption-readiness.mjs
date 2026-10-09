@@ -74,6 +74,7 @@ function profileDomain(type) {
 function artifactType(domain) {
   if (domain === 'prd-feature') return 'feature';
   if (domain === 'scenario-script') return 'scenario';
+  if (domain === 'design-spec') return 'design';
   return domain.replaceAll('-', '_');
 }
 
@@ -81,17 +82,21 @@ function profileTypes(profile) {
   return unique(Object.values(profile?.workflows ?? {}).flatMap(domains => Object.keys(domains ?? {}).map(artifactType)));
 }
 
-function hasProfileMethod(profile, type, action) {
-  return Boolean(profile?.workflows?.[action]?.[profileDomain(type)]);
+function profileMethodDomain(profile, type, action) {
+  const domain = profileDomain(type);
+  if (profile?.workflows?.[action]?.[domain]) return domain;
+  if (type === 'design' && profile?.workflows?.[action]?.['design-spec']) return 'design-spec';
+  return null;
 }
 
 async function methodReadiness({ projectRoot, profilePath, profile, type, action, templateAvailable, pluginRoot }) {
-  if (hasProfileMethod(profile, type, action)) {
+  const domain = profileMethodDomain(profile, type, action);
+  if (domain) {
     const checked = await buildCheckerOutput({
       root: projectRoot,
       profilePath,
       intent: action,
-      domain: profileDomain(type),
+      domain,
       runValidatorCommands: false,
     });
     return {
