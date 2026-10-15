@@ -14,8 +14,8 @@ plugin README and INSTALL.md. This document covers opt-in types beyond the core 
 
 | Layer | Scope | Responsibility for Extended Types |
 | --- | --- | --- |
-| **artifact-graph** | Deterministic graph capabilities | Reads type definitions from config; indexes artifacts; provides context/packet/validate. Does **not** ship default paths or ID patterns for extended types. Types without configured paths are not indexed. |
-| **artifact-chain-assistant** | General assistant guidance | Provides starter templates, profile suggestions, and generic review checklists. **Templates are guidance, not authority.** Project-local templates and review skills override plugin suggestions. |
+| **artifact-graph** | Deterministic graph capabilities, plus the published common-minimum and project-type standard lists at `artifact-graph/project-artifact-profiles` | Reads type definitions from config; indexes artifacts; provides context/packet/validate. Ships recommendation lists only; it does **not** auto-enable types or ship default paths or ID patterns for extended types. Types without configured paths are not indexed. |
+| **artifact-chain-assistant** | General assistant guidance | Reads the Graph lists, then provides starter templates, adoption-readiness checks, and generic review checklists. **Templates are guidance, not authority.** The assistant does not keep a second list source of truth. Project-local templates and review skills override plugin suggestions. |
 | **Target project** | Final working method | Decides which extended types to enable; maintains config, local templates, review skills, and ID rules. **Project-local overrides plugin suggestions.** Enables new types progressively as maturity grows. |
 
 ## Extended Artifact Type Catalog
@@ -90,15 +90,19 @@ has corresponding files or processes.
 ## Bootstrap Trimming Strategy
 
 Bootstrap selects a **minimum viable profile** rather than enabling all known types.
+The published lists are `artifact-graph/project-artifact-profiles`. Reading them does not enable types.
 
 Rules:
 
-1. **Core set always enabled**: `feature`, `scenario`, `decision`, `design`, `test`, `e2e_test`.
-2. **Contracts by evidence**: Enable only when the project has corresponding interface files (e.g., OpenAPI spec, CLI entry, IPC channel definition).
-3. **Domain/data by project shape**: Enterprise Java/DDD projects may enable `domain_model`; projects with databases may enable `database_migration`.
-4. **Ops by operational process**: Enable only when the project has deployment configs, security review processes, or operational manuals.
-5. **Agent/hook by local files**: Enable only when the project has `skills/`, `policies/`, or hook config files.
-6. **Progressive expansion**: As project maturity grows, add new types in `artifact-graph.config.yaml`. Existing artifacts and traceability relationships are unaffected.
+1. **Common minimum is visible, not auto-enabled**: `feature`, `scenario`, `design`. Missing items stay visible until the project adopts them.
+2. **Only `skill-plugin` has an approved category standard**: it adds `agent_skill` and `e2e_test` on top of the common minimum. Other shapes use the common minimum plus matching stage and capability candidates.
+3. **Stage items stay candidates**: `requirement`, `spec`, and `decision` appear for matching adoption stages and are enabled only by config, profile, or explicit selection.
+4. **Contracts by evidence**: Enable `cli_contract`, `api_contract`, `ui_contract`, `ipc_contract`, or `data_contract` only when the project has corresponding interface files.
+5. **Domain/data by project shape**: Enterprise Java/DDD projects may enable `domain_model`; projects with databases may enable `database_migration`.
+6. **Ops by operational process**: Enable only when the project has deployment configs, security review processes, or operational manuals.
+7. **Agent/hook by local files**: `hook_policy` and `prompt_packet` remain capability candidates for `skill-plugin`; enable them only when the project has `skills/`, `policies/`, or hook config files.
+8. **Release by duty**: Enable `release_policy` and related types only when the project owns publish and distribution.
+9. **Progressive expansion**: As project maturity grows, add new types in `artifact-graph.config.yaml`. Existing extras and traceability relationships are kept.
 
 After bootstrap, the enabled types, paths, and ID patterns are recorded in
 `artifact-graph.config.yaml`. Deferred types and their evidence conditions are documented in the

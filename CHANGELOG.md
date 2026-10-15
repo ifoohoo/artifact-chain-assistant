@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 0.15.0
+
+### Added
+
+- The assistant reads the Graph package list at `artifact-graph/project-artifact-profiles` through the existing runtime. The readiness report includes `candidate_types` (common minimum, category standard, stage, capability, and project extras), `missing_standard_types` (unadopted common or skill-plugin standard types, kept separate from `gaps`), and `profile_contract` (whether the list loaded with `schema_version` `1.0`). `profile_contract` is read-compatibility status, not template or method readiness. If the list is missing or `schema_version` is not `1.0`, list-dependent recommendations pause and no copied STAGE/SHAPE table is used. Extra types already in project config or method bindings remain.
+
+### Changed
+
+- Plugin and Graph install coordinates are unified at `0.15.0`. Compatibility metadata, README, and INSTALL pin `artifact-graph@0.15.0`.
+
 ## 0.14.2
 
 ### Fixed

@@ -91,7 +91,9 @@ Audit 定义技能族制品规范，助手帮助项目采用适用的类型、�
 项目形态与采用阶段只生成 `candidate_types`，不证明每项候选能力都已存在。`enabled_types`
 只包含有效图配置、已有 workflow profile 或 `--types` 显式选择支持的候选。随后分别检查
 类型登记、模板与可执行方法。插件自带的需求/SPEC 技能可以满足制作入口；没有实际配置审阅方法时，
-review 仍报告缺口。只读命令见[安装说明](INSTALL.md#project-shape-and-stage-readiness)。
+review 仍报告缺口。助手从已解析的 `artifact-graph` 包读取公开清单，入口是
+`artifact-graph/project-artifact-profiles`，不另存一份真源。尚未采用的共同最小或技能族标准项
+记在 `missing_standard_types`，该字段不是 `gaps`。完整解释见[安装说明](INSTALL.md#project-shape-and-stage-readiness)。
 
 ### 项目形态分类
 
@@ -236,13 +238,13 @@ catalog 还包含 `artifact.generate`，用于从模板和 profile 配置生成 
 
 | 插件 | 运行时 | 安装 |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.14.2 | `artifact-graph` 0.14.1 | `pnpm add -D artifact-graph@0.14.1` |
+| `artifact-chain-assistant` 0.15.0 | `artifact-graph` 0.15.0 | `pnpm add -D artifact-graph@0.15.0` |
 
 ## 安装
 
 ```bash
 # 运行时（必需）
-npm install --save-dev artifact-graph@0.14.1
+npm install --save-dev artifact-graph@0.15.0
 ```
 
 ```bash
@@ -264,7 +266,7 @@ codex plugin add artifact-chain-assistant@artifact-skill-set
 
 > **市场说明**：`ifoohoo/artifact-skill-set` 是外部独立市场，插件载荷仍由
 > `ifoohoo/artifact-chain-assistant` 发布。市场条目必须先发布并启用
-> `artifact-chain-assistant` 0.14.2，上述安装命令才能生效。
+> `artifact-chain-assistant` 0.15.0，上述安装命令才能生效。
 
 ```text
 # Kimi Code 插件（交互式，user 作用域）
@@ -291,7 +293,7 @@ Qoder 当前承诺的边界是技能安装与发现；不提供 Claude Code 的 
 
 ## 快速开始
 
-1. 安装插件 0.14.2（见上文）和运行时：`pnpm add -D artifact-graph@0.14.1`。
+1. 安装插件 0.15.0（见上文）和运行时：`pnpm add -D artifact-graph@0.15.0`。
 2. 运行 `artifact-graph doctor --root . --format json` 验证运行时。
 3. 首次搭建，进入 bootstrap 技能。
 4. 日常工作，进入 maintainer 技能。

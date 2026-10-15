@@ -112,8 +112,12 @@ Project shape and adoption stage produce `candidate_types`; they do not assert t
 capability exists. `enabled_types` contains only candidates supported by the effective graph config,
 an existing workflow profile, or explicit `--types` selection. Readiness then checks registration,
 templates, and executable methods separately. The bundled requirement/SPEC skill can satisfy
-generation, while review remains a gap until a review method is actually configured. See
-[INSTALL.md](INSTALL.md#project-shape-and-stage-readiness) for the read-only command.
+generation, while review remains a gap until a review method is actually configured. The assistant
+reads the published list from the resolved `artifact-graph` package at
+`artifact-graph/project-artifact-profiles` and does not keep a second copy. Unadopted
+common-minimum or skill-plugin standard types appear in `missing_standard_types`; that field is not
+`gaps`. See [INSTALL.md](INSTALL.md#project-shape-and-stage-readiness) for field meanings and the
+read-only command.
 
 ### Professional Skill Families
 
@@ -204,13 +208,13 @@ override, compact query, fallback behavior, and `PLUGIN_ROOT` discovery, see
 
 | Plugin | Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.14.2 | `artifact-graph` 0.14.1 | `pnpm add -D artifact-graph@0.14.1` |
+| `artifact-chain-assistant` 0.15.0 | `artifact-graph` 0.15.0 | `pnpm add -D artifact-graph@0.15.0` |
 
 ## Install
 
 ```bash
 # Runtime (required)
-npm install --save-dev artifact-graph@0.14.1
+npm install --save-dev artifact-graph@0.15.0
 ```
 
 ```bash
@@ -232,7 +236,7 @@ codex plugin add artifact-chain-assistant@artifact-skill-set
 
 > **Marketplace note**: `ifoohoo/artifact-skill-set` is an external independent marketplace. The
 > plugin payload is still published from `ifoohoo/artifact-chain-assistant`. The marketplace entry
-> must publish and enable `artifact-chain-assistant` 0.14.2 before the install commands above will
+> must publish and enable `artifact-chain-assistant` 0.15.0 before the install commands above will
 > succeed.
 
 ```text
@@ -261,7 +265,7 @@ For the full installation guide, quick start, Agent prompts, and clone onboardin
 
 ## Quick Start
 
-1. Install plugin 0.14.2 (above) and runtime: `pnpm add -D artifact-graph@0.14.1`.
+1. Install plugin 0.15.0 (above) and runtime: `pnpm add -D artifact-graph@0.15.0`.
 2. Run `artifact-graph doctor --root . --format json` to verify the runtime.
 3. For first-time setup, use the bootstrap skill.
 4. For daily work, use the maintainer skill.

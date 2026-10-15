@@ -15,7 +15,7 @@ instructions.
 ## Prerequisites
 
 - Node.js `>=22.22.2 <23`.
-- `artifact-graph` 0.14.1 installed in the target project.
+- `artifact-graph` 0.15.0 installed in the target project.
 - **GitHub SSH key** — Claude Code clones `source: github` entries over SSH by default. If you
   have not configured a GitHub SSH key, set `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` in your shell
   profile, or add the marketplace with an explicit `https://` URL. Codex users can check
@@ -27,24 +27,24 @@ instructions.
 
 | Plugin | Verified Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.14.2 | `artifact-graph` 0.14.1 | `pnpm add -D artifact-graph@0.14.1` |
+| `artifact-chain-assistant` 0.15.0 | `artifact-graph` 0.15.0 | `pnpm add -D artifact-graph@0.15.0` |
 
 ### Install The Runtime
 
 The default installation path uses the npm registry with a precise version:
 
 ```bash
-pnpm add -D artifact-graph@0.14.1
+pnpm add -D artifact-graph@0.15.0
 ```
 
 If the npm registry is unavailable, use the explicit GitHub fallback pinned to the verified tag:
 
 ```bash
-pnpm add -D github:ifoohoo/artifact-graph#artifact-graph-v0.14.1
+pnpm add -D github:ifoohoo/artifact-graph#artifact-graph-v0.15.0
 ```
 
 > **Never** install with an unlocked range (`artifact-graph`, `artifact-graph@latest`,
-> `artifact-graph@^0.14.1`) or an unpinned GitHub URL (`github:ifoohoo/artifact-graph`).
+> `artifact-graph@^0.15.0`) or an unpinned GitHub URL (`github:ifoohoo/artifact-graph`).
 > Unlocked installs produce non-reproducible dependency trees and break version-lock audit.
 
 With pnpm 10+, projects that install `artifact-graph` must allow the native `better-sqlite3`
@@ -71,7 +71,7 @@ allowBuilds:
 
 The plugin's `doctor` command validates the installed runtime version before running any
 diagnostic. If it detects a version mismatch or missing CLI, it reports the exact remediation
-command (`pnpm add -D artifact-graph@0.14.1`) and exits non-zero.
+command (`pnpm add -D artifact-graph@0.15.0`) and exits non-zero.
 
 ### CLI Resolution Order
 
@@ -156,7 +156,7 @@ wrappers, and Stop-hook guardrail. These assistant controls do not replace Git h
 
 > **Marketplace note**: `ifoohoo/artifact-skill-set` is an external independent marketplace. The
 > plugin payload is still published from `ifoohoo/artifact-chain-assistant`. The marketplace entry
-> must publish and enable `artifact-chain-assistant` 0.14.2 before the install commands above will
+> must publish and enable `artifact-chain-assistant` 0.15.0 before the install commands above will
 > succeed.
 
 ### Kimi Code
@@ -303,7 +303,7 @@ The plugin should not move these files into the plugin repository.
 
 For a first-time setup, the end-to-end sequence is:
 
-1. **Install the CLI** — `pnpm add -D artifact-graph@0.14.1` (see Prerequisites above). The
+1. **Install the CLI** — `pnpm add -D artifact-graph@0.15.0` (see Prerequisites above). The
    `artifact-chain-setup` skill can run this and the other mechanical install steps for you
    after showing a plan and getting your confirmation.
 2. **Install the plugin** — follow the Codex or Claude Code section above.
@@ -954,13 +954,35 @@ node "$PLUGIN_ROOT/scripts/check-workflow-profile.mjs" \
   --format json
 ```
 
-`candidate_types` contains shape and stage suggestions. `enabled_types` contains only candidates
-backed by the effective `artifact-graph.config.yaml`, an existing workflow profile, or explicit
-`--types` selection. Candidate-only entries are not readiness gaps. For enabled types, the report
-checks registration, starter templates, and generate/review methods separately. Requirement and SPEC
-generation can report `bundled-skill`; its presence never implies that review is ready. A review
-method must be configured in the workflow profile. The checker loads the effective graph config
-through the artifact-graph runtime and does not maintain a second YAML interpretation.
+The assistant reads the list from the resolved Graph package at `artifact-graph/project-artifact-profiles`.
+It does not keep a second copy. Shape and stage suggestions are not proof the project has that
+capability.
+
+`candidate_types` lists common minimum, category standard, stage, capability, and project extras.
+Each item has `applicability` and `enabled`. `enabled` is true only with the effective
+`artifact-graph.config.yaml`, an existing workflow profile, or explicit `--types` selection.
+Stage and capability items are not auto-enabled. The common minimum is `feature`, `scenario`, and
+`design`. Only `skill-plugin` adds `agent_skill` and `e2e_test`. Project configuration owns adoption
+and keeps extra types already present in config or method bindings.
+
+`missing_standard_types` lists unadopted common-minimum or skill-plugin standard types. A successful
+list read is not adoption. This field is separate from `gaps`.
+
+`gaps` lists effective-config failures and missing type declarations, ID patterns, artifact paths or
+directories, starter templates, or executable generate/review methods for enabled types. Candidate-only entries are not readiness gaps. A readable list does not hide missing
+templates or methods.
+
+`profile_contract` reports whether the published list loaded and whether `schema_version` is `1.0`.
+Status `OK` is read-compatibility. It is not `registration.ready`, template readiness, or method
+readiness. If the export is missing (`profiles_export_missing`) or `schema_version` is not `1.0`
+(`profiles_schema_incompatible`), pause only list-dependent recommendations. Do not fall back to a
+copied STAGE/SHAPE table. Extra types already in project config or method bindings remain.
+
+The checker loads the effective graph config through the artifact-graph runtime and does not maintain
+a second YAML interpretation. For enabled types, the report checks registration, starter templates,
+and generate/review methods separately. Requirement and SPEC generation can report `bundled-skill`;
+its presence never implies that review is ready. A review method must be configured in the workflow
+profile.
 
 ### Requirement pool and iteration SPEC
 
@@ -1346,7 +1368,7 @@ with append-only behavior; it does not overwrite local rules.
 ### Recovery Steps
 
 ```bash
-# 1. Install dependencies from lockfile (gets artifact-graph@0.14.1)
+# 1. Install dependencies from lockfile (gets artifact-graph@0.15.0)
 pnpm install --frozen-lockfile
 
 # 2. Install plugin per your host (Codex / Claude Code / Kimi Code)
@@ -1413,7 +1435,7 @@ pnpm exec artifact-graph hooks install-git --hook all
 ### Enterprise Mirror
 
 If the corporate environment cannot access the public npm registry or GitHub, mirror both
-`artifact-graph@0.14.1` and the plugin marketplace repository on an internal registry. The mirror
+`artifact-graph@0.15.0` and the plugin marketplace repository on an internal registry. The mirror
 does not change the state ownership model: Git-tracked files remain authoritative, local caches
 remain derived.
 

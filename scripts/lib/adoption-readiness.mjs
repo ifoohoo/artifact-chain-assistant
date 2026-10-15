@@ -1,23 +1,17 @@
-import { existsSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
-import { loadArtifactGraphConfig } from './artifact-graph-runtime.mjs';
+import { loadArtifactGraphConfig, loadProjectArtifactProfiles } from './artifact-graph-runtime.mjs';
 import { buildCheckerOutput, loadProfile } from './workflow-profile.mjs';
 
 const PROJECT_SHAPES = ['cli-library', 'web', 'desktop', 'skill-plugin'];
 const ADOPTION_STAGES = ['initial', 'legacy-backfill', 'daily-iteration'];
-
-const STAGE_CANDIDATES = {
-  initial: ['requirement', 'feature', 'decision'],
-  'legacy-backfill': ['feature', 'scenario', 'decision', 'design', 'test'],
-  'daily-iteration': ['requirement', 'spec', 'feature', 'scenario', 'decision', 'design', 'test'],
-};
-
-const SHAPE_CANDIDATES = {
-  'cli-library': ['cli_contract'],
-  web: ['ui_contract', 'api_contract'],
-  desktop: ['ui_contract', 'ipc_contract', 'e2e_test'],
-  'skill-plugin': ['agent_skill', 'hook_policy', 'prompt_packet'],
-};
+const APPLICABILITY = Object.freeze({
+  common_minimum: 'common_minimum',
+  project_standard: 'project_standard',
+  lifecycle: 'lifecycle',
+  conditional: 'conditional',
+  project_extra: 'project_extra',
+});
 
 const TEMPLATE_PATHS = {
   requirement: 'templates/core/requirement-entry.starter.md',
@@ -35,10 +29,164 @@ const TEMPLATE_PATHS = {
   agent_skill: 'templates/extended/agent/agent_skill/starter.md',
   hook_policy: 'templates/extended/agent/hook_policy/starter.md',
   prompt_packet: 'templates/extended/agent/prompt_packet/starter.md',
+  data_contract: 'templates/extended/contracts/data_contract/starter.md',
+  release_policy: 'templates/extended/governance/release_policy/starter.md',
+  domain_model: 'templates/extended/domain/domain_model/starter.md',
 };
 
 function unique(values) {
   return [...new Set(values)];
+}
+
+function flowMappingKeys(text) {
+  const keys = [];
+  let depth = 0;
+  let index = 0;
+  let quote = null;
+  let collect = false;
+  let token = '';
+  let expectKey = false;
+  while (index < text.length) {
+    const char = text[index];
+    if (quote) {
+      if (char === '\\' && quote === '"') {
+        if (collect) token += text[index + 1] ?? '';
+        index += 2;
+        continue;
+      }
+      if (char === quote) {
+        quote = null;
+        index += 1;
+        continue;
+      }
+      if (collect) token += char;
+      index += 1;
+      continue;
+    }
+    if (char === '"' || char === "'") {
+      quote = char;
+      if (depth === 1 && expectKey) {
+        collect = true;
+        expectKey = false;
+        token = '';
+      }
+      index += 1;
+      continue;
+    }
+    if (char === '{' || char === '[') {
+      depth += 1;
+      if (char === '{' && depth === 1) expectKey = true;
+      index += 1;
+      continue;
+    }
+    if (char === '}' || char === ']') {
+      depth -= 1;
+      collect = false;
+      token = '';
+      if (depth === 0) break;
+      index += 1;
+      continue;
+    }
+    if (depth === 1 && expectKey) {
+      if (char === ' ' || char === '\t' || char === '\n' || char === '\r' || char === ',') {
+        index += 1;
+        continue;
+      }
+      if (/[A-Za-z]/u.test(char)) {
+        collect = true;
+        expectKey = false;
+        token = char;
+        index += 1;
+        continue;
+      }
+    }
+    if (collect) {
+      if (/[A-Za-z0-9_-]/u.test(char)) {
+        token += char;
+        index += 1;
+        continue;
+      }
+      if (char === ' ' || char === '\t') {
+        index += 1;
+        continue;
+      }
+      if (char === ':') {
+        if (/^[A-Za-z][A-Za-z0-9_-]*$/u.test(token)) keys.push(token);
+        collect = false;
+        token = '';
+        index += 1;
+        continue;
+      }
+      collect = false;
+      token = '';
+    }
+    if (char === ',' && depth === 1) expectKey = true;
+    index += 1;
+  }
+  return keys;
+}
+
+function blockMappingKeys(source, typesIndex) {
+  const lineStart = source.lastIndexOf('\n', typesIndex) + 1;
+  const lineEnd = source.indexOf('\n', typesIndex);
+  const typesLine = source.slice(lineStart, lineEnd < 0 ? source.length : lineEnd);
+  const indent = (typesLine.match(/^[ \t]*/u)?.[0] ?? '').length;
+  if (lineEnd < 0) return [];
+  const keys = [];
+  let childIndent = null;
+  for (const line of source.slice(lineEnd + 1).split('\n')) {
+    if (/^[ \t]*#/u.test(line) || /^[ \t]*$/u.test(line)) continue;
+    const leading = line.match(/^[ \t]*/u)?.[0] ?? '';
+    if (leading.includes('\t') || leading.length <= indent) break;
+    childIndent ??= leading.length;
+    if (leading.length !== childIndent) continue;
+    const key = line.slice(leading.length).match(/^(?:([A-Za-z][A-Za-z0-9_-]*)|"([A-Za-z][A-Za-z0-9_-]*)"|'([A-Za-z][A-Za-z0-9_-]*)')[ \t]*:/u);
+    if (key) keys.push(key[1] ?? key[2] ?? key[3]);
+  }
+  return keys;
+}
+
+function declaredConfigTypeNames(source) {
+  if (typeof source !== 'string' || source.length === 0) return [];
+  const match = /(?:^|\n)types:[ \t]*/u.exec(source);
+  if (!match) return [];
+  const typesIndex = match.index + match[0].indexOf('types:');
+  const rest = source.slice(typesIndex + 'types:'.length).replace(/^[ \t]+/u, '');
+  if (rest.startsWith('{')) return flowMappingKeys(rest);
+  return blockMappingKeys(source, typesIndex);
+}
+
+function addCandidate(map, type, applicability, condition = null) {
+  const current = map.get(type) ?? { type, applicability: [], condition: null };
+  if (!current.applicability.includes(applicability)) current.applicability.push(applicability);
+  if (condition && !current.condition) current.condition = condition;
+  map.set(type, current);
+}
+
+function candidatesFromProfiles(profiles, projectShape, adoptionStage) {
+  const map = new Map();
+  for (const type of profiles.common_minimum ?? []) {
+    addCandidate(map, type, APPLICABILITY.common_minimum);
+  }
+  const standard = profiles.project_standards?.[projectShape];
+  for (const type of standard?.additional_types ?? []) {
+    addCandidate(map, type, APPLICABILITY.project_standard);
+  }
+  for (const entry of profiles.lifecycle ?? []) {
+    if (entry.adoption_stages?.includes(adoptionStage)) {
+      addCandidate(map, entry.type, APPLICABILITY.lifecycle, entry.condition ?? null);
+    }
+  }
+  for (const entry of profiles.conditional ?? []) {
+    if (entry.project_shapes?.includes(projectShape)) {
+      addCandidate(map, entry.type, APPLICABILITY.conditional, entry.condition ?? null);
+    }
+  }
+  return map;
+}
+
+function isStandardApplicability(applicability) {
+  return applicability.includes(APPLICABILITY.common_minimum) || applicability.includes(APPLICABILITY.project_standard);
 }
 
 function contained(root, target) {
@@ -150,26 +298,39 @@ export async function checkAdoptionReadiness({
   const projectRoot = resolve(root);
   const pluginRoot = resolve(import.meta.dirname, '..', '..');
   const hasConfig = existsSync(join(projectRoot, 'artifact-graph.config.yaml'));
-  const [configResult, loadedProfile] = await Promise.all([
+  const [configResult, loadedProfile, profilesResult] = await Promise.all([
     loadArtifactGraphConfig({ projectRoot, env }),
     loadProfile({ root: projectRoot, profilePath }),
+    loadProjectArtifactProfiles({ projectRoot, env }),
   ]);
   const schema = configResult.ok && hasConfig ? configResult.schema : null;
-  const configuredTypes = schema ? Object.keys(schema.types ?? {}) : [];
+  const configRaw = hasConfig ? readFileSync(join(projectRoot, 'artifact-graph.config.yaml'), 'utf8') : '';
+  const declaredTypes = hasConfig ? declaredConfigTypeNames(configRaw) : [];
   const profiledTypes = loadedProfile.data ? profileTypes(loadedProfile.data) : [];
-  const candidates = unique([...STAGE_CANDIDATES[adoptionStage], ...SHAPE_CANDIDATES[projectShape]]);
-  const evidenceTypes = new Set([...configuredTypes, ...profiledTypes, ...selectedTypes]);
-  const enabledTypes = candidates.filter(type => evidenceTypes.has(type));
-  const candidateTypes = candidates.map(type => ({
-    type,
-    enabled: enabledTypes.includes(type),
+  const evidenceTypes = unique([...declaredTypes, ...profiledTypes, ...selectedTypes]);
+  const candidateMap = profilesResult.ok
+    ? candidatesFromProfiles(profilesResult.profiles, projectShape, adoptionStage)
+    : new Map();
+  for (const type of evidenceTypes) {
+    if (!candidateMap.has(type)) addCandidate(candidateMap, type, APPLICABILITY.project_extra);
+  }
+  const candidates = [...candidateMap.values()];
+  const enabledTypes = candidates.filter(item => evidenceTypes.includes(item.type)).map(item => item.type);
+  const candidateTypes = candidates.map(item => ({
+    type: item.type,
+    enabled: enabledTypes.includes(item.type),
+    applicability: item.applicability,
+    condition: item.condition,
     sources: [
-      ...(configuredTypes.includes(type) ? ['effective-config'] : []),
-      ...(profiledTypes.includes(type) ? ['workflow-profile'] : []),
-      ...(selectedTypes.includes(type) ? ['explicit-selection'] : []),
+      ...(declaredTypes.includes(item.type) ? ['effective-config'] : []),
+      ...(profiledTypes.includes(item.type) ? ['workflow-profile'] : []),
+      ...(selectedTypes.includes(item.type) ? ['explicit-selection'] : []),
     ],
-    template_available: Boolean(TEMPLATE_PATHS[type] && existsSync(join(pluginRoot, TEMPLATE_PATHS[type]))),
+    template_available: Boolean(TEMPLATE_PATHS[item.type] && existsSync(join(pluginRoot, TEMPLATE_PATHS[item.type]))),
   }));
+  const missingStandardTypes = candidateTypes
+    .filter(item => isStandardApplicability(item.applicability) && !item.enabled)
+    .map(item => item.type);
   const artifacts = [];
 
   for (const type of enabledTypes) {
@@ -212,17 +373,38 @@ export async function checkAdoptionReadiness({
 
   const ready = artifacts.length > 0 && artifacts.every(item => item.registration.ready && item.template.ready && item.methods.generate.status === 'OK' && item.methods.review.status === 'OK');
   const diagnostics = [];
+  const profileContract = profilesResult.ok
+    ? {
+        status: 'OK',
+        schema_version: profilesResult.profiles.schema_version,
+        source: 'artifact-graph/project-artifact-profiles',
+        reason: null,
+      }
+    : {
+        status: 'UNAVAILABLE',
+        schema_version: null,
+        source: 'artifact-graph/project-artifact-profiles',
+        reason: profilesResult.reason,
+      };
+  if (!profilesResult.ok) {
+    diagnostics.push(`Project artifact profiles unavailable: ${profilesResult.reason}. List-dependent recommendations are paused; copied STAGE/SHAPE tables are not used.`);
+  }
   if (!configResult.ok) diagnostics.push(`Effective artifact-graph config unavailable: ${configResult.reason}`);
   if (loadedProfile.error) diagnostics.push(loadedProfile.error);
+  if (missingStandardTypes.length > 0) {
+    diagnostics.push(`Common or skill-plugin standard types are visible and not adopted: ${missingStandardTypes.join(', ')}. Reading the list does not enable them.`);
+  }
   if (enabledTypes.length === 0) diagnostics.push('No candidate artifact type is enabled by effective config, workflow profile, or explicit selection.');
   if (!ready && enabledTypes.length > 0) diagnostics.push('One or more enabled artifact types are not fully ready; inspect each item.gaps.');
   return {
-    status: ready ? 'OK' : 'NEEDS_INPUT',
+    status: profilesResult.ok && ready ? 'OK' : 'NEEDS_INPUT',
     root: projectRoot,
     project_shape: projectShape,
     adoption_stage: adoptionStage,
+    profile_contract: profileContract,
     candidate_types: candidateTypes,
     enabled_types: enabledTypes,
+    missing_standard_types: missingStandardTypes,
     artifacts,
     diagnostics,
     next: ready

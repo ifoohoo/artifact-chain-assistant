@@ -3,6 +3,7 @@
 
 import { readdir, readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 /**
  * Severity ordering for status/decision aggregation.
@@ -250,7 +251,7 @@ export async function batchMerge(resultsDir, options = {}) {
 }
 
 // CLI entry point
-const isMain = import.meta.url === `file://${process.argv[1]}`;
+const isMain = Boolean(process.argv[1]) && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (isMain) {
   const args = process.argv.slice(2);
   const resultsDir = args[0];

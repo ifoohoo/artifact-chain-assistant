@@ -37,25 +37,31 @@ initialization, migration, or repair of project setup, not for routine feature w
 
 Use only artifact types that have stable local sources.
 
-The assistant may maintain a broad reusable catalog, but bootstrap must enable a small
+The published lists live in `artifact-graph/project-artifact-profiles` (`schema_version` `1.0`).
+Graph owns `common_minimum` and approved `project_standards`. This assistant reads that JSON
+through the resolved artifact-graph package, then checks registration, starter templates, and
+methods. If the subpath is missing or `schema_version` is not `1.0`, report the gap and pause
+only list-dependent recommendations; do not fall back to a copied STAGE/SHAPE table.
+
+The assistant may maintain a broad reusable catalog of templates, but bootstrap must enable a small
 project-specific profile. Treat extended artifact types as opt-in starter guidance, not
-global policy.
+global policy. Reading the published lists does not enable types.
 
 **Starter Templates**: The plugin provides starter templates for extended types in
 `templates/extended/`. These are onboarding guidance, not project authority. After bootstrap,
 projects should copy relevant templates to `artifacts/templates/` and customize them locally.
 
-| Project shape | Start with | Usually defer |
+| Project shape | Start from published lists | Usually defer |
 | --- | --- | --- |
-| Docs/planning repo | `feature`, `scenario`, `decision`, `design` | `test`, `e2e_test` until trace comments/tests exist |
-| TypeScript library or CLI | `feature`, `decision`, `design`, `test`; add `cli_contract` only when CLI/API docs exist | `scenario` if no scenario scripts exist |
-| API service | `feature`, `scenario`, `decision`, `design`, `test`; add `api_contract` and `data_contract` only when local contract files exist | `ui_contract`, `ipc_contract` |
-| Enterprise Java/Spring or JVM service | `feature`, `scenario`, `decision`, `design`, `test`; add `api_contract`, `data_contract`, `integration_contract`, `batch_job_contract`, `database_migration`, `security_review`, `performance_budget`, `deployment_manifest`, or `runbook` only from local evidence | `ui_contract`, `ipc_contract`, agent-specific artifacts |
-| Desktop or full-stack app | `feature`, `scenario`, `decision`, `design`, `test`, `e2e_test`; add `ui_contract`, `ipc_contract`, `api_contract`, or `data_contract` only from local evidence | custom entities until registry format is stable |
-| Agent or plugin toolkit | `feature`, `scenario`, `decision`, `design`, `test`; add `agent_skill`, `hook_policy`, or `prompt_packet` only when local skill/hook/prompt files exist | release governance types unless this project owns releases |
-| Parent or release governance repo | `feature`, `scenario`, `decision`, `design`, `e2e_test`; add `release_policy`, `publish_skill`, or `oss_compliance` only when local release files exist | product UI/API contracts |
+| Docs/planning repo | common minimum `feature`, `scenario`, `design`; add `decision` when a choice must be traced | `test`, `e2e_test` until trace comments/tests exist |
+| TypeScript library or CLI (`cli-library`) | common minimum; add `cli_contract` only when CLI/API docs exist | capability types without local evidence |
+| API service (`web`) | common minimum; add `api_contract` and `data_contract` only when local contract files exist | `ui_contract`, `ipc_contract` |
+| Enterprise Java/Spring or JVM service | common minimum; add `api_contract`, `data_contract`, `integration_contract`, `batch_job_contract`, `database_migration`, `security_review`, `performance_budget`, `deployment_manifest`, or `runbook` only from local evidence | `ui_contract`, `ipc_contract`, agent-specific artifacts |
+| Desktop or full-stack app (`desktop`) | common minimum; add `ui_contract`, `ipc_contract`, `api_contract`, or `data_contract` only from local evidence | custom entities until registry format is stable |
+| Agent or plugin toolkit (`skill-plugin`) | common minimum plus skill-plugin standard `agent_skill`, `e2e_test`; add `hook_policy` or `prompt_packet` only when local hook/prompt files exist | release governance types unless this project owns releases |
+| Parent or release governance repo | common minimum; add `release_policy`, `publish_skill`, or `oss_compliance` only when local release files exist | product UI/API contracts |
 | Existing mature artifact repo | types already present in `artifacts/**` | any type without templates or ID rules |
-| Small project trying artifact-chain for the first time | `feature`, `decision`, `test` | everything else until useful |
+| Small project trying artifact-chain for the first time | common minimum `feature`, `scenario`, `design` | everything else until useful |
 
 Prefer a small correct graph over a large noisy one. Add more types only after the project has
 templates, ID patterns, and review rules for them. See `../../EXTENDED-ARTIFACT-CATALOG.md` for
@@ -63,7 +69,7 @@ per-type recommended paths, ID patterns, lifecycle rules, and review checkpoints
 
 ### 形态与采用阶段的实际就绪度
 
-把项目实际证据归到一种形态：`cli-library`、`web`、`desktop` 或 `skill-plugin`；再选择当前阶段：`initial`（初建）、`legacy-backfill`（存量补档）或 `daily-iteration`（日常迭代）。运行同一个只读计算入口：
+把项目实际证据归到一种形态：`cli-library`、`web`、`desktop` 或 `skill-plugin`；再选当前阶段：`initial`（初建）、`legacy-backfill`（存量补档）或 `daily-iteration`（日常迭代）。候选来自 Graph 公开清单。共同最小三项 `feature`、`scenario`、`design` 始终可见，但可见不等于已启用。只有 `skill-plugin` 另有类别标准 `agent_skill` 与 `e2e_test`。阶段项按生命周期出现：`requirement` 在 `initial` 与 `daily-iteration`；`spec` 只在 `daily-iteration`；`decision` 在三个阶段都出现。接口、钩子、提示和发布类按能力出现。阶段项和能力项都只是候选，配置、profile 或用户明确选择之前不得启用。共同最小或技能族标准还没采用时，必须在结果里看得见。运行同一个只读计算入口：
 
 ```bash
 node <plugin-root>/scripts/check-workflow-profile.mjs \
@@ -74,15 +80,17 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
   --format json
 ```
 
-`--types` 只传已经由用户明确选择、但尚未写入配置或 profile 的类型；没有这种选择时省略。形态只产生候选，不证明项目拥有对应能力。库没有 CLI、静态 Web 没有 API、技能插件没有 hook 时，让相应契约留在 `candidate_types`，不要要求补齐。以脚本结果为准：
+`--types` 只传用户已经明确选择、但还没写入配置或 profile 的类型；没有这种选择时省略。形态只产生候选，不证明项目已经有对应能力。库没有 CLI、静态 Web 没有 API、技能插件没有 hook 时，把相应契约留在 `candidate_types`，不要要求补齐。项目已有配置或方法绑定里的额外类型必须保留。公开清单读不到，或 `schema_version` 不是 `1.0` 时，只暂停依赖清单的推荐路径，不回退复制表；已有额外类型仍保留。以检查结果为准：
 
-- `candidate_types` 列出形态和阶段建议，并说明是否由有效配置、已有 profile 或明确选择启用；
-- `enabled_types` 只包含有上述依据的候选，候选本身不算缺口；
-- `registration.ready` 同时检查有效类型、ID 模式、路径声明和目录；
-- `template.ready` 检查插件 starter 是否真实存在；
-- `methods.generate` 与 `methods.review` 复用当前 workflow profile 解析结果；需求/SPEC 的直接制作入口标为 `bundled-skill`，没有审阅方法时如实报告缺口；
-- `project_specific_method_ready` 只在实际解析到 `project-worker` 时为 true；`bundled-skill`、`public-worker` 和 `project-worker` 分开报告；
-- `gaps` 给出当前组合缺少的类型、目录、模板或方法，不把缺口写成已启用能力。
+- `profile_contract` 说明公开清单是否读到、`schema_version` 是否为 `1.0`；读不到或版本不兼容时只暂停清单推荐，不回退复制表。它不充当 `registration.ready` 的开关。
+- `candidate_types` 列出共同最小、类别标准、阶段项、能力项和项目追加，并用 `applicability` 区分来源；`enabled` 只在有效配置、已有 profile 或明确选择时为 true。
+- `missing_standard_types` 列出尚未采用的共同最小或技能族标准项。读清单成功不能当成已经采用。它和 `gaps` 分开看。
+- `enabled_types` 只包含有上述依据的候选，候选本身不算缺口。
+- `registration.ready` 同时检查有效类型、ID 模式、路径声明和目录。
+- `template.ready` 检查插件 starter 是否真实存在。
+- `methods.generate` 与 `methods.review` 复用当前 workflow profile 解析结果；需求/SPEC 的直接制作入口标为 `bundled-skill`，没有审阅方法时如实报告缺口。
+- `project_specific_method_ready` 只在实际解析到 `project-worker` 时为 true；`bundled-skill`、`public-worker` 和 `project-worker` 分开报告。
+- `gaps` 给出当前组合缺少的目录、模板或方法。清单可读不能掩盖模板或方法未就绪。
 
 无配置项目仍能用 `artifact-chain-requirements` 把想法保存到 `artifacts/requirements/`。不要为了收集需求先强迫用户完成 bootstrap；需要把需求纳入图、建立当前制品或运行专业方法时，再按这里的结果补最小配置。
 

@@ -6,6 +6,7 @@
 // @decision D-ACA-17
 // Thin CLI wrapper. scripts/lib/workflow-profile.mjs is the single resolver.
 import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { buildCheckerOutput } from './lib/workflow-profile.mjs';
 import { checkAdoptionReadiness } from './lib/adoption-readiness.mjs';
 
@@ -32,7 +33,7 @@ export async function checkWorkflowProfile({ root = process.cwd(), action = 'rev
   };
 }
 
-const isMain = import.meta.url === `file://${process.argv[1]}`;
+const isMain = Boolean(process.argv[1]) && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (isMain) {
   const args = process.argv.slice(2);
   const value = flag => {

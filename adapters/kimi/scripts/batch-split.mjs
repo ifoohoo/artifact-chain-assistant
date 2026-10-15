@@ -3,6 +3,7 @@
 
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 /**
  * Recursively collect all .md files under a directory.
@@ -154,7 +155,7 @@ export async function batchSplit(targetDir, options = {}) {
 }
 
 // CLI entry point
-const isMain = import.meta.url === `file://${process.argv[1]}`;
+const isMain = Boolean(process.argv[1]) && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (isMain) {
   const args = process.argv.slice(2);
   const targetDir = args[0];

@@ -119,6 +119,76 @@ export async function loadArtifactGraphConfig({ projectRoot, env } = {}) {
   }
 }
 
+const PROFILES_SUBPATH = './project-artifact-profiles';
+const PROFILES_SCHEMA_VERSION = '1.0';
+
+function profilesExportPath(packageJson) {
+  const exported = packageJson.exports?.[PROFILES_SUBPATH];
+  if (typeof exported === 'string' && exported.length > 0) return exported;
+  if (exported && typeof exported === 'object') {
+    if (typeof exported.default === 'string' && exported.default.length > 0) return exported.default;
+    if (typeof exported.import === 'string' && exported.import.length > 0) return exported.import;
+  }
+  return null;
+}
+
+function profilesContractValid(raw) {
+  return Boolean(
+    raw
+      && raw.schema_version === PROFILES_SCHEMA_VERSION
+      && Array.isArray(raw.common_minimum)
+      && raw.common_minimum.length > 0
+      && raw.project_standards
+      && typeof raw.project_standards === 'object'
+      && Array.isArray(raw.lifecycle)
+      && Array.isArray(raw.conditional),
+  );
+}
+
+/**
+ * Load the static project-artifact-profiles JSON from the resolved artifact-graph package.
+ * Missing export or incompatible schema_version fail closed; callers must not fall back to copied tables.
+ * The subpath is a candidate contract until a later provider publishes it; it is not a published 0.14.1 API.
+ */
+export async function loadProjectArtifactProfiles({ projectRoot, env } = {}) {
+  const runtime = await inspectArtifactGraphRuntime({ projectRoot: resolve(projectRoot), env });
+  if (!runtime.ok) {
+    return { ok: false, runtime, profiles: null, reason: runtime.reason };
+  }
+  try {
+    const packageRoot = dirname(runtime.packagePath);
+    const packageJson = JSON.parse(await readFile(runtime.packagePath, 'utf8'));
+    const exportPath = profilesExportPath(packageJson);
+    if (!exportPath) {
+      return {
+        ok: false,
+        runtime,
+        profiles: null,
+        reason: 'profiles_export_missing',
+        remediation: 'Resolved artifact-graph package does not export artifact-graph/project-artifact-profiles. Pause list-dependent recommendations; do not use a copied STAGE/SHAPE table. This subpath is a candidate contract, not a published 0.14.1 API.',
+      };
+    }
+    const raw = JSON.parse(await readFile(join(packageRoot, exportPath), 'utf8'));
+    if (!profilesContractValid(raw)) {
+      return {
+        ok: false,
+        runtime,
+        profiles: null,
+        reason: 'profiles_schema_incompatible',
+        remediation: `project-artifact-profiles schema_version is ${raw?.schema_version ?? 'missing'}, expected ${PROFILES_SCHEMA_VERSION}. Pause list-dependent recommendations; do not use a copied STAGE/SHAPE table.`,
+      };
+    }
+    return { ok: true, runtime, profiles: raw, reason: null };
+  } catch (error) {
+    return {
+      ok: false,
+      runtime,
+      profiles: null,
+      reason: `profiles_load_failed: ${error.message}`,
+    };
+  }
+}
+
 /**
  * Resolve a path to its realpath if it exists and is executable (X_OK).
  */

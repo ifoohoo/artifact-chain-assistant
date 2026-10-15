@@ -15,8 +15,8 @@ INSTALL.md。本文档只介绍核心集合之外的可选类型。
 
 | 层级 | 权威范围 | 对扩展制品的职责 |
 |------|---------|-----------------|
-| **artifact-graph** | 确定性图能力 | 从 config 读取类型定义，索引制品，提供 context/packet/validate。**不内置扩展类型的默认路径或 ID 模式。** 未配置路径的类型不会被索引。 |
-| **artifact-chain-assistant** | 通用助手指导 | 提供扩展制品的入门模板、profile 建议和通用审查清单。**模板是指导，不是权威。** 项目本地模板和审查技能覆盖插件建议。 |
+| **artifact-graph** | 确定性图能力，以及随包发布的共同最小清单与项目类型标准（入口 `artifact-graph/project-artifact-profiles`） | 从 config 读取类型定义，索引制品，提供 context/packet/validate。只发布推荐清单，**不自动启用类型，也不内置扩展类型的默认路径或 ID 模式。** 未配置路径的类型不会被索引。 |
+| **artifact-chain-assistant** | 通用助手指导 | 读取 Graph 清单，再提供入门模板、采用就绪检查和通用审查清单。**模板是指导，不是权威。** 助手不另存一份清单真源。项目本地模板和审查技能覆盖插件建议。 |
 | **目标项目** | 最终工作法 | 决定启用哪些扩展类型，维护 config、本地模板、审查技能和 ID 规则。**项目本地覆盖插件建议。** 随成熟度提升逐步启用新类型。 |
 
 ## 扩展制品类型目录
@@ -82,17 +82,19 @@ Agent 与 Hook 制品覆盖 AI 辅助工作流和 CI/CD 门禁。项目存在对
 
 ## Bootstrap 裁剪策略
 
-bootstrap 的职责是按项目形态选出**最小可用 profile**，而不是启用所有已知类型。
+bootstrap 按项目形态选出最小可用 profile，而不是启用所有已知类型。权威清单位于 `artifact-graph/project-artifact-profiles`。读到清单不等于已经启用类型。
 
 裁剪规则：
 
-1. **基础集合始终启用**：`feature`、`scenario`、`decision`、`design`、`test`、`e2e_test`。
-2. **契约类按证据加入**：项目本地存在对应的接口文件（如 OpenAPI spec、CLI 入口、IPC 通道定义）才启用。
-3. **领域与数据类按项目形态加入**：企业 Java/DDD 项目可启用 `domain_model`；使用数据库的项目可启用 `database_migration`。
-4. **运维类按运维流程加入**：项目有部署配置、安全审查流程或运维手册，才启用对应类型。
-5. **Agent/Hook 类按本地文件加入**：项目存在 `skills/`、`policies/` 或 hook 配置文件才启用。
-6. **发布治理类按治理证据加入**：项目存在发布策略、发布脚本或开源合规流程时，才启用 `release_policy`、`publish_skill`、`oss_compliance`。
-7. **渐进扩展**：项目成熟度提升后，可按需在 `artifact-graph.config.yaml` 中新增类型，已有制品和追溯关系不受影响。
+1. **共同最小清单可见，但不自动启用**：`feature`、`scenario`、`design`。尚未采用的项必须仍能看见。
+2. **只有 `skill-plugin` 有获批的类别标准**：在共同最小之上增加 `agent_skill`、`e2e_test`。其余形态按共同最小集，再加匹配的阶段项和能力项。
+3. **阶段项保持候选**：`requirement`、`spec`、`decision` 只在对应采用阶段出现，且须有配置、profile 或明确选择才会启用。
+4. **契约类按证据加入**：项目本地存在对应的接口文件才启用 `cli_contract`、`api_contract`、`ui_contract`、`ipc_contract` 或 `data_contract`。
+5. **领域与数据类按项目形态加入**：企业 Java/DDD 项目可启用 `domain_model`；使用数据库的项目可启用 `database_migration`。
+6. **运维类按运维流程加入**：项目有部署配置、安全审查流程或运维手册，才启用对应类型。
+7. **Agent/Hook 类按本地文件加入**：`hook_policy`、`prompt_packet` 仍是 `skill-plugin` 的能力候选；项目存在对应文件才启用。
+8. **发布治理类按职责加入**：项目承担发布与分发时，才启用 `release_policy`、`publish_skill`、`oss_compliance`。
+9. **渐进扩展**：可按需在 `artifact-graph.config.yaml` 中新增类型；已有追加项和追溯关系予以保留。
 
 bootstrap 执行后，启用的类型、路径和 ID 模式记录在 `artifact-graph.config.yaml` 中；延后启用的
 类型及其证据条件记录在项目制品目录中，让日后的扩展有据可查。
