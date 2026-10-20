@@ -49,6 +49,18 @@ passes.
   request into a checkable mapping and candidate plan for splits, identity splits, cross-file moves,
   and renumbering, and routes the real apply and recovery steps once authorization and operator
   confirmation are in place.
+- **`spec-converger`** — SPEC convergence. After requirements are selected, matches upstream
+  capabilities, fills related artifact gaps, enters existing review flows, and produces a SPEC plus
+  execution inputs. It treats a complete requirement and all related scenarios as the change unit,
+  checks deletes separately from renames, and refuses to treat missing scenarios, empty materials, or
+  checked-off tasks without evidence as done. The plugin ships a byte-identical copy of the published
+  `skill-family-docs` 0.6.6 `expression-outbound.mjs`; runtime does not need Docs installed. Personal
+  skill directories are not this plugin entry, and switching the personal install is not in this
+  round. Shared writing-process and configuration references from published `skill-family-docs` 0.6.7
+  are adopted as managed references. Adopting `artifact.spec@1` requires the currently installed
+  Graph package to provide that contract. Published Graph 0.15.0 does not contain it; the local
+  0.16.0 candidate does. Whether 0.16.0 is published is determined by the actually installed
+  published packages; do not claim 0.16.0 is already published.
 
 The restructure skill decides capability boundaries, shared constraints, acceptance-criterion
 destinations, and ambiguous relation targets; it does not write files itself. `artifact-graph
@@ -208,13 +220,13 @@ override, compact query, fallback behavior, and `PLUGIN_ROOT` discovery, see
 
 | Plugin | Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.15.0 | `artifact-graph` 0.15.0 | `pnpm add -D artifact-graph@0.15.0` |
+| `artifact-chain-assistant` 0.16.0 | `artifact-graph` 0.16.0 | `pnpm add -D artifact-graph@0.16.0` |
 
 ## Install
 
 ```bash
 # Runtime (required)
-npm install --save-dev artifact-graph@0.15.0
+npm install --save-dev artifact-graph@0.16.0
 ```
 
 ```bash
@@ -236,7 +248,7 @@ codex plugin add artifact-chain-assistant@artifact-skill-set
 
 > **Marketplace note**: `ifoohoo/artifact-skill-set` is an external independent marketplace. The
 > plugin payload is still published from `ifoohoo/artifact-chain-assistant`. The marketplace entry
-> must publish and enable `artifact-chain-assistant` 0.15.0 before the install commands above will
+> must publish and enable `artifact-chain-assistant` 0.16.0 before the install commands above will
 > succeed.
 
 ```text
@@ -265,7 +277,7 @@ For the full installation guide, quick start, Agent prompts, and clone onboardin
 
 ## Quick Start
 
-1. Install plugin 0.15.0 (above) and runtime: `pnpm add -D artifact-graph@0.15.0`.
+1. Install plugin 0.16.0 (above) and runtime: `pnpm add -D artifact-graph@0.16.0`.
 2. Run `artifact-graph doctor --root . --format json` to verify the runtime.
 3. For first-time setup, use the bootstrap skill.
 4. For daily work, use the maintainer skill.

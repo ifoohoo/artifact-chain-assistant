@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+## 0.16.0
+
+### Added
+
+- Added `spec-converger` for SPEC convergence after selected requirements: match upstream capabilities, fill related artifact gaps, enter existing review flows, and produce a SPEC plus execution inputs. The change unit is a complete requirement and all related scenarios. Deletes and renames are checked separately. Missing scenarios, empty materials, or checked-off tasks without evidence are not treated as done. When the installed Graph package actually provides `artifact.spec@1`, the skill uses `contract explain` and `contract validate-markers`; a missing contract fails closed. Marker checks do not replace independent SPEC body review.
+- Adopted published `skill-family-docs` 0.6.7 shared writing-process and configuration references as managed copies. The plugin also ships a byte-identical `expression-outbound.mjs` from published `skill-family-docs` 0.6.6. Runtime does not require Docs to be installed. Personal skill directories are not this plugin entry.
+- `artifact-chain-setup` checks expression-service configuration (`SKILL_FAMILY_DOCS_ENDPOINT`, `SKILL_FAMILY_DOCS_MODEL`, `SKILL_FAMILY_DOCS_CREDENTIAL_ENV`) through the existing `setup-checks` entry. Checks cover existence, non-emptiness, and credential variable-name legality; they never print values or call a model. Missing expression config is a WARN and does not block graph queries.
+- `spec-converger` reports missing, empty, and non-empty `allowedEdges` contracts when analysing relation configuration. `artifact-chain-bootstrap` adopts a project whitelist from real artifacts; it does not dump every scanned edge or copy the Graph default table as a substitute for project analysis.
+
+### Breaking Changes
+
+- This plugin ships in lockstep with `artifact-graph@0.16.0`. Graph now rejects existing configs that omit `allowedEdges`, and a non-empty list is a strict whitelist. Empty values adopt the filled Graph default table; `forbiddenEdges` still takes precedence. These Graph behaviors are incompatible with previous 0.x consumers.
+- `spec-converger` reports missing, empty, and non-empty `allowedEdges` contracts. `artifact-chain-bootstrap` writes a project whitelist from analysed artifacts. It does not dump every scanned edge or copy the Graph default table as a substitute for that analysis.
+- Migration: add `allowedEdges` to the project config. Use an empty value only to adopt the Graph default table. After analysing the project, write a precise non-empty from/to/kind list for custom relations. Do not auto-allow every scanned edge.
+- Standing parent release policy maps breaking API changes to a major version (for example `0.9.0` → `1.0.0`). This release keeps `0.16.0` as a one-release maintainer exception and records the incompatible behavior. The standing major-version policy is unchanged.
+
+### Changed
+
+- Plugin and Graph install coordinates are unified at `0.16.0`. Compatibility metadata, README, and INSTALL pin `artifact-graph@0.16.0`.
+
 ## 0.15.0
 
 ### Added

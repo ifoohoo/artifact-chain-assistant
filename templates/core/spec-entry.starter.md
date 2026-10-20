@@ -14,6 +14,7 @@ related_decisions: []
 
 # <spec-id> <iteration-title>
 
+<!-- marker: changes -->
 ## 相对基线的变更
 
 <说明本次相对基线要改变的用户行为。>
@@ -33,14 +34,17 @@ related_decisions: []
 - reason: <change-reason>
 - target: <artifact-or-behavior>
 
+<!-- marker: scope -->
 ## 允许写入范围
 
 - <path>
 
+<!-- marker: acceptance -->
 ## 验收条件
 
 - <change-id>: <observable-condition-or-scenario>
 
+<!-- marker: acceptance-record -->
 ## 验收记录
 
 ### <change-id>
@@ -53,6 +57,7 @@ related_decisions: []
 
 为其他变更项各保留一段验收记录。`status` 只能取 `passed`、`failed` 或 `open`。
 
+<!-- marker: archive-record -->
 ## 归档记录
 
 - ready_to_archive: false

@@ -23,6 +23,63 @@ import { fileURLToPath } from 'node:url';
 
 export const SETUP_CHECK_STATUSES = ['PASS', 'WARN', 'FAIL', 'SKIP'];
 
+const EXPRESSION_ENDPOINT = 'SKILL_FAMILY_DOCS_ENDPOINT';
+const EXPRESSION_MODEL = 'SKILL_FAMILY_DOCS_MODEL';
+const EXPRESSION_CREDENTIAL_ENV = 'SKILL_FAMILY_DOCS_CREDENTIAL_ENV';
+const EXPRESSION_ENV_NAME_RE = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+/**
+ * Expression-service config check. Only existence, non-emptiness, and credential
+ * variable-name legality. Never prints values, never reads manuscripts, never
+ * calls a model. Missing config is WARN so graph checks stay available.
+ */
+export function checkExpressionConfig(env = process.env) {
+  const endpoint = typeof env[EXPRESSION_ENDPOINT] === 'string' ? env[EXPRESSION_ENDPOINT].trim() : '';
+  const model = typeof env[EXPRESSION_MODEL] === 'string' ? env[EXPRESSION_MODEL].trim() : '';
+  // Match the pinned expression script: validate the raw credential variable name.
+  // Trimming first would turn " REVIEW_KEY " into a legal name and report PASS.
+  const credentialName = typeof env[EXPRESSION_CREDENTIAL_ENV] === 'string' ? env[EXPRESSION_CREDENTIAL_ENV] : '';
+  const missing = [];
+  if (!endpoint) missing.push(EXPRESSION_ENDPOINT);
+  if (!model) missing.push(EXPRESSION_MODEL);
+  if (!credentialName) missing.push(EXPRESSION_CREDENTIAL_ENV);
+
+  if (credentialName && !EXPRESSION_ENV_NAME_RE.test(credentialName)) {
+    return {
+      id: 8,
+      name: '表达服务配置',
+      status: 'FAIL',
+      detail: `${EXPRESSION_CREDENTIAL_ENV} 不是合法环境变量名；仅影响表达路径，图查询仍可用`,
+    };
+  }
+
+  if (missing.length > 0) {
+    return {
+      id: 8,
+      name: '表达服务配置',
+      status: 'WARN',
+      detail: `缺项 ${missing.join(', ')}；仅影响表达路径，图查询仍可用`,
+    };
+  }
+
+  const credentialValue = env[credentialName];
+  if (typeof credentialValue !== 'string' || credentialValue.length === 0) {
+    return {
+      id: 8,
+      name: '表达服务配置',
+      status: 'WARN',
+      detail: '凭据环境变量未设置或为空；仅影响表达路径，图查询仍可用',
+    };
+  }
+
+  return {
+    id: 8,
+    name: '表达服务配置',
+    status: 'PASS',
+    detail: '服务地址、模型与凭据变量名已配置',
+  };
+}
+
 const NATIVE_BINDING_CAUSE_LABELS = {
   MISSING: 'better-sqlite3 包缺失（未安装或未解析到所选安装）',
   ABI_MISMATCH: '原生绑定与当前 Node ABI 不匹配',
@@ -97,7 +154,7 @@ export function checkDoctor({ projectRoot, env, artifactGraphCommand }) {
 }
 
 /**
- * 机械执行 skills-src/artifact-chain-setup/SKILL.md 的七项只读检查序列与 Registry 降级探测。
+ * 机械执行 skills-src/artifact-chain-setup/SKILL.md 的八项只读检查序列与 Registry 降级探测。
  * @param {object} options
  * @param {string} options.installRoot 插件安装根（宿主 adapter 副本）
  * @param {string} options.projectRoot 目标项目根
@@ -215,6 +272,8 @@ export async function runSetupChecks({
       }
     }
   }
+
+  rows.push(checkExpressionConfig(env));
 
   // 报告文本（与 SKILL.md 输出格式一致）。
   const lines = ['## 环境检查报告', '', '| # | 检查项 | 状态 | 详情 |', '|---|--------|------|------|'];

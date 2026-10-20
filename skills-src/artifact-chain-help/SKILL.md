@@ -90,14 +90,15 @@ Registry projection: NOT_AVAILABLE (REGISTRY_V2_REQUIRED)
 2. **Check**: Run `artifact-chain-setup` (read-only diagnosis by default) to verify the environment; it can also execute mechanical install steps — CLI install, Git hooks, the minimal `AGENTS.md` trigger block — after your explicit confirmation.
 3. **Bootstrap**: Run `artifact-chain-bootstrap` for project-level configuration decisions (artifact type trimming, config contract, version-lock decisions) after the user authorizes the exact write scope. Reuse authorization already given for that scope; ask again only when the target or action expands.
 4. **Capture**: Run `artifact-chain-requirements` to save, query, merge, defer, reject, or carry requirements into an incremental SPEC. Capturing and querying work before project config or Registry exists.
-5. **Orient**: Run `artifact-chain-where-am-i` to inventory current capabilities or locate a concrete task.
-6. **Restructure**: Run `artifact-chain-restructure` to inspect and plan artifact splits, identity splits, cross-file moves, or renumbering. A complete manual mapping or deterministic move stays on the CLI path; semantic decisions require one independent read-only review. Once the authorization covers real writes and the review has passed, the same entry routes `restructure apply`, `recover`, and `prune-recovery` — apply needs the operator's `--confirm-cooperative-writers`, recover needs both maintenance confirmations, and file migration is reported separately from the precise lock closure.
-7. **Adopt**: Follow artifact-chain-where-am-i recommendations to adopt specific families and services.
+5. **Converge**: After requirements are selected, run `spec-converger` to match upstream capabilities, fill related artifact gaps, enter existing review flows, and produce SPEC plus execution inputs. Personal skill directories are not the plugin entry.
+6. **Orient**: Run `artifact-chain-where-am-i` to inventory current capabilities or locate a concrete task.
+7. **Restructure**: Run `artifact-chain-restructure` to inspect and plan artifact splits, identity splits, cross-file moves, or renumbering. A complete manual mapping or deterministic move stays on the CLI path; semantic decisions require one independent read-only review. Once the authorization covers real writes and the review has passed, the same entry routes `restructure apply`, `recover`, and `prune-recovery` — apply needs the operator's `--confirm-cooperative-writers`, recover needs both maintenance confirmations, and file migration is reported separately from the precise lock closure.
+8. **Adopt**: Follow artifact-chain-where-am-i recommendations to adopt specific families and services.
 ```
 
 ## 从需求到交付的公开分工
 
-- **技能负责工作方法**：`artifact-chain-requirements` 保存原始诉求、处置与 SPEC 承接；`artifact-chain-where-am-i` 盘点和定位；制作、审阅、修复技能根据可执行 profile 工作。
+- **技能负责工作方法**：`artifact-chain-requirements` 保存原始诉求、处置与 SPEC 承接；`spec-converger` 在选定需求后收敛 SPEC 与执行输入，并识别遗漏场景、删除与重命名风险；`artifact-chain-where-am-i` 盘点和定位；制作、审阅、修复技能根据可执行 profile 工作。
 - **artifact-graph CLI 负责确定性图操作**：用 `artifact-graph query --from <type>:<id>` 查询关系，用 `artifact-graph context --target <type>:<id> --mode implementation` 组装上下文，用 `artifact-graph validate --root <root> --warning-only` 检查图。需要可复用的图专业证明时，用 `artifact-graph check-professional --root <root> --format json` 做只读扫描，再用 `artifact-graph read-proof --proof-root <root> --proof <relative> --format json` 解释本族证明；不要把 Review Result 或 `scan` 缓存当作该合同。
 - **制品重组技能只补语义判断**：`artifact-chain-restructure` 调用 `artifact-graph restructure inspect/plan` 生成候选；完整人工映射和纯确定性路径直接使用 CLI。授权覆盖且独立复审通过后，同一入口才路由 `restructure apply`、`recover`、`prune-recovery`：apply 需要操作者给出 `--confirm-cooperative-writers`，recover 需要两项维护确认，prune 的普通路径同样需要合作式声明。文件迁移与锁收尾分别报告；计划阶段结果不得报告为已经迁移。
 - **Node API 负责程序化组合**：从 `artifact-graph` 导入 `loadConfig`、`scanArtifacts` 与 `queryGraph`，读取项目配置后扫描，再按 `{ from: '<type>:<id>', schema }` 查询；调用方负责展示或消费结果。

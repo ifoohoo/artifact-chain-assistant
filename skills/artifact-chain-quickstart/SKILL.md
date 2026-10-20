@@ -156,6 +156,16 @@ description: artifact-chain-assistant 插件内的统一路由入口。用户用
 
 **最小提示词**：`请在我授权的路径内分析这次制品重组，生成映射和候选计划；如果我的授权已经覆盖应用，请先把计划保存到候选写集之外的路径并告诉我该路径，再按需要确认的写入前提执行。`
 
+### SPEC 收敛或执行输入生成
+
+**匹配关键词**：收敛 SPEC、生成 SPEC、裁剪规格、优化执行计划、spec-converger、遗漏场景、删除与重命名风险
+
+**路由目标**：先确认需求已由 `artifact-chain-requirements` 保存或选定，再路由 `spec-converger`
+
+**理由**：需求池保管诉求与承接；`spec-converger` 负责规格方法、双向覆盖和执行输入，不登记需求、不批准发布。
+
+**最小提示词**：`请使用 spec-converger，从已选需求收敛本轮 SPEC 与执行输入，并识别遗漏场景、删除与重命名风险。`
+
 ### 明确的制品制作/审阅/修复任务
 
 **匹配关键词**：制作、审阅、修复、author、review、repair、PRD、scenario、design
@@ -198,6 +208,7 @@ description: artifact-chain-assistant 插件内的统一路由入口。用户用
 - 您想初始化项目的制品链？→ 我会先检查环境；机械安装由 setup 经您确认后执行，项目级配置决策再进 bootstrap
 - 您想知道制品链下一步该做什么？→ 我会路由到 artifact-chain-where-am-i
 - 您有明确的制品任务？→ 请描述具体操作（制作/审阅/修复）和制品类型
+- 您要收敛或生成 SPEC？→ 我会先确认需求条目，再路由到 spec-converger
 ```
 
 ## 输出格式

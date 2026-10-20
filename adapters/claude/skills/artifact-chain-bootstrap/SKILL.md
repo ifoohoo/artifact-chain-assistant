@@ -295,9 +295,12 @@ relationSemantics:
     label: "派生自"
     targetTypes: [requirement]
     fields: [derived_from]
+allowedEdges: []
 context:
   universal_baseline: false
 ```
+
+`allowedEdges` is required on an existing config. `[]`, `null`, or a YAML empty value adopts Graph's built-in default table. A non-empty list replaces that table and is a strict from/to/kind whitelist. Derive the project list from types, `relationSemantics`, and real artifact frontmatter in this project. Do not dump every scanned edge, and do not copy the default table and call it a project analysis. Keep unrelated fields. `forbiddenEdges` still wins.
 
 Remove any type whose `paths` do not exist and are not part of the immediate adoption plan.
 The relation direction is child to parent: a child uses `parent_requirement` to point to a parent
@@ -389,7 +392,7 @@ installing/updating Git hooks, injecting the minimal `## Artifact Chain` trigger
 Bootstrap keeps only the project-level decisions that require human judgment:
 
 - artifact type trimming (project shape classification and evidence);
-- `artifact-graph.config.yaml` contract content (`types`/`paths`/`idPatterns`);
+- `artifact-graph.config.yaml` contract content (`types`/`paths`/`idPatterns`/`allowedEdges`);
 - version-lock bootstrap/refresh decisions, including any `bootstrap --force` approval;
 - the full workflow-methodology sections in `AGENTS.md`/`CLAUDE.md` (value narrative rules,
   completion gates, project-local ownership).

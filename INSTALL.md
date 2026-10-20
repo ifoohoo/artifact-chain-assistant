@@ -15,7 +15,7 @@ instructions.
 ## Prerequisites
 
 - Node.js `>=22.22.2 <23`.
-- `artifact-graph` 0.15.0 installed in the target project.
+- `artifact-graph` 0.16.0 installed in the target project.
 - **GitHub SSH key** — Claude Code clones `source: github` entries over SSH by default. If you
   have not configured a GitHub SSH key, set `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` in your shell
   profile, or add the marketplace with an explicit `https://` URL. Codex users can check
@@ -27,24 +27,24 @@ instructions.
 
 | Plugin | Verified Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.15.0 | `artifact-graph` 0.15.0 | `pnpm add -D artifact-graph@0.15.0` |
+| `artifact-chain-assistant` 0.16.0 | `artifact-graph` 0.16.0 | `pnpm add -D artifact-graph@0.16.0` |
 
 ### Install The Runtime
 
 The default installation path uses the npm registry with a precise version:
 
 ```bash
-pnpm add -D artifact-graph@0.15.0
+pnpm add -D artifact-graph@0.16.0
 ```
 
 If the npm registry is unavailable, use the explicit GitHub fallback pinned to the verified tag:
 
 ```bash
-pnpm add -D github:ifoohoo/artifact-graph#artifact-graph-v0.15.0
+pnpm add -D github:ifoohoo/artifact-graph#artifact-graph-v0.16.0
 ```
 
 > **Never** install with an unlocked range (`artifact-graph`, `artifact-graph@latest`,
-> `artifact-graph@^0.15.0`) or an unpinned GitHub URL (`github:ifoohoo/artifact-graph`).
+> `artifact-graph@^0.16.0`) or an unpinned GitHub URL (`github:ifoohoo/artifact-graph`).
 > Unlocked installs produce non-reproducible dependency trees and break version-lock audit.
 
 With pnpm 10+, projects that install `artifact-graph` must allow the native `better-sqlite3`
@@ -71,7 +71,7 @@ allowBuilds:
 
 The plugin's `doctor` command validates the installed runtime version before running any
 diagnostic. If it detects a version mismatch or missing CLI, it reports the exact remediation
-command (`pnpm add -D artifact-graph@0.15.0`) and exits non-zero.
+command (`pnpm add -D artifact-graph@0.16.0`) and exits non-zero.
 
 ### CLI Resolution Order
 
@@ -156,7 +156,7 @@ wrappers, and Stop-hook guardrail. These assistant controls do not replace Git h
 
 > **Marketplace note**: `ifoohoo/artifact-skill-set` is an external independent marketplace. The
 > plugin payload is still published from `ifoohoo/artifact-chain-assistant`. The marketplace entry
-> must publish and enable `artifact-chain-assistant` 0.15.0 before the install commands above will
+> must publish and enable `artifact-chain-assistant` 0.16.0 before the install commands above will
 > succeed.
 
 ### Kimi Code
@@ -234,7 +234,14 @@ plugin.
 2. **`artifact-chain-setup`** — Run this skill when you ask "is my artifact-chain environment
    ready" or when you want the mechanical install steps done. It starts with read-only
    environment diagnostics: plugin closure integrity, Node/CLI availability, doctor output,
-   project config, version lock, and registry availability. It outputs a structured status
+   project config, version lock, registry availability, and expression-service configuration
+   (`SKILL_FAMILY_DOCS_ENDPOINT`, `SKILL_FAMILY_DOCS_MODEL`, `SKILL_FAMILY_DOCS_CREDENTIAL_ENV`).
+   Expression checks only test existence, non-emptiness, and credential variable-name legality;
+   they never print values, read manuscripts, or call a model. Missing expression config is a
+   WARN and does not block graph queries. Shared writing-process and configuration references
+   from published `skill-family-docs` 0.6.7 are adopted as managed references. The plugin ships a
+   byte-identical `expression-outbound.mjs` from published 0.6.6; runtime does not require Docs to
+   be installed. It outputs a structured status
    report with PASS/WARN/FAIL for each check plus a mechanical install plan (install the
    `artifact-graph` CLI from the plugin's pinned install spec, install/update Git hooks,
    inject the minimal `AGENTS.md` trigger block, create the thin `CLAUDE.md` pointer). The
@@ -248,7 +255,8 @@ plugin.
    skill via a deterministic routing table covering common Chinese/English domain-qualified
    requests: capability questions go to `artifact-chain-help`, environment checks to
    `artifact-chain-setup`, initialization to `artifact-chain-setup` then bootstrap, project
-   triage to `artifact-chain-where-am-i`, maintenance to `artifact-chain-maintainer`, and
+   triage to `artifact-chain-where-am-i`, maintenance to `artifact-chain-maintainer`,
+   SPEC convergence after selected requirements to `spec-converger`, and
    explicit artifact tasks to the matching family/service.
 
 4. **`artifact-chain-where-am-i`** — Use this skill for project-specific triage. It searches
@@ -303,7 +311,7 @@ The plugin should not move these files into the plugin repository.
 
 For a first-time setup, the end-to-end sequence is:
 
-1. **Install the CLI** — `pnpm add -D artifact-graph@0.15.0` (see Prerequisites above). The
+1. **Install the CLI** — `pnpm add -D artifact-graph@0.16.0` (see Prerequisites above). The
    `artifact-chain-setup` skill can run this and the other mechanical install steps for you
    after showing a plan and getting your confirmation.
 2. **Install the plugin** — follow the Codex or Claude Code section above.
@@ -417,6 +425,8 @@ file is a starting point, not a universal contract. At minimum, confirm:
 
 - every artifact type has the correct `paths`;
 - `idPatterns` match the project's ID conventions;
+- `allowedEdges` is present: `[]` adopts the built-in default table, a non-empty list is a strict
+  from/to/kind whitelist taken from real artifacts, never a dump of every scanned edge;
 - source/test traceability paths include the implementation files that can contain trace comments;
 - project-specific artifact types are added only after their format is stable enough for deterministic
   scanning.
@@ -439,6 +449,7 @@ types:
       - "test/**/*.{ts,tsx,js,jsx}"
   e2e_test:
     paths: ["artifacts/tests/e2e/**/*.md"]
+allowedEdges: []
 idPatterns:
   feature: "^[A-Z]{1,4}\\d+$"
   scenario: "^S-\\d+[a-z]?$"
@@ -1368,7 +1379,7 @@ with append-only behavior; it does not overwrite local rules.
 ### Recovery Steps
 
 ```bash
-# 1. Install dependencies from lockfile (gets artifact-graph@0.15.0)
+# 1. Install dependencies from lockfile (gets artifact-graph@0.16.0)
 pnpm install --frozen-lockfile
 
 # 2. Install plugin per your host (Codex / Claude Code / Kimi Code)
@@ -1435,7 +1446,7 @@ pnpm exec artifact-graph hooks install-git --hook all
 ### Enterprise Mirror
 
 If the corporate environment cannot access the public npm registry or GitHub, mirror both
-`artifact-graph@0.15.0` and the plugin marketplace repository on an internal registry. The mirror
+`artifact-graph@0.16.0` and the plugin marketplace repository on an internal registry. The mirror
 does not change the state ownership model: Git-tracked files remain authoritative, local caches
 remain derived.
 

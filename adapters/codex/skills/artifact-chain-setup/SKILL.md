@@ -1,6 +1,6 @@
 ---
 name: artifact-chain-setup
-description: 制品链环境诊断与安装入口。当用户询问 artifact-chain/artifact-graph 制品链环境是否就绪（如"我的制品链环境准备好了吗"、"帮我检查 artifact-chain 环境"）或要求安装制品链机械组件时，先只读检查插件闭包完整性、Node/CLI 可用性、doctor 诊断、项目 config、版本锁和 registry 可用性，输出逐项 PASS/WARN/FAIL 状态报告与机械安装计划；经用户明确确认后执行机械安装步骤（安装 artifact-graph CLI、安装/更新 Git hooks、注入 AGENTS.md 极简触发块、建立 CLAUDE.md 薄指针）并复验。Registry 缺失时降级可用，诚实列出尚不可执行的标准服务。
+description: 制品链环境诊断与安装入口。当用户询问 artifact-chain/artifact-graph 制品链环境是否就绪（如"我的制品链环境准备好了吗"、"帮我检查 artifact-chain 环境"）或要求安装制品链机械组件时，先只读检查插件闭包完整性、Node/CLI 可用性、doctor 诊断、项目 config、版本锁、registry 可用性以及表达服务配置，输出逐项 PASS/WARN/FAIL 状态报告与机械安装计划；经用户明确确认后执行机械安装步骤（安装 artifact-graph CLI、安装/更新 Git hooks、注入 AGENTS.md 极简触发块、建立 CLAUDE.md 薄指针）并复验。Registry 缺失时降级可用，诚实列出尚不可执行的标准服务。表达配置缺项只影响表达路径。
 ---
 
 # artifact-chain-setup
@@ -27,10 +27,10 @@ description: 制品链环境诊断与安装入口。当用户询问 artifact-cha
 先按已安装 adapter 的 `INSTALL.md` 宿主发现流程解析并导出 `PLUGIN_ROOT`。后续路径都以
 当前插件安装根为基准，不以目标项目或调用者的工作目录为基准。
 
-按以下顺序执行七项只读检查。该检查序列的唯一产品实现是插件的
+按以下顺序执行八项只读检查。该检查序列的唯一产品实现是插件的
 `$PLUGIN_ROOT/scripts/setup-checks.mjs`（产品自持确定性执行器）：宿主与测试都应执行该脚本
 （`node "$PLUGIN_ROOT/scripts/setup-checks.mjs" --install-root "$PLUGIN_ROOT" --project-root <项目根> --format json`），
-不得在测试或宿主侧重复实现第二份 artifact-chain-setup 业务逻辑。
+不得在测试或宿主侧重复实现第二份 artifact-chain-setup 业务逻辑。不得另造可执行 setup 片段或第二配置实现。
 
 ### 1. 插件闭包完整性
 
@@ -123,6 +123,25 @@ artifact-chain-setup 不从退出码推断故障类型。只要 stdout 能解析
 - 可用 → `PASS: agent-method-registry CLI 可用`
 - 不可用 → `WARN: agent-method-registry CLI 不可用（contract-backed 服务解析将返回 NEEDS_INPUT）`
 
+### 8. 表达服务配置
+
+检查当前进程环境中的三项配置，只判断存在性、非空性与凭据变量名合法性。不联网、不读取文稿、不调用模型、不打印配置值或密钥。
+
+| 变量 | 含义 |
+|------|------|
+| `SKILL_FAMILY_DOCS_ENDPOINT` | 服务基础地址 |
+| `SKILL_FAMILY_DOCS_MODEL` | 模型名称 |
+| `SKILL_FAMILY_DOCS_CREDENTIAL_ENV` | 存放 API key 的环境变量名（只传变量名，不传密钥） |
+
+`SKILL_FAMILY_DOCS_CREDENTIAL_ENV` 必须匹配 `^[A-Za-z_][A-Za-z0-9_]*$`。脚本再检查该变量名所指向的环境变量是否非空，但不把值写入报告。
+
+**输出**：
+- 三项均已配置且凭据变量名合法、对应值非空 → `PASS: 服务地址、模型与凭据变量名已配置`
+- 缺项或凭据值为空 → `WARN: 缺项 …；仅影响表达路径，图查询仍可用`
+- 凭据变量名非法 → `FAIL: SKILL_FAMILY_DOCS_CREDENTIAL_ENV 不是合法环境变量名；仅影响表达路径，图查询仍可用`
+
+表达配置不足不得阻断图查询、只读规格审阅和机械检查。公共写作流程与配置参考已随 `spec-converger` 采用 Docs 0.6.7 发布字节；参考中的示例命令不是新增检查入口。本项仍只通过本脚本检查已发布脚本使用的三项环境变量，不复制第二套可执行配置检查，不从 `LLM_*` 自动补齐，不把三项存在当成服务可用。
+
 ## 机械安装计划与授权执行
 
 诊断完成后，根据检查结果发现的问题组装机械安装计划。计划中的每一步都是无项目级判断含量的机械操作；需要人工判断的事项（制品类型裁剪、config 合同内容、版本锁 bootstrap、完整工作法章节）不进入本计划，路由到 `artifact-chain-bootstrap`。
@@ -173,6 +192,7 @@ artifact-chain-setup 不从退出码推断故障类型。只要 stdout 能解析
 | 5 | 项目 config | WARN | 不存在 |
 | 6 | 版本锁 | WARN | 不存在 |
 | 7 | Registry CLI | WARN | 不可用 |
+| 8 | 表达服务配置 | WARN | 缺项；仅影响表达路径 |
 
 ## 推荐下一步
 

@@ -3,9 +3,12 @@
 // @scenario S-05 @feature ACA5
 // @feature ACA17
 // @scenario S-56
+import { createHash } from 'node:crypto';
 import { access, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+const MANAGED_SKILL_TREES = ['spec-converger'];
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const check = process.argv.includes('--check');
@@ -141,6 +144,10 @@ for (const ref of referenceOutputs) {
     await writeFile(ref.path, ref.content);
   }
 }
+
+const expectedManagedPaths = [...outputs, ...referenceOutputs].map((item) => item.path);
+await reconcileManagedSkillTrees(expectedManagedPaths);
+await verifyPinnedManagedResources();
 
 if (drift) {
   process.exitCode = 1;
@@ -307,6 +314,132 @@ async function firstExisting(paths) {
     }
   }
   return null;
+}
+
+async function collectRelativeFiles(directory, current = directory) {
+  const entries = await readdir(current, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const fullPath = join(current, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...await collectRelativeFiles(directory, fullPath));
+    } else if (entry.isFile()) {
+      files.push(relative(directory, fullPath).split(sep).join('/'));
+    }
+  }
+  return files.sort();
+}
+
+async function pruneEmptyDirectories(tree) {
+  async function visit(dir) {
+    let entries;
+    try {
+      entries = await readdir(dir, { withFileTypes: true });
+    } catch (error) {
+      if (error.code === 'ENOENT') return true;
+      throw error;
+    }
+    let empty = true;
+    for (const entry of entries) {
+      const fullPath = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        const childEmpty = await visit(fullPath);
+        if (!childEmpty) empty = false;
+      } else {
+        empty = false;
+      }
+    }
+    if (empty && dir !== tree) {
+      await rm(dir, { recursive: true, force: true });
+      return true;
+    }
+    return empty;
+  }
+  await visit(tree);
+}
+
+/**
+ * Keep generated spec-converger trees identical to the generator's expected
+ * file set. Source deletes or renames must drop the old copy. Other skills
+ * and unmanaged files stay untouched.
+ */
+async function reconcileManagedSkillTrees(expectedAbsolutePaths) {
+  const expectedByTree = new Map();
+  for (const skillName of MANAGED_SKILL_TREES) {
+    const trees = [
+      join(root, 'skills', skillName),
+      ...hosts.map((host) => join(root, `adapters/${host.id}/skills`, skillName)),
+    ];
+    for (const tree of trees) {
+      expectedByTree.set(tree, new Set());
+    }
+  }
+
+  for (const absPath of expectedAbsolutePaths) {
+    for (const [tree, files] of expectedByTree) {
+      const prefix = `${tree}${sep}`;
+      if (absPath === tree || absPath.startsWith(prefix)) {
+        files.add(relative(tree, absPath).split(sep).join('/'));
+      }
+    }
+  }
+
+  for (const [tree, expected] of expectedByTree) {
+    let actual = [];
+    try {
+      actual = await collectRelativeFiles(tree);
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        if (check && expected.size > 0) {
+          drift = true;
+          console.error(`Generated skill missing: ${relativeToRoot(tree)}`);
+        }
+        continue;
+      }
+      throw error;
+    }
+
+    for (const file of actual) {
+      if (expected.has(file)) continue;
+      const fullPath = join(tree, file);
+      if (check) {
+        drift = true;
+        console.error(`Generated skill stale: ${relativeToRoot(fullPath)}`);
+      } else {
+        await rm(fullPath, { force: true });
+      }
+    }
+
+    if (!check) {
+      await pruneEmptyDirectories(tree);
+    }
+  }
+}
+
+async function verifyPinnedManagedResources() {
+  const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
+  const pins = pkg.artifactChainManagedResources ?? {};
+  for (const [name, pin] of Object.entries(pins)) {
+    if (!pin || typeof pin !== 'object' || typeof pin.consumerSource !== 'string' || typeof pin.sha256 !== 'string') {
+      drift = true;
+      console.error(`Managed resource declaration invalid: ${name}`);
+      continue;
+    }
+    const sourcePath = join(root, pin.consumerSource);
+    let bytes;
+    try {
+      bytes = await readFile(sourcePath);
+    } catch {
+      drift = true;
+      console.error(`Managed resource missing: ${pin.consumerSource}`);
+      continue;
+    }
+    const digest = createHash('sha256').update(bytes).digest('hex');
+    if (digest !== pin.sha256) {
+      drift = true;
+      console.error(`Managed resource digest mismatch: ${pin.consumerSource}`);
+    }
+  }
 }
 
 async function skillNames(skillsRoot) {
