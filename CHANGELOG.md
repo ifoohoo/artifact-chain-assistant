@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 0.16.1
+
+### Fixed
+
+- Corrected `spec-converger`, its managed references, and public documentation to recognize the `artifact.spec@1` contract already supplied by published Graph 0.16.0. An actual published package uses the formal identity; only development candidate packages or explicitly selected candidate `contracts` directories are identified as candidates. A missing contract is reported without silent fallback, copying, or a claim of valid adoption.
+- Retained actual `contract explain` identity, `revisionDigest`, and `semanticMarkers`, complete-SPEC `contract validate-markers` checks using that digest, and independent review of the complete SPEC body and business sources. Marker validity and an upstream PRD review do not replace that review.
+
+### Changed
+
+- Synchronized plugin and Graph installation coordinates at 0.16.1. This patch does not change Graph runtime, API, or contract behavior.
+
 ## 0.16.0
 
 ### Added

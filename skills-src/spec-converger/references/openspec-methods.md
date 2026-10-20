@@ -46,7 +46,7 @@
 
 表达服务配置由 `artifact-chain-setup` 调用 `scripts/setup-checks.mjs` 检查；缺项只影响表达路径。
 
-SPEC 正文的机械检查采用 Graph 官方候选合同 `artifact.spec@1`，命令是现有 `contract validate-markers`，对象是完整 Markdown。三项必需标记为 `changes`、`scope`、`acceptance`；可选标记为 `acceptance-record`、`archive-record`。`contract validate` 用于校验 JSON 实例，不能冒充 Markdown 正文检查。标记通过后仍须独立审阅完整正文与业务来源。未知、未定义、空定义或仅可选标记都不能报机械通过。采用稳定包合同的前提是当前安装的 Graph 包实际提供 `artifact.spec@1`。已发布 Graph 0.15.0 尚未包含本合同；本批本地候选包含本合同。是否已正式发布以实际已安装的已发布包为准，不得预先声称 0.16.0 已发布。采用时必须标明候选身份。
+SPEC 正文的机械检查采用当前实际安装的 Graph 包提供的 artifact.spec@1。正式发布的 Graph 0.16.0 已包含该合同，使用该正式包时按正式身份采用，不再标注候选来源；仅当使用开发候选包或显式指定候选 contracts 目录时，才需标明“候选”来源。采用前须调用 `contract explain` 获取真实 identity、revisionDigest 和 semanticMarkers，作为后续校验基础，且必须使用本次 explain 返回的 revisionDigest 执行 `contract validate-markers` 检查完整 Markdown 正文。宿主必须确认 semanticMarkers 中必需标记定义集合非空，并覆盖 changes、scope、acceptance 三项；acceptance-record 与 archive-record 为可选标记。`contract validate` 仅用于校验 JSON 实例，不得用于替代 Markdown 正文的结构化标记检查。未知合同、合同未定义必需标记、标记定义为空或正文仅含可选标记，都不能报告有效机械采用通过；若实际安装包未提供合同，明确报告缺口，禁止任何隐式回退、复制或虚称已提供。隔离消费必须基于实际安装包定位合同，不依赖父仓私有路径、个人技能或未发布 Docs 源码。所有机械检查通过后，仍须由不同职责方独立审阅完整正文与业务来源。
 
 ## 5. 识别有价值的失败样例
 
