@@ -1,6 +1,6 @@
 {
   "name": "artifact-chain-assistant",
-  "version": "0.16.1",
+  "version": "1.0.0",
   "description": "Codex, Claude Code, and Kimi Code assistant plugin for artifact-chain projects",
   "license": "Apache-2.0",
   "type": "module",
@@ -100,7 +100,7 @@
   },
   "devDependencies": {
     "ajv": "^8.20.0",
-    "artifact-graph": "0.16.1"
+    "artifact-graph": "1.0.0"
   },
   "artifactChainManagedResources": {
     "expression-outbound.mjs": {
@@ -110,7 +110,7 @@
       "sourceCommit": "084b53a60bf871dd311e3eb62b398a9c48e3821b",
       "sourcePath": "skills/skill-family-docs-style-guard/scripts/expression-outbound.mjs",
       "sha256": "457798ea001c0d747123dd489d982dec917af01b93399d06c140a521f79f5fcf",
-      "consumerSource": "skills-src/spec-converger/scripts/expression-outbound.mjs"
+      "consumerSource": "skills-src/spec-author/scripts/expression-outbound.mjs"
     },
     "shared-writing-workflow.md": {
       "sourcePackage": "skill-family-docs",
@@ -119,7 +119,7 @@
       "sourceCommit": "7433554d2e2995729c2aafee52eb525ca827446d",
       "sourcePath": "skills/skill-family-docs-style-guard/references/shared-writing-workflow.md",
       "sha256": "21f7fc87a0b75517f9b3e657f1baaf5f8a3d68106e1a4dc9fb675ea22b2db65e",
-      "consumerSource": "skills-src/spec-converger/references/shared-writing-workflow.md"
+      "consumerSource": "skills-src/spec-author/references/shared-writing-workflow.md"
     },
     "expression-service-config.md": {
       "sourcePackage": "skill-family-docs",
@@ -128,7 +128,7 @@
       "sourceCommit": "7433554d2e2995729c2aafee52eb525ca827446d",
       "sourcePath": "skills/skill-family-docs-style-guard/references/expression-service-config.md",
       "sha256": "75c9fb8a7cd6caf80fef720df0e21590673c6fdf43031473fafa724bbf265205",
-      "consumerSource": "skills-src/spec-converger/references/expression-service-config.md"
+      "consumerSource": "skills-src/spec-author/references/expression-service-config.md"
     }
   }
 }

@@ -18,7 +18,7 @@ instructions.
 ## Prerequisites
 
 - Node.js `>=22.22.2 <23`.
-- `artifact-graph` 0.16.1 installed in the target project.
+- `artifact-graph` 1.0.0 installed in the target project.
 - **GitHub SSH key** — Claude Code clones `source: github` entries over SSH by default. If you
   have not configured a GitHub SSH key, set `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` in your shell
   profile, or add the marketplace with an explicit `https://` URL. Codex users can check
@@ -30,20 +30,20 @@ instructions.
 
 | Plugin | Verified Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.16.1 | `artifact-graph` 0.16.1 | `pnpm add -D artifact-graph@0.16.1` |
+| `artifact-chain-assistant` 1.0.0 | `artifact-graph` 1.0.0 | `pnpm add -D artifact-graph@1.0.0` |
 
 ### Install The Runtime
 
 The default installation path uses the npm registry with a precise version:
 
 ```bash
-pnpm add -D artifact-graph@0.16.1
+pnpm add -D artifact-graph@1.0.0
 ```
 
 If the npm registry is unavailable, use the explicit GitHub fallback pinned to the verified tag:
 
 ```bash
-pnpm add -D github:ifoohoo/artifact-graph#artifact-graph-v0.16.1
+pnpm add -D github:ifoohoo/artifact-graph#artifact-graph-v1.0.0
 ```
 
 > **Never** install with an unlocked range (`artifact-graph`, `artifact-graph@latest`,
@@ -74,7 +74,7 @@ allowBuilds:
 
 The plugin's `doctor` command validates the installed runtime version before running any
 diagnostic. If it detects a version mismatch or missing CLI, it reports the exact remediation
-command (`pnpm add -D artifact-graph@0.16.1`) and exits non-zero.
+command (`pnpm add -D artifact-graph@1.0.0`) and exits non-zero.
 
 ### CLI Resolution Order
 
@@ -159,7 +159,7 @@ wrappers, and Stop-hook guardrail. These assistant controls do not replace Git h
 
 > **Marketplace note**: `ifoohoo/artifact-skill-set` is an external independent marketplace. The
 > plugin payload is still published from `ifoohoo/artifact-chain-assistant`. The marketplace entry
-> must publish and enable `artifact-chain-assistant` 0.16.1 before the install commands above will
+> must publish and enable `artifact-chain-assistant` 1.0.0 before the install commands above will
 > succeed.
 
 ### Kimi Code
@@ -259,7 +259,7 @@ plugin.
    requests: capability questions go to `artifact-chain-help`, environment checks to
    `artifact-chain-setup`, initialization to `artifact-chain-setup` then bootstrap, project
    triage to `artifact-chain-where-am-i`, maintenance to `artifact-chain-maintainer`,
-   SPEC convergence after selected requirements to `spec-converger`, and
+   SPEC authoring after selected requirements to `spec-author` (it does not deliver a SPEC before the necessary bodies, relations, and applicable reviews are done), and
    explicit artifact tasks to the matching family/service.
 
 4. **`artifact-chain-where-am-i`** — Use this skill for project-specific triage. It searches
@@ -314,7 +314,7 @@ The plugin should not move these files into the plugin repository.
 
 For a first-time setup, the end-to-end sequence is:
 
-1. **Install the CLI** — `pnpm add -D artifact-graph@0.16.1` (see Prerequisites above). The
+1. **Install the CLI** — `pnpm add -D artifact-graph@1.0.0` (see Prerequisites above). The
    `artifact-chain-setup` skill can run this and the other mechanical install steps for you
    after showing a plan and getting your confirmation.
 2. **Install the plugin** — follow the Codex or Claude Code section above.
@@ -1000,11 +1000,17 @@ profile.
 
 ### Requirement pool and iteration SPEC
 
-Use `artifact-chain-requirements` to preserve ideas, query or update their disposition, create an
-incremental SPEC, and record acceptance item by item. Without a project convention it saves
+Use `artifact-chain-requirements` to preserve ideas, query or update their disposition, hand selected
+requirements to `spec-author`, and record acceptance item by item. Without a project convention it saves
 requirements under `artifacts/requirements/` and SPECs under `artifacts/specs/`. It never creates
 an inbox or migrates IDs later. `captured` and `proposed` mean recorded but not approved;
 `implemented`, `verified`, and `released` require their own authoritative evidence.
+
+The scope of impact is determined from original requirements or decisions. The current active definition and implemented updates are evaluated for applicability. For first-time adoption, `artifact-chain-bootstrap` performs configuration pruning based on the actual public Graph artifact list, selecting local templates, checklists, and profile bindings, and registering their source identity. If definitions are sufficient, they are reused without forced upgrade or per-round initialization.
+
+When definitions are insufficient, the existing bootstrap performs selective comparison with upstream changes, preserves local customizations, updates effective files or mappings, and re-reads. Any unexpressed real requirements must be reported as specific gaps—no requirement should be deleted to force pass. Refer to [template lifecycle](EXTENDED-ARTIFACT-CATALOG.md#template-lifecycle).
+
+Only after necessary artifacts, relationships, and professional reviews are completed does `spec-author` generate the SPEC. Gaps cannot be deferred to execution phase T0. The SPEC must include: a self-contained snapshot of current behavior and retained guarantees, key design decisions, allowed and prohibited scope, and observable acceptance snapshots. It must explicitly index source artifact identity, section, round-specific content, and actual version. Detailed PRDs, scenarios, and designs remain maintained in place—links alone or wholesale copies are insufficient. Uncommitted source bodies must be identified by the working-tree baseline and a verified review snapshot; HEAD alone is insufficient. Full SPEC review must be independent and cannot be replaced by prior professional review or marker validation.
 
 Register both types in the target project's `artifact-graph.config.yaml`; the runtime does not add
 software-domain types to its defaults:
@@ -1382,7 +1388,7 @@ with append-only behavior; it does not overwrite local rules.
 ### Recovery Steps
 
 ```bash
-# 1. Install dependencies from lockfile (gets artifact-graph@0.16.1)
+# 1. Install dependencies from lockfile (gets artifact-graph@1.0.0)
 pnpm install --frozen-lockfile
 
 # 2. Install plugin per your host (Codex / Claude Code / Kimi Code)
@@ -1449,7 +1455,7 @@ pnpm exec artifact-graph hooks install-git --hook all
 ### Enterprise Mirror
 
 If the corporate environment cannot access the public npm registry or GitHub, mirror both
-`artifact-graph@0.16.1` and the plugin marketplace repository on an internal registry. The mirror
+`artifact-graph@1.0.0` and the plugin marketplace repository on an internal registry. The mirror
 does not change the state ownership model: Git-tracked files remain authoritative, local caches
 remain derived.
 
@@ -1472,6 +1478,12 @@ categories:
 | Skill collaboration boundaries | Routing rules between artifact-chain-where-am-i/bootstrap/maintainer | Skills' "Skill Collaboration Boundary" sections |
 | New scenarios | Additional behavior scripts | [Upgrade Checklist](#upgrade-checklist), then review the target project's local scenario coverage |
 | New E2E tests | Additional test cases | [Upgrade Checklist](#upgrade-checklist), then review the target project's local E2E coverage |
+
+### 1.0.0 spec-author migration
+
+The `spec-converger` is removed in version 1.0.0 with no compatibility alias. All current prompts, project routing, and skill references must be updated to `spec-author`. Existing SPECs, evidence, and CHANGELOG entries retain their original names and history.
+
+Assess applicability of current project definitions. Follow the evolution logic in the preceding definition section and consult [template lifecycle](EXTENDED-ARTIFACT-CATALOG.md#template-lifecycle) to determine necessary updates. Complete required artifacts and professional reviews before generating new SPECs. Not every minor change requires a new SPEC.
 
 ### Safe Upgrade Steps
 
@@ -1503,9 +1515,10 @@ with any new rules (value narrative, completion gates, skill routing) that are n
 existing AGENTS.md, CLAUDE.md, or templates — only add missing sections.
 ```
 
-**Step 3: Sync extended templates (if new types were added)**
+**Step 3: Review new templates and selected definition updates**
 
-If the plugin added new starter templates:
+For existing project definitions, apply only the necessary selected updates described in
+[the migration guide](#100-spec-author-migration). If relevant new starter templates were added:
 
 1. Review `templates/extended/` for new types relevant to your project shape
 2. Copy only types you plan to use to `artifacts/templates/` (or equivalent)
@@ -1541,10 +1554,9 @@ The bootstrap skill follows these non-negotiable rules to protect your local cus
   asks you to merge manually.
 - **`CLAUDE.md`**: Same patch-only behavior. If you have a thin pointer to AGENTS.md, bootstrap
   adds missing references without altering your structure.
-- **`artifact-graph.config.yaml`**: Only patches if config is missing types that the new plugin
-  version recommends for your project shape. Existing types and paths are never removed.
-- **Templates**: Plugin starters in `templates/extended/` are never copied automatically. You
-  must explicitly copy and customize them.
+- `artifact-graph.config.yaml` will only apply minimal patches to existing authorized and necessary definition changes. Preserve existing valid types and paths.
+- For unselected built-in types, retain the key with `paths: []`; deletion of the key will restore default scanning behavior.
+- Templates remain locally authoritative; the plugin starter does not auto-copy or overwrite. After authorization, only selected differences are merged, preserving local customizations and updating references.
 
 ### Upgrade Checklist
 
@@ -1576,14 +1588,15 @@ Do not remove project-local state:
 
 ## Skill Collaboration Workflow
 
-The Artifact Chain Assistant provides five core skills that collaborate across the project lifecycle:
+The Artifact Chain Assistant provides six core skills that collaborate across the project lifecycle:
 
 ### Skill Responsibilities
 
 | Skill | Primary Responsibility | When to Use |
 |-------|----------------------|-------------|
 | **artifact-chain-where-am-i** | Entry triage and routing | User has a vague requirement; need to determine project stage |
-| **artifact-chain-requirements** | Requirement pool and incremental SPEC | Preserve or update ideas; start an iteration; record acceptance and current-artifact destinations |
+| **artifact-chain-requirements** | Requirement and acceptance records | Preserve or update ideas; select an iteration; record acceptance and current-artifact destinations |
+| **spec-author** | Complete iteration SPEC authoring | Selected requirements need a complete new or revised SPEC after prerequisites and applicable reviews |
 | **artifact-chain-restructure** | Reviewed artifact restructuring | Split records or identities; move or renumber cases; apply or recover an approved plan |
 | **artifact-chain-bootstrap** | Project initialization and profile trimming | First-time setup; profile expansion; configuration repair |
 | **artifact-chain-maintainer** | Daily version-lock, doctor, hook, refresh | Routine development; lock refresh/audit; hook management |
@@ -1639,8 +1652,12 @@ Profile Expansion / Configuration Change
 **From artifact-chain-where-am-i to artifact-chain-requirements**:
 - A new or unrefined idea must be preserved
 - Existing requirements need query, merge, deferral, rejection, or handoff updates
-- Approved requirements are entering an incremental SPEC
+- Approved requirements need to be selected and handed to SPEC authoring
 - An open SPEC needs item-level acceptance or current-artifact writeback
+
+**From artifact-chain-where-am-i to spec-author**:
+- Selected requirements need a complete new or revised SPEC
+- Inspect the effective project definition, complete affected artifacts and applicable reviews, then author the SPEC and arrange independent review of its complete body
 
 **From artifact-chain-where-am-i to artifact-chain-restructure**:
 - An artifact record must be split, an identity split into several, or cases moved and renumbered
@@ -1666,7 +1683,7 @@ Add this section to your project's `AGENTS.md`:
 ```markdown
 ## Artifact Chain Skills
 
-This project uses five Artifact Chain Assistant skills:
+This project uses six Artifact Chain Assistant skills:
 
 ### Entry Triage (artifact-chain-where-am-i)
 - Use when you have a vague requirement or need to determine project stage
@@ -1675,7 +1692,11 @@ This project uses five Artifact Chain Assistant skills:
 
 ### Requirement And Iteration Records (artifact-chain-requirements)
 - Use to preserve, query, merge, defer, reject, or hand off requirement entries
-- Use to create incremental SPECs and record each accepted item with evidence and its current-artifact destination
+- Hand selected requirements to `spec-author`; record each accepted item with evidence and its current-artifact destination
+
+### SPEC Authoring (spec-author)
+- Use when selected requirements need a complete new or revised SPEC
+- Complete required artifacts and professional reviews before generating the SPEC; arrange independent review of its complete body
 
 ### Artifact Restructuring (artifact-chain-restructure)
 - Use to split records or identities, move or renumber cases, and prepare an independently reviewed plan
@@ -1729,14 +1750,16 @@ Add this section to your project's `CLAUDE.md`:
 Use the installed `artifact-chain-assistant` plugin for artifact-chain operations:
 
 1. **Entry triage**: Use `artifact-chain-where-am-i` skill for vague requirements
-2. **Requirement and SPEC records**: Use `artifact-chain-requirements` to preserve demand and record item-level acceptance
-3. **Artifact restructuring**: Use `artifact-chain-restructure` for reviewed splits, moves, renumbering, apply, or recovery
-4. **Initialization**: Use `artifact-chain-bootstrap` skill for setup/repair
-5. **Daily maintenance**: Use `artifact-chain-maintainer` skill for lock/hook management
+2. **Requirement and acceptance records**: Use `artifact-chain-requirements` to preserve demand and record item-level acceptance
+3. **SPEC authoring**: Use `spec-author` for a complete new or revised SPEC after required artifacts and professional reviews
+4. **Artifact restructuring**: Use `artifact-chain-restructure` for reviewed splits, moves, renumbering, apply, or recovery
+5. **Initialization**: Use `artifact-chain-bootstrap` skill for setup/repair
+6. **Daily maintenance**: Use `artifact-chain-maintainer` skill for lock/hook management
 
 ### Skill Routing
 - No config → bootstrap
-- New idea or open SPEC → artifact-chain-requirements
+- New ideas, requirement disposition, or item-level acceptance → artifact-chain-requirements
+- Selected requirements need a complete new or revised SPEC → spec-author
 - Split, move, renumber, apply, or recover artifacts → artifact-chain-restructure
 - Config exists but stale → maintainer
 - Config complete and fresh → direct implementation

@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## 1.0.0
+
+### Added
+- spec-author now generates a complete executable iteration SPEC, including impact scope, affected change, acceptance snapshot, and versioned source index. Detailed artifacts remain authoritative and are not fully duplicated.
+
+### Changed
+- Prior to authoring a SPEC, inspect the current project artifact-graph definition and its applicable evolution. Complete and professionally review required affected artifacts first; incomplete prerequisites prevent SPEC output. Definition gaps route to existing artifact-chain-bootstrap, using project-local templates, checklists/profile, and selective upstream adoption while preserving customizations. An independent review validates the complete SPEC against business sources; graph/marker checks do not substitute for this review.
+
+### Fixed
+- Invalid profile input no longer silently falls back to an upstream starter. Unselected built-in types retain their type key with paths: [] to prevent default scanning from being reactivated.
+
+### Removed
+- The published spec-converger entry is replaced by spec-author; no compatibility alias is maintained. Update current invocations and skill paths to spec-author, while preserving historical records. Managed generation removes only its own retired copies. Under the standing release policy, this public-entry removal triggers 1.0.0; Graph ships in lockstep without runtime/CLI/API/contract changes.
+
 ## 0.16.1
 
 ### Fixed

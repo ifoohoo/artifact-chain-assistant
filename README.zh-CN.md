@@ -40,17 +40,20 @@ Qoder 以技能兼容宿主身份复用同一套共享技能。
   将选中的需求承接到增量 SPEC，并逐项记录验收证据与当前制品去向。
 - **`artifact-chain-restructure`** — 制品重组。把自然语言重组请求编译成可检查的映射与候选计划，
   覆盖记录拆分、编号身份拆分、跨文件移动与重编号，并在授权与操作者确认齐备后路由真实应用与恢复。
-- **`spec-converger`** — 规格收敛。需求选定后匹配上游能力，补全相关制品缺口，进入已有评审流程，
-  再生成 SPEC 与执行输入。修改以完整需求及全部相关场景为单位，分别检查删除与重命名；遗漏场景、
+- **`spec-author`** — 规格编写。需求选定后匹配上游能力，补全相关制品缺口，进入已有评审流程。
+  必要正文、关系与适用评审未实际完成时，不命名、不交付 SPEC。完成后再生成 SPEC 与执行输入。修改以完整需求及全部相关场景为单位，分别检查删除与重命名；遗漏场景、
   空材料或勾选无证据不得报完成。插件自带与 `skill-family-docs` 0.6.6 字节一致的
-  `expression-outbound.mjs`，运行时不依赖 Docs 已安装。个人技能目录不是本插件入口，本轮也不切换
-  个人安装。公共写作流程参考与公共配置参考已按已发布 `skill-family-docs` 0.6.7 原字节采用。
+  `expression-outbound.mjs`，运行时不依赖 Docs 已安装。个人技能目录不是本插件入口。公共写作流程参考与公共配置参考已按已发布 `skill-family-docs` 0.6.7 原字节采用。
 
   采用 `artifact.spec@1` 前，需确认当前实际安装的 Graph 包是否提供该合同。正式发布的 Graph 0.16.0 已包含该合同，使用该正式包时按正式身份采用；仅当使用开发候选包或显式指定候选 `contracts` 目录时，才标明来源为候选。若实际安装包未提供合同，须明确报告合同缺口，不得声称已有效采用，亦不得进行隐式回退、复制或虚称提供。
 
   通过 `contract explain` 命令获取真实合同身份信息，包括 `identity`、`revisionDigest` 和 `semanticMarkers`。确认必需标记定义集合非空，且覆盖 `changes`、`scope`、`acceptance` 三项；`acceptance-record` 和 `archive-record` 为可选。使用本次 `explain` 返回的 `revisionDigest`，对完整 SPEC 文档执行 `contract validate-markers` 检查。需注意，JSON 格式的 `contract validate` 不能替代对 Markdown 正文的标记校验。
 
   标记校验通过后，仍须由不同职责方独立审阅完整 SPEC 正文及业务来源。上游 PRD 的审阅结果不能替代本轮 SPEC 正文的独立审阅。
+
+SPEC 保留本轮变更与验收正文的完整可独立执行快照，并索引实际来源版本。详细说明请参见 [SPEC authoring](INSTALL.md#requirement-pool-and-iteration-spec)。
+
+1.0.0 版本已移除 `spec-converger`，无兼容别名；当前调用与项目路由需改为 `spec-author`，历史 SPEC、证据与 CHANGELOG 保持原名不变。迁移指南请查阅 [migration guide](INSTALL.md#100-spec-author-migration)。
 
 重组技能判断能力边界、共同约束、验收项去向与模糊关系目标，自己不写文件；`artifact-graph
 restructure` 负责确定性地编译完整映射并应用文件集合。候选必须经过一次独立只读复审；
@@ -249,13 +252,13 @@ catalog 还包含 `artifact.generate`，用于从模板和 profile 配置生成 
 
 | 插件 | 运行时 | 安装 |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.16.1 | `artifact-graph` 0.16.1 | `pnpm add -D artifact-graph@0.16.1` |
+| `artifact-chain-assistant` 1.0.0 | `artifact-graph` 1.0.0 | `pnpm add -D artifact-graph@1.0.0` |
 
 ## 安装
 
 ```bash
 # 运行时（必需）
-npm install --save-dev artifact-graph@0.16.1
+npm install --save-dev artifact-graph@1.0.0
 ```
 
 ```bash
@@ -277,7 +280,7 @@ codex plugin add artifact-chain-assistant@artifact-skill-set
 
 > **市场说明**：`ifoohoo/artifact-skill-set` 是外部独立市场，插件载荷仍由
 > `ifoohoo/artifact-chain-assistant` 发布。市场条目必须先发布并启用
-> `artifact-chain-assistant` 0.16.1，上述安装命令才能生效。
+> `artifact-chain-assistant` 1.0.0，上述安装命令才能生效。
 
 ```text
 # Kimi Code 插件（交互式，user 作用域）
@@ -304,7 +307,7 @@ Qoder 当前承诺的边界是技能安装与发现；不提供 Claude Code 的 
 
 ## 快速开始
 
-1. 安装插件 0.16.1（见上文）和运行时：`pnpm add -D artifact-graph@0.16.1`。
+1. 安装插件 1.0.0（见上文）和运行时：`pnpm add -D artifact-graph@1.0.0`。
 2. 运行 `artifact-graph doctor --root . --format json` 验证运行时。
 3. 首次搭建，进入 bootstrap 技能。
 4. 日常工作，进入 maintainer 技能。

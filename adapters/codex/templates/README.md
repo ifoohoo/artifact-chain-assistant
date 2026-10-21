@@ -128,16 +128,23 @@ templates/
 
 ## Bootstrap 裁剪策略
 
-bootstrap 的职责是根据项目形态选择**最小可用 profile**，而非启用所有已知类型。
+bootstrap 的职责是根据项目实际选择形成最小可用 profile。类型是否启用，以当前已发布的 `artifact-graph/project-artifact-profiles`（`schema_version` `1.0`）为推荐依据，再由项目选择决定。推荐清单不自动启用。`EXTENDED-ARTIFACT-CATALOG.md` 继续区分推荐与启用。
+
+本地模板的建议落点是 `artifacts/templates/<type>/starter.md` 与 `review-checklist.md`。已有且有效的项目内路径不搬迁。profile 绑定这些本地文件，不把外部安装缓存路径写入 profile。
+
+扩展模板的真实来源包含分类层：
+
+- 核心类型：`templates/core/<type>/`
+- 扩展类型：`templates/extended/<category>/<type>/`，例如 `templates/extended/agent/agent_skill/`、`templates/extended/contracts/cli_contract/`
 
 裁剪规则：
 
-1. **基础集合始终启用**：`feature`、`scenario`、`decision`、`design`、`test`、`e2e_test`
+1. **按发布清单和项目选择启用**：共同最低推荐、项目类型标准和条件项都只是候选。省略配置里的类型键不会删除 Graph 内置扫描；要停用某内置路径时显式写 `paths: []`，再读取有效配置。
 2. **契约类按证据加入**：仅当项目本地存在对应的接口文件时启用
 3. **领域与数据类按项目形态加入**：企业 Java/DDD 项目可启用 `domain_model`
 4. **运维类按运维流程加入**：仅有部署配置文件或运维手册的项目才启用对应类型
 5. **Agent/Hook 类按本地文件加入**：仅当项目存在 `skills/`、`policies/` 或 hook 配置文件时启用
-6. **渐进扩展**：项目随成熟度增长，可按需添加新类型
+6. **渐进扩展**：项目随成熟度增长，可按需添加新类型。只为新采用的类型或选定后缺失的模板初始化副本，不用上游目录整体覆盖。
 
 ## 扩展制品目录设计
 

@@ -37,26 +37,43 @@
 
 ### 步骤 2：复制 starter 模板到项目本地
 
+扩展模板的真实来源包含分类层，例如 `templates/extended/contracts/api_contract/`、`templates/extended/agent/agent_skill/`。只为新采用的类型，或项目选定但缺失的模板，复制 starter 与 checklist。已有且有效的项目内路径不搬迁，不用上游目录整体覆盖。
+
 ```bash
-# 示例：复制 api_contract starter
+# 示例：复制含分类层的 api_contract starter 与清单
 cp plugins/artifact-chain-assistant/templates/extended/contracts/api_contract/starter.md \
-   artifacts/templates/api_contract.md
+   artifacts/templates/api_contract/starter.md
 
-# 示例：复制 review checklist
 cp plugins/artifact-chain-assistant/templates/extended/contracts/api_contract/review-checklist.md \
-   artifacts/templates/api_contract-review-checklist.md
+   artifacts/templates/api_contract/review-checklist.md
 ```
 
-**推荐目录结构**：
+**建议落点**（已有有效路径保持不动）：
 
 ```
-artifacts/templates/
-  api_contract.md              # 制品模板
-  api_contract-review-checklist.md  # 审查清单
-  cli_contract.md
-  cli_contract-review-checklist.md
-  ...
+artifacts/templates/api_contract/starter.md
+artifacts/templates/api_contract/review-checklist.md
 ```
+
+复制后在 `artifact-profiles/project.yaml` 绑定本地文件。下面只示例一种类型，不是完整配置：
+
+```yaml
+schema_version: 1
+project:
+  id: sample-project
+  language: zh-CN
+workflows:
+  generate:
+    api-contract:
+      templates:
+        - artifacts/templates/api_contract/starter.md
+  review:
+    api-contract:
+      checklists:
+        - artifacts/templates/api_contract/review-checklist.md
+```
+
+普通消费者绑定项目内文件，不把插件安装缓存路径写入 profile。`candidate_types[].template_available` 只表示上游 starter 存在。有显式 generate 映射时，`artifacts[].template.ready` 与 `path` 只反映映射中全部实际可用的模板；缺失、空映射、部分可用或非法路径不回退插件 starter。
 
 ### 步骤 3：定制模板内容
 
@@ -145,34 +162,33 @@ artifact-graph version-lock refresh --all --format markdown
 artifact-graph version-lock audit --root . --strict-missing-lock
 ```
 
-### 步骤 6：提交变更
+### 步骤 6：核对实际结果
+
+重读实际配置、模板和 profile。运行：
 
 ```bash
-git add artifact-graph.config.yaml artifacts/templates/ artifacts/README.md
-git commit -m "feat: adopt api_contract template with local customization"
+artifact-graph validate --root . --warning-only
+artifact-graph version-lock refresh --all --format markdown
+artifact-graph version-lock audit --root . --strict-missing-lock
 ```
+
+已有定义变化用 `refresh --all`。不得运行 `artifact-graph version-lock bootstrap --force`。提交不是本指南的必做步骤。只有用户明确授权时，才由项目自己的发布流程处理；本指南不写入固定的 `git commit` 命令，也不把某次旧提交差异写成必须同步的步骤。
 
 ## 模板升级评审流程
 
 当 `artifact-chain-assistant` 发布新版本且更新了 starter 模板时，已采用项目需要评审是否同步更新本地模板。
 
-### 步骤 1：发现变更
+### 步骤 1：确定对比来源
 
-查看插件 `CHANGELOG.md` 或 `templates/extended/` 目录的 git diff：
-
-```bash
-# 查看模板目录变更
-git diff HEAD~1 plugins/artifact-chain-assistant/templates/extended/
-```
+上游发版只提供可选的对比来源，不强制更新项目。先确认旧采用来源是否还能核验，以及维护者本次选定的新来源。不要把某一次固定旧提交差异写成必做步骤。
 
 ### 步骤 2：对比本地模板
 
-使用 diff 工具对比插件 starter 和项目本地模板：
+旧来源可核验时，比较原采用版本、当前本地、选定新版本。旧来源缺失时，只比较当前本地与选定新来源的可见差异，不虚称三方合并。
 
 ```bash
-# 对比 api_contract 模板
 diff plugins/artifact-chain-assistant/templates/extended/contracts/api_contract/starter.md \
-     artifacts/templates/api_contract.md
+     artifacts/templates/api_contract/starter.md
 ```
 
 **diff 关注点**：
@@ -193,11 +209,12 @@ diff plugins/artifact-chain-assistant/templates/extended/contracts/api_contract/
 
 ### 步骤 4：选择性合并
 
-手动合并有用的变更到本地模板：
+在授权写集内手动合并选定变更，不直接复制覆盖。
+
+示例：项目本地模板已有自行增加的“恢复步骤”。选定上游新增“兼容影响”，且本次变更涉及兼容性时，把“兼容影响”及对应清单合入，同时保留“恢复步骤”。上游删除的章节，如果项目仍在使用，就保留。合入后重读实际文件，检查受影响正文并重新评审。身份迁移衔接 `artifact-chain-restructure`。不自动重写全部历史正文。
 
 ```bash
-# 不要直接复制覆盖！手动编辑合并
-vim artifacts/templates/api_contract.md
+# 不要直接复制覆盖。编辑本地模板，保留“恢复步骤”，按需合入“兼容影响”。
 ```
 
 ### 步骤 5：更新审查清单

@@ -8,7 +8,8 @@ import { access, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promise
 import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const MANAGED_SKILL_TREES = ['spec-converger'];
+const MANAGED_SKILL_TREES = ['spec-author'];
+const RETIRED_MANAGED_SKILL_TREES = ['spec-converger'];
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const check = process.argv.includes('--check');
@@ -358,25 +359,35 @@ async function pruneEmptyDirectories(tree) {
   await visit(tree);
 }
 
+function managedSkillTrees(skillName) {
+  return [
+    join(root, 'skills', skillName),
+    ...hosts.map((host) => join(root, `adapters/${host.id}/skills`, skillName)),
+  ];
+}
+
 /**
- * Keep generated spec-converger trees identical to the generator's expected
- * file set. Source deletes or renames must drop the old copy. Other skills
- * and unmanaged files stay untouched.
+ * Keep generated spec-author trees identical to the generator's expected
+ * file set. Source deletes or renames must drop the old copy. A retired
+ * spec-converger tree is reported stale and removed only inside this
+ * syncer's managed output locations. Other skills and unmanaged files stay.
  */
 async function reconcileManagedSkillTrees(expectedAbsolutePaths) {
   const expectedByTree = new Map();
+  const retiredTrees = new Set();
   for (const skillName of MANAGED_SKILL_TREES) {
-    const trees = [
-      join(root, 'skills', skillName),
-      ...hosts.map((host) => join(root, `adapters/${host.id}/skills`, skillName)),
-    ];
-    for (const tree of trees) {
+    for (const tree of managedSkillTrees(skillName)) expectedByTree.set(tree, new Set());
+  }
+  for (const skillName of RETIRED_MANAGED_SKILL_TREES) {
+    for (const tree of managedSkillTrees(skillName)) {
       expectedByTree.set(tree, new Set());
+      retiredTrees.add(tree);
     }
   }
 
   for (const absPath of expectedAbsolutePaths) {
     for (const [tree, files] of expectedByTree) {
+      if (retiredTrees.has(tree)) continue;
       const prefix = `${tree}${sep}`;
       if (absPath === tree || absPath.startsWith(prefix)) {
         files.add(relative(tree, absPath).split(sep).join('/'));
@@ -412,6 +423,12 @@ async function reconcileManagedSkillTrees(expectedAbsolutePaths) {
 
     if (!check) {
       await pruneEmptyDirectories(tree);
+      try {
+        const remaining = await readdir(tree);
+        if (remaining.length === 0) await rm(tree, { recursive: true, force: true });
+      } catch (error) {
+        if (error.code !== 'ENOENT') throw error;
+      }
     }
   }
 }

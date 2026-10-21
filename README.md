@@ -49,14 +49,15 @@ passes.
   request into a checkable mapping and candidate plan for splits, identity splits, cross-file moves,
   and renumbering, and routes the real apply and recovery steps once authorization and operator
   confirmation are in place.
-- **`spec-converger`** — SPEC convergence. After requirements are selected, matches upstream
-  capabilities, fills related artifact gaps, enters existing review flows, and produces a SPEC plus
+- **`spec-author`** — SPEC authoring. After requirements are selected, matches upstream
+  capabilities, fills related artifact gaps, and enters existing review flows. It does not name or
+  deliver a SPEC until the necessary bodies, relations, and applicable reviews are actually done.
+  It then produces a SPEC plus
   execution inputs. It treats a complete requirement and all related scenarios as the change unit,
   checks deletes separately from renames, and refuses to treat missing scenarios, empty materials, or
   checked-off tasks without evidence as done. The plugin ships a byte-identical copy of the published
   `skill-family-docs` 0.6.6 `expression-outbound.mjs`; runtime does not need Docs installed. Personal
-  skill directories are not this plugin entry, and switching the personal install is not in this
-  round. Shared writing-process and configuration references from published `skill-family-docs` 0.6.7
+  skill directories are not this plugin entry. Shared writing-process and configuration references from published `skill-family-docs` 0.6.7
   are adopted as managed references. Adopting `artifact.spec@1` requires the currently installed
   Graph package to provide that contract. Published Graph 0.16.0 includes it; use its formal identity
   when consuming that published package. Mark the source as a candidate only for a development
@@ -69,6 +70,10 @@ passes.
   on the complete SPEC. JSON `contract validate` does not replace Markdown marker checks. After
   marker validation, a different role must still independently review the complete body and business
   sources; an upstream PRD review does not replace this SPEC review.
+
+SPEC includes a self-contained snapshot of the current round’s changes and acceptance criteria, with traceable source references tied to actual versions. Refer to [SPEC authoring](INSTALL.md#requirement-pool-and-iteration-spec) for full context.
+
+Migration note: Version 1.0.0 removes `spec-converger` with no compatibility alias. Update current invocation and project routing to `spec-author`. Historical SPEC records, evidence, and CHANGELOG remain unchanged. See [migration guide](INSTALL.md#100-spec-author-migration) for migration steps.
 
 The restructure skill decides capability boundaries, shared constraints, acceptance-criterion
 destinations, and ambiguous relation targets; it does not write files itself. `artifact-graph
@@ -228,13 +233,13 @@ override, compact query, fallback behavior, and `PLUGIN_ROOT` discovery, see
 
 | Plugin | Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 0.16.1 | `artifact-graph` 0.16.1 | `pnpm add -D artifact-graph@0.16.1` |
+| `artifact-chain-assistant` 1.0.0 | `artifact-graph` 1.0.0 | `pnpm add -D artifact-graph@1.0.0` |
 
 ## Install
 
 ```bash
 # Runtime (required)
-npm install --save-dev artifact-graph@0.16.1
+npm install --save-dev artifact-graph@1.0.0
 ```
 
 ```bash
@@ -256,7 +261,7 @@ codex plugin add artifact-chain-assistant@artifact-skill-set
 
 > **Marketplace note**: `ifoohoo/artifact-skill-set` is an external independent marketplace. The
 > plugin payload is still published from `ifoohoo/artifact-chain-assistant`. The marketplace entry
-> must publish and enable `artifact-chain-assistant` 0.16.1 before the install commands above will
+> must publish and enable `artifact-chain-assistant` 1.0.0 before the install commands above will
 > succeed.
 
 ```text
@@ -285,7 +290,7 @@ For the full installation guide, quick start, Agent prompts, and clone onboardin
 
 ## Quick Start
 
-1. Install plugin 0.16.1 (above) and runtime: `pnpm add -D artifact-graph@0.16.1`.
+1. Install plugin 1.0.0 (above) and runtime: `pnpm add -D artifact-graph@1.0.0`.
 2. Run `artifact-graph doctor --root . --format json` to verify the runtime.
 3. For first-time setup, use the bootstrap skill.
 4. For daily work, use the maintainer skill.

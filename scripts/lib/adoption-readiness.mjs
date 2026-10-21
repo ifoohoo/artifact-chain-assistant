@@ -237,6 +237,43 @@ function profileMethodDomain(profile, type, action) {
   return null;
 }
 
+function publicMethod(method) {
+  const visible = { ...method };
+  delete visible.template_paths;
+  return visible;
+}
+
+function bundledTemplate(type, pluginRoot) {
+  const templateRelativePath = TEMPLATE_PATHS[type] ?? null;
+  const templatePath = templateRelativePath ? join(pluginRoot, templateRelativePath) : null;
+  const ready = Boolean(templatePath && existsSync(templatePath));
+  return {
+    ready,
+    path: templatePath,
+    gap: ready ? null : 'starter template is missing',
+  };
+}
+
+function blockedProfileTemplate(error) {
+  return {
+    ready: false,
+    path: null,
+    gap: error,
+  };
+}
+
+function selectedTemplate(declared, verified) {
+  const declaredPaths = Array.isArray(declared) ? declared : [];
+  const verifiedPaths = Array.isArray(verified) ? verified.filter(item => typeof item === 'string' && item.length > 0) : [];
+  const ready = declaredPaths.length > 0 && verifiedPaths.length === declaredPaths.length;
+  const detail = declaredPaths.length === 0 ? 'empty mapping' : declaredPaths.map(item => String(item)).join(', ');
+  return {
+    ready,
+    path: ready ? verifiedPaths[0] : null,
+    gap: ready ? null : `selected generate templates are not all available: ${detail}`,
+  };
+}
+
 async function methodReadiness({ projectRoot, profilePath, profile, type, action, templateAvailable, pluginRoot }) {
   const domain = profileMethodDomain(profile, type, action);
   if (domain) {
@@ -253,6 +290,7 @@ async function methodReadiness({ projectRoot, profilePath, profile, type, action
       worker_path: checked.worker_path,
       project_specific_method_ready: checked.status === 'OK' && checked.execution_mode === 'project-worker',
       diagnostics: checked.diagnostics,
+      template_paths: checked.template_paths ?? [],
     };
   }
 
@@ -340,18 +378,25 @@ export async function checkAdoptionReadiness({
     const typeDeclared = Boolean(typeDefinition);
     const pathDirectoryPresent = directoryExists(projectRoot, paths);
     const typeRegistered = typeDeclared && Boolean(idPattern) && paths.length > 0 && pathDirectoryPresent;
-    const templateRelativePath = TEMPLATE_PATHS[type] ?? null;
-    const templatePath = templateRelativePath ? join(pluginRoot, templateRelativePath) : null;
-    const templateAvailable = Boolean(templatePath && existsSync(templatePath));
-    const generate = await methodReadiness({ projectRoot, profilePath, profile: loadedProfile.data, type, action: 'generate', templateAvailable, pluginRoot });
-    const review = await methodReadiness({ projectRoot, profilePath, profile: loadedProfile.data, type, action: 'review', templateAvailable, pluginRoot });
+    const templateAvailable = Boolean(TEMPLATE_PATHS[type] && existsSync(join(pluginRoot, TEMPLATE_PATHS[type])));
+    const generateRaw = await methodReadiness({ projectRoot, profilePath, profile: loadedProfile.data, type, action: 'generate', templateAvailable, pluginRoot });
+    const reviewRaw = await methodReadiness({ projectRoot, profilePath, profile: loadedProfile.data, type, action: 'review', templateAvailable, pluginRoot });
+    const generateDomain = profileMethodDomain(loadedProfile.data, type, 'generate');
+    const profileLoadFailed = Boolean(loadedProfile.error) && loadedProfile.data == null;
+    const template = profileLoadFailed
+      ? blockedProfileTemplate(loadedProfile.error)
+      : generateDomain
+        ? selectedTemplate(loadedProfile.data?.workflows?.generate?.[generateDomain]?.templates, generateRaw.template_paths)
+        : bundledTemplate(type, pluginRoot);
+    const generate = publicMethod(generateRaw);
+    const review = publicMethod(reviewRaw);
     const gaps = [];
     if (!configResult.ok) gaps.push(`effective config is unavailable: ${configResult.reason}`);
     if (!typeDeclared) gaps.push('type is not declared in the effective config');
     if (!idPattern) gaps.push('id pattern is not declared in the effective config');
     if (paths.length === 0) gaps.push('artifact paths are not declared in the effective config');
     else if (!pathDirectoryPresent) gaps.push('artifact path directory does not exist');
-    if (!templateAvailable) gaps.push('starter template is missing');
+    if (template.gap) gaps.push(template.gap);
     if (generate.status !== 'OK') gaps.push('generation method is not executable');
     if (review.status !== 'OK') gaps.push('review method is not executable');
     artifacts.push({
@@ -365,7 +410,7 @@ export async function checkAdoptionReadiness({
         target: typeDefinition?.target === true,
         aliases: typeDefinition?.aliases ?? [],
       },
-      template: { ready: templateAvailable, path: templatePath },
+      template: { ready: template.ready, path: template.path },
       methods: { generate, review },
       gaps,
     });

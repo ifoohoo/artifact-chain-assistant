@@ -87,7 +87,7 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
 - `missing_standard_types` 列出尚未采用的共同最小或技能族标准项。读清单成功不能当成已经采用。它和 `gaps` 分开看。
 - `enabled_types` 只包含有上述依据的候选，候选本身不算缺口。
 - `registration.ready` 同时检查有效类型、ID 模式、路径声明和目录。
-- `template.ready` 检查插件 starter 是否真实存在。
+- `candidate_types[].template_available` 只表示插件候选 starter 是否存在。有显式 generate 映射时，`artifacts[].template.ready` 与 `path` 反映该映射里实际选中且全部可用的模板：缺失、空映射、部分可用或非法路径时 `ready` 为 false、`path` 为 null，不回退插件 starter。没有映射时沿用既有捆绑模板观察，不宣称已经检查项目专属模板。worker 缺失与模板可用分开判断。
 - `methods.generate` 与 `methods.review` 复用当前 workflow profile 解析结果；需求/SPEC 的直接制作入口标为 `bundled-skill`，没有审阅方法时如实报告缺口。
 - `project_specific_method_ready` 只在实际解析到 `project-worker` 时为 true；`bundled-skill`、`public-worker` 和 `project-worker` 分开报告。
 - `gaps` 给出当前组合缺少的目录、模板或方法。清单可读不能掩盖模板或方法未就绪。
@@ -193,36 +193,49 @@ DATA-001 (data_contract)
 - `deployment_manifest`: Dockerfile, K8s manifests, or Helm charts exist
 - `runbook`: Operations documentation or runbook files exist
 
-## Bootstrap Flow
+## 首次采用
 
-1. If no config exists, run `artifact-graph init --root <root>`.
-2. Edit `artifact-graph.config.yaml` to match real directories and IDs.
-3. **Classify project shape and select artifact profile.** Use the Project Shape table above to
-   determine which types to enable now and which to defer. Read
-   `../../EXTENDED-ARTIFACT-CATALOG.md` for per-type recommended paths, ID patterns, lifecycle
-   rules, and review checkpoints when adding any extended type. Enable only types whose `paths`
-   actually exist on disk or whose directories will be created in the next step.
-4. Create missing base directories only when useful, such as `artifacts/prd/features`,
-   `artifacts/decisions`, or `artifacts/scenarios`.
-5. Add or update an `AGENTS.md` Artifact Chain section with project-local paths, config ownership,
-   lock ownership, CLI usage, refresh/audit commands, the `bootstrap --force` warning, and the
-   value narrative rules (business purpose, project value, chain value, risk changes, verification
-   evidence).
-6. If Claude Code is used, make `CLAUDE.md` a thin pointer to `AGENTS.md` plus Claude-specific
-   notes. Include a value narrative reference pointing to the AGENTS.md rules.
-7. Run `artifact-graph validate --root <root> --warning-only`.
-8. For a new project, run `artifact-graph version-lock bootstrap` only after config and initial
-   relationships are reviewed. For an existing project, prefer `artifact-graph version-lock refresh
-   --all --format markdown`.
-9. Run `artifact-graph version-lock audit --root <root> --strict-missing-lock`.
-10. Git hook installation is a mechanical step owned by `artifact-chain-setup` (D-ACA-31); bootstrap only
-    decides whether hooks are ready and routes the user to setup for `artifact-graph hooks install-git
-    --hook all` after validation and audit pass.
-11. **Document available extended types for future enablement.** In `artifacts/README.md` or the
-    project's equivalent catalog file, record which extended types were considered but deferred,
-    along with the evidence condition that would trigger their enablement (e.g., "enable
-    `api_contract` when OpenAPI spec files exist in `contracts/api/`"). This makes future profile
-    expansion a documented decision rather than an ad-hoc addition.
+无配置时才走这条路径。先只读运行 `check-workflow-profile.mjs`，无配置也保留未采用与方法缺项的真实结果。候选推荐、项目选择和有效扫描范围分别核对，不把推荐清单自动启用。
+
+1. 从当前实际解析到的已发布 Graph 包读取 `artifact-graph/project-artifact-profiles`，核对来源版本及 `schema_version`。现行清单为 `1.0`。共同最低推荐、项目类型标准和条件项只是选择依据。结合本项目真实交付、阶段和需求决定采用或暂缓，保留原有自定义类型。
+2. 无配置时运行 `artifact-graph init --root <project-root>` 生成起点，再按项目选择调整。已有配置只作必要补丁，不整文件覆盖。
+3. 填入实际扫描路径、ID、状态与关系，建立所选类型目录。`loadConfig` 合并内置类型和项目覆盖：省略类型键不会删除内置扫描；需要停用某内置路径时，在对应类型显式配置 `paths: []`，然后重新读取有效配置。`allowedEdges` 沿现有语义：空表使用内置默认，非空表是完整白名单。状态列表替换时保留仍需使用的状态。
+4. 只为新采用的类型，或项目选定但缺失的模板，初始化本地模板。来源路径包含分类层：核心类型用 `templates/core/<type>/`，扩展类型用 `templates/extended/<category>/<type>/`，例如 `templates/extended/agent/agent_skill/` 和 `templates/extended/contracts/cli_contract/`。复制所选 starter 与 checklist 到项目本地后，再绑定本地文件。已有且有效的项目内路径不搬迁。不用上游副本整目录覆盖。
+5. 在 `artifact-profiles/project.yaml` 绑定本地文件。沿用现有领域名，例如 feature 对应 prd-feature、scenario 对应 scenario-script、design 可对应 design-spec。没配置专属 worker 时可用既有 public-worker，不为了通过就绪检查虚构项目 worker。requirement 与 SPEC 保留已有需求入口和完整 SPEC 职责，不为了绑定本地模板改成通用复制任务。
+6. 在已有 `artifacts/README.md` 记录实际来源、项目选择、裁剪理由、阶段要求、暂缓项及再考虑条件。更新本地工作约定。
+7. 运行 Graph 配置与制品校验、方法资源检查。无历史锁且已核对初始关系时，才用既有 `version-lock bootstrap`。不得运行 `artifact-graph version-lock bootstrap --force`。最后 `version-lock audit --strict-missing-lock`。
+8. Git hook 安装仍由 `artifact-chain-setup` 承接。初始化成功只说明定义及方法已就位，本次必要正文仍须实际补齐并评审。
+
+下面只示例 feature 的现有 profile 接线，不是全项目完整配置：
+
+```yaml
+schema_version: 1
+project:
+  id: sample-skill-family
+  language: zh-CN
+workflows:
+  generate:
+    prd-feature:
+      templates:
+        - artifacts/templates/feature/starter.md
+  review:
+    prd-feature:
+      checklists:
+        - artifacts/templates/feature/review-checklist.md
+```
+
+调用检查时传入实际项目根、形态与阶段，例如 `node <plugin-root>/scripts/check-workflow-profile.mjs --root <project-root> --project-shape skill-plugin --adoption-stage initial --format json`。该 JSON 的 status 不是正文充分性。
+
+## 已有定义维护
+
+触发条件是需求暴露的表达缺口、项目主动采纳的规范变更、真实使用中的缺陷，或维护者选定的上游推荐。上游发版只提供对比来源，不强制更新项目。`spec-author` 只判断是否衔接并读取实际结果，不强制重跑本流程。形态或阶段实际变化时才重新判定；不一律跳过形态核对，也不一律拒绝复制所选缺失模板。
+
+1. 读取当前本地文件和本次选定的新来源。旧采用来源可核验时，比较原采用版本、当前本地、选定新版本。旧来源缺失时，只报告当前本地与新来源的可见差异，不虚称三方合并，也不宣称可自动恢复定制历史。
+2. 每项写明当前值、新建议、项目实际需求、拟改文件、是否影响已有制品，以及保留、选择性合入、暂缓或不适用。展示差异后再在授权写集内做最小变更。不整体覆盖。
+3. 示例：早期设计模板只有“目标、职责、验收”，项目后来自行增加“恢复步骤”。选定上游新增“兼容影响”且本次变更涉及兼容性时，把“兼容影响”及对应清单合入本地模板，同时保留“恢复步骤”，再更新相关正文并重新评审。上游移除某章节，不删除项目仍在使用的部分。
+4. 新增已选类型时补配置、目录、本地模板、清单和方法映射。已有类型只更新相关部分。身份拆分、路径迁移或重编号衔接现有 `artifact-chain-restructure`，不另写批量替换器。
+5. 模板更新不自动重写所有历史正文。按本次需求和阶段约定识别受影响内容，保留历史事实。修改后重读实际文件，核对有效扫描范围、模板资源和生成/评审接线。已有定义变化使用 `version-lock refresh --all`；只有日常正文变化才用 changed-only。最后严格审计。不得 `bootstrap --force`。
+6. 在 `artifacts/README.md` 更新采用记录。结论说明已生效改动、未改项、剩余缺口及其影响。缺口已阻断本次必要表达时，不得以暂缓为由继续输出 SPEC。无影响的新推荐可以暂缓，但不因此裁掉真实需求。他处迭代已经生效时读取该结果，不在当前流程重跑。
 
 ## Config Guidance
 
@@ -302,7 +315,7 @@ context:
 
 `allowedEdges` is required on an existing config. `[]`, `null`, or a YAML empty value adopts Graph's built-in default table. A non-empty list replaces that table and is a strict from/to/kind whitelist. Derive the project list from types, `relationSemantics`, and real artifact frontmatter in this project. Do not dump every scanned edge, and do not copy the default table and call it a project analysis. Keep unrelated fields. `forbiddenEdges` still wins.
 
-Remove any type whose `paths` do not exist and are not part of the immediate adoption plan.
+Keep existing project-specific custom types. For a built-in type not selected for adoption, explicitly retain its type key and set `paths: []` to disable default scanning; omitting the key would otherwise restore the Graph's default scan paths. A new optional candidate that has never been selected or configured may remain absent.
 The relation direction is child to parent: a child uses `parent_requirement` to point to a parent
 with the same `requirement_level`, while a development requirement uses `derived_from` to point to
 one or more source requirements. `derived_from` is an array-valued relation field and remains available in
@@ -402,33 +415,13 @@ project section through a reviewed patch rather than adding a duplicate block. B
 setup's diagnostic output but must re-verify the preconditions for its own writes and stay
 fail-closed (unchanged from before D-ACA-31).
 
-### Upgrade Scenario
+### 版本升级时的定义维护
 
-When a target project upgrades `artifact-chain-assistant` to a new version, bootstrap is the
-correct skill for non-destructive patching of project instructions. The upgrade scenario differs
-from first-time setup:
+目标项目升级 `artifact-chain-assistant` 时，仍走上面的“已有定义维护”，不把升级本身当成必须重做全套定义的事件。上游新版本只作为选定对比来源。
 
-**What bootstrap does during upgrade**:
-- Patches `AGENTS.md` with missing sections (value narrative rules, completion gates, skill routing)
-- Patches `CLAUDE.md` with missing references
-- Validates existing `artifact-graph.config.yaml` against new plugin recommendations
-- Reports conflicts where local sections differ from plugin templates (asks user to merge)
-- Refreshes version lock and re-validates
+升级时可以补齐 `AGENTS.md` / `CLAUDE.md` 中缺失的工作约定，并校验现有配置。保留本地定制，例如“恢复步骤”。只有项目选定合入的上游章节，例如本次涉及兼容性时的“兼容影响”，才写入本地模板。不整体覆盖 `AGENTS.md`、`CLAUDE.md` 或 `artifact-graph.config.yaml`。不删除项目仍在使用的类型。不运行 `version-lock bootstrap --force`。
 
-**What bootstrap does NOT do during upgrade**:
-- Overwrite existing `AGENTS.md` sections with local customizations
-- Overwrite existing `CLAUDE.md` structure
-- Remove artifact types from `artifact-graph.config.yaml`
-- Copy templates from `templates/extended/` to project-local `artifacts/templates/`
-- Run `version-lock bootstrap --force`
-
-**Upgrade detection**: Bootstrap should detect upgrade context when:
-- `artifact-graph.config.yaml` already exists and is valid
-- `AGENTS.md` and `CLAUDE.md` already contain artifact-chain sections
-- The user prompt mentions "upgrade", "update", or "new version"
-
-In upgrade mode, bootstrap skips the project shape classification step (it was done during
-first-time setup) and focuses on patching missing sections and validating existing configuration.
+仅当项目形态或采用阶段实际变化时才重新分类。已有定义仍然适用时继续沿用，不强制升级。已有且有效的项目内模板路径不搬迁。只有新采用的类型或选定后仍然缺失的模板，才从含分类层的真实来源初始化。
 
 ### Handoff to Maintainer
 

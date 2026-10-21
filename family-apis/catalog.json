@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "catalog": {
     "id": "artifact-chain-assistant",
-    "version": "0.16.1"
+    "version": "1.0.0"
   },
   "families": [
     {

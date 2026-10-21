@@ -63,7 +63,7 @@ node <plugin-root>/scripts/requirement-state-check.mjs <entry-path> --from <curr
 
 ## 从需求进入增量 SPEC
 
-需要制作、优化或收敛 SPEC 时，把规格方法交给 `spec-converger`：圈定基线、读取相关制品正文、补全正文与关系、进入已有评审流程，再生成 SPEC 与执行输入，并核对双向覆盖。需求登记、状态回写和 add/modify/delete 验收仍由本技能负责。`spec-converger` 不替代本技能保存条目。
+需要制作、优化或编写 SPEC 时，把规格方法交给 `spec-author`：圈定基线、读取相关制品正文、补全正文与关系、进入已有评审流程；必要正文、关系与适用评审未完成时只返回缺口和补齐安排，不交付 SPEC；完成后再生成 SPEC 与执行输入，并核对双向覆盖。需求登记、状态回写和 add/modify/delete 验收仍由本技能负责。`spec-author` 不替代本技能保存条目。
 
 复制 `templates/core/spec-entry.starter.md` 到项目约定的迭代规格目录。没有约定时使用 `artifacts/specs/`。SPEC 必须引用需求条目以及受影响的 PRD、场景、设计和 ADR；ADR 记录方案取舍，不能代替需求条目。
 
@@ -111,7 +111,7 @@ node <plugin-root>/scripts/requirement-state-check.mjs <entry-path> --from <curr
 - 盘点与具体任务定位交给 `artifact-chain-where-am-i`；盘点、查询和需求收集不依赖 Method Registry。
 - 环境诊断交给 `artifact-chain-setup` 或 `artifact-graph doctor`。
 - 图关系、影响范围与覆盖边界使用 artifact-graph 的 `query`、`context`、`packet`、`impact`、`coverage` 和 `validate`。
-- 规格收敛、上游能力匹配、遗漏场景与删除/重命名检查交给 `spec-converger`。
+- 规格编写、上游能力匹配、遗漏场景与删除/重命名检查交给 `spec-author`。前置未齐时它不交付 SPEC。
 - 只有确定要调用专业制作、审阅或修复服务时，才检查 Registry、binding 和 worker 是否可执行。
 
 ## 输出
