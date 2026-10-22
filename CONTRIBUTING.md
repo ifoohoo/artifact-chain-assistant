@@ -1,29 +1,17 @@
 # Contributing
 
-Thanks for your interest in contributing.
+Thank you for helping improve this project.
 
-> **This repository is a release snapshot.** Documentation (README, CHANGELOG, INSTALL,
-> NOTICE) and shared files are rendered from a private workspace. Direct pull requests
-> against these files will be overwritten by the next render — please open an issue
-> instead, and the maintainers will make the change at the source.
+## Propose a change
 
-## Development
+This repository provides a published release snapshot. Changes are made in the source workspace by maintainers, and this repository is regenerated from that source. If you encounter a bug, have a feature request, or notice a documentation issue, open an issue here. Include the observed behavior and a minimal, reproducible example. Direct edits to generated files in this repository may be overwritten in the next release. Opening an issue does not require access to the source workspace.
 
-Use Node.js `>=22.22.2 <23` and pnpm `10.30.0`.
+## Verify the distributed package
 
-```bash
-pnpm install
-pnpm build
-pnpm test
-```
+Public CI runs on Node.js `22.22.2`, within the supported range `>=22.22.2 <23`. It validates the distributed files by checking for drift in generated content and ensuring all published resources are intact. After packaging, it installs the tarball built from this checkout in a clean consumer environment and exercises the package's public entry points and resources. Verification includes CLI command execution, ESM and CJS imports, and checks of public schema resources. The assistant checks its generated resources and runs its consumer doctor against the declared compatible Graph version. Native dependencies are installed using their standard scripts.
 
-## Pull Requests
-
-- Keep changes focused.
-- Documentation changes should be proposed as issues (see above); code changes should update tests when behavior changes.
-- Run the package validation commands before opening a pull request.
-- Do not include private parent-repository artifacts or local machine paths.
+This snapshot does not include full development sources, tests, or the dependency lockfile. Do not run `pnpm build`, `pnpm test`, or `pnpm typecheck` in this repository. These checks are performed in the source workspace. Public CI does not rebuild or repair distributed files before validation.
 
 ## License
 
-By contributing, you agree that your contribution is licensed under Apache-2.0.
+Keep proposed changes focused. By contributing, you agree that your contribution is licensed under the Apache-2.0 license.

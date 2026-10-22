@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 1.0.1
+
+### Fixed
+
+- Public CI checks shipped generation and resources before packing, then installs the resulting tarball in a clean consumer environment and runs consumer doctor. These checks use the actual distribution without requiring source tests or a lockfile absent from the release snapshot.
+- The root INSTALL.md in the release snapshot is now sourced from the same rendered input as the three host copies, ensuring consistent runtime bundle byte-level verification.
+
+### Changed
+
+- Maintainer release governance now enforces the existing full per-unit workflow: Graph must be published and verified before the assistant is prepared. A scoped snapshot-verify gate reads compatibility.json from the frozen input snapshot and performs an exact installation of the Graph dependency from the official npm registry. A failure at this stage blocks the PREPARED assistant plan; temporary input snapshots remain non-authoritative for publication. Generic release tiers and public APIs remain unaffected.
+- Plugin and Graph installation coordinates are now synchronized at version 1.0.1.
+
 ## 1.0.0
 
 ### Added

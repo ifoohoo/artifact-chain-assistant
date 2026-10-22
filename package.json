@@ -1,6 +1,6 @@
 {
   "name": "artifact-chain-assistant",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Codex, Claude Code, and Kimi Code assistant plugin for artifact-chain projects",
   "license": "Apache-2.0",
   "type": "module",
@@ -100,7 +100,7 @@
   },
   "devDependencies": {
     "ajv": "^8.20.0",
-    "artifact-graph": "1.0.0"
+    "artifact-graph": "1.0.1"
   },
   "artifactChainManagedResources": {
     "expression-outbound.mjs": {

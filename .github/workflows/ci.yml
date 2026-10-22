@@ -5,19 +5,86 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
-  test:
+  distribution:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.17.1
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-      - run: pnpm install
-      - run: pnpm test:ci
-      - run: pnpm typecheck
-      - run: pnpm build
-      - run: git diff --exit-code
+          node-version: 22.22.2
+      - name: Verify distributed package
+        shell: bash
+        run: |
+          set -euo pipefail
+          export EXPECTED_PACKAGE_NAME=$(node -p "require('./package.json').name")
+          export EXPECTED_PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          case "$EXPECTED_PACKAGE_NAME" in
+            artifact-chain-assistant)
+              node scripts/generate-canonical-json-protocol.mjs --check
+              node scripts/generate-schema-validators.mjs --check
+              node scripts/sync-skills.mjs --check
+              node scripts/build-adapters.mjs --check
+              node scripts/build-runtime-bundles.mjs --check
+              node scripts/check-templates.mjs
+              node scripts/check-compatibility.mjs
+              node scripts/check-family-api.mjs
+              ;;
+            artifact-graph) ;;
+            *) exit 1 ;;
+          esac
+          distribution_tmp=$(mktemp -d)
+          trap 'rm -rf "$distribution_tmp"' EXIT
+          mkdir "$distribution_tmp/pack" "$distribution_tmp/consumer"
+          npm pack --ignore-scripts --json --pack-destination "$distribution_tmp/pack" > "$distribution_tmp/pack.json"
+          tarball=$(node -e "const p=require(process.argv[1]); if(p.length!==1)process.exit(1); console.log(p[0].filename)" "$distribution_tmp/pack.json")
+          node -e "const p=require(process.argv[1])[0]; console.log(JSON.stringify({name:p.name,version:p.version,shasum:p.shasum,integrity:p.integrity}))" "$distribution_tmp/pack.json"
+          cd "$distribution_tmp/consumer"
+          printf '{"private":true,"type":"module"}\n' > package.json
+          npm install --no-audit --no-fund --no-package-lock --registry=https://registry.npmjs.org --cache "$distribution_tmp/cache" "$distribution_tmp/pack/$tarball"
+          if [ "$EXPECTED_PACKAGE_NAME" = artifact-chain-assistant ]; then
+            runtime_spec=$(node -p "require('./node_modules/artifact-chain-assistant/compatibility.json').artifactGraph.installSpec")
+            npm install --no-audit --no-fund --no-package-lock --registry=https://registry.npmjs.org --cache "$distribution_tmp/cache" "$runtime_spec"
+          fi
+          export PATH="$PWD/node_modules/.bin:$PATH"
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile,access} from 'node:fs/promises';
+          import {join} from 'node:path';
+          import {createRequire} from 'node:module';
+          const require=createRequire(import.meta.url);
+          const root=join(process.cwd(),'node_modules',process.env.EXPECTED_PACKAGE_NAME);
+          const pkg=JSON.parse(await readFile(join(root,'package.json'),'utf8'));
+          assert.equal(pkg.name,process.env.EXPECTED_PACKAGE_NAME);
+          assert.equal(pkg.version,process.env.EXPECTED_PACKAGE_VERSION);
+          const paths=value=>typeof value==='string'?[value]:value&&typeof value==='object'?Object.values(value).flatMap(paths):[];
+          for(const path of [...paths(pkg.bin),...paths(pkg.exports),...paths(pkg.main),...paths(pkg.types)]) await access(join(root,path));
+          const esm=await import('artifact-graph');
+          const cjs=require('artifact-graph');
+          assert.equal(typeof esm.scanArtifacts,'function');
+          assert.equal(typeof cjs.scanArtifacts,'function');
+          assert.equal(require('artifact-graph/project-artifact-profiles').schema_version,'1.0');
+          assert.equal(require('artifact-graph/schemas/review-result.schema.json').type,'object');
+          if(pkg.name==='artifact-chain-assistant') {
+            const policy=JSON.parse(await readFile(join(root,'compatibility.json'),'utf8'));
+            const graph=JSON.parse(await readFile('node_modules/artifact-graph/package.json','utf8'));
+            assert.equal(graph.name+'@'+graph.version,policy.artifactGraph.installSpec);
+            assert.equal(graph.version,policy.artifactGraph.verifiedVersion);
+          }
+          NODE
+          artifact-graph --help
+          npx --no-install artifact-graph --help
+          artifact-graph init --root project
+          artifact-graph scan --root project
+          artifact-graph validate --root project --format json
+          artifact-graph contract list --format json > contracts.json
+          node -e "const p=require('./contracts.json'); if(p.ok!==true||!Array.isArray(p.data?.contracts)||!p.data.contracts.length)process.exit(1)"
+          if [ "$EXPECTED_PACKAGE_NAME" = artifact-chain-assistant ]; then
+            node node_modules/artifact-chain-assistant/scripts/doctor.mjs --root project --format json > doctor.json
+          else
+            artifact-graph doctor --root project --format json > doctor.json
+          fi
+          node -e "const p=require('./doctor.json'); for(const k of ['cli','config','lock','supportedCommands'])if(!(k in p))process.exit(1)"
