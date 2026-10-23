@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 1.1.0
+
+### Added
+
+- `spec-author` supports long executable specifications through a root SPEC, shared startup context, complete domain units, and role-specific task inputs. Small specifications keep the single-file structure. Independent review still covers every acceptance condition and cross-unit relationship.
+- Long prerequisite scenario collections can be read by complete relevant scenarios and their necessary relations. Unreviewed affected content still blocks SPEC output.
+
+### Changed
+
+- Startup inputs disclose the overall change, boundaries, acceptance conditions, and navigation before detailed reading. Resume and review tasks load complete relevant units when making decisions, preserving source versions and explicit gaps.
+- Plugin and Graph installation coordinates are synchronized at 1.1.0. Graph runtime, CLI, API, and contract semantics are unchanged.
+
 ## 1.0.1
 
 ### Fixed
