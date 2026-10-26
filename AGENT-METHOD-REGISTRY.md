@@ -7,10 +7,7 @@ provider verification, and CLI diagnostics.
 
 ## Default Catalog
 
-The default catalog is at `<plugin-root>/agent-methods/catalog.yaml` and registers **13 workflow
-entries**: 8 specialized entries across the `prd-feature` and `scenario-script` families plus 5
-generic review, repair, batch, audit, and generate entries. Generic entries exclude PRD/scenario
-types, so every supported type+intent query remains unique.
+The default catalog is at `<plugin-root>/agent-methods/catalog.yaml` and registers **15 workflow entries**: 8 specialized PRD/scenario entries, 5 generic workflows, and 2 dedicated requirement/SPEC authoring entries. The 3 operation entries bring the total to 18; v2 family catalogs are separate.
 
 The catalog also includes 3 `kind: operation` entries (`artifact.help`, `artifact.setup`,
 `artifact.quickstart`) for read-only discovery and diagnostics; they are not workflow entries
@@ -31,6 +28,8 @@ and are omitted from the table below.
 | `artifact.batch` | artifact-batch | Batch |
 | `artifact.audit` | artifact-audit | Audit / health |
 | `artifact.generate` | artifact-generate | Generate |
+| `artifact.requirement.manage` | artifact-chain-requirements | Capture, query, manage and carry requirements into an iteration |
+| `artifact.spec.author` | spec-author | Author SPEC and execution inputs after prerequisites |
 
 ## Standalone Install
 
@@ -184,6 +183,10 @@ overrides:
 
 The project overlay can also add new entries (via `entries`) and disable plugin entries
 (via `disabled`).
+
+### Default TEST and Replacement
+
+On `codex` and `claude-code`, test planning and execution use strict Registry 0.2.0 v1 selection. With no override, explicitly adopt the TEST public package's `agent-methods/catalog.yaml`, query for a unique candidate using `testing`, `skill-family`, and `plan` or `run`, then verify the provider with the real host and `strictProvider:true`. Project-owned Skills use project `entries/overrides` and real `projectRoots`; an external plugin uses a user-selected catalog with a different ref and disables the original default ref. Invoke only verified providers. Disabled defaults, invalid overlays, missing directories/entries/verification roots, ambiguity, and same-ref catalog conflicts never silently fall back to TEST. Other hosts retain their existing public contracts; P1 is not claimed across every host.
 
 ## Effective Index Is a Generated Cache
 

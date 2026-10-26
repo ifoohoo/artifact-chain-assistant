@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## 1.2.0
+
+### Added
+
+- Forward artifact development and reverse SPEC discussion now hand testing scope, acceptance, and stopping conditions to the selected testing plan method. The default is skill-family-test; test execution still requires an actual object, accepted plan, inputs, original criteria, and authorization. Incomplete prerequisites keep reverse work as a discussion draft before a formal SPEC is produced and independently reviewed.
+- On the codex and claude-code P1 execution surfaces, design and review methods use agent-method-registry 0.2.0 to read the original project selection, support default TEST, project Skills, or explicitly adopted external plugins, and strictly verify providers. Disabled, invalid, missing, or ambiguous providers retain their diagnostic and do not fall back. Other hosts keep their existing contracts.
+- Type-specific artifact authoring and independent review methods complete domain content after template initialization. Requirement collection, query, disposition, and selection into an iteration retain unselected items and do not infer a parent requirement is complete from one completed child.
+
+### Changed
+
+- Ship the new method references in the public skills and Claude, Codex, and Kimi adapter payloads. Existing professional E2E services keep their Family API and Registry v2 contracts; generic workers and TEST do not replace professional semantic judgments.
+- Synchronize assistant and Graph installation coordinates at 1.2.0. Graph runtime, CLI, API, and contract semantics are unchanged from 1.1.0.
+
 ## 1.1.0
 
 ### Added

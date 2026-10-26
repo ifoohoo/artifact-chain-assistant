@@ -6,10 +6,7 @@
 
 ## 默认目录
 
-默认目录位于 `<plugin-root>/agent-methods/catalog.yaml`，注册了 **13 个 workflow 入口**：
-`prd-feature` 和 `scenario-script` 两个技能族的 8 个专业入口，加上 review、repair、
-batch、audit、generate 五个通用入口。通用入口不含 PRD/场景类型，因此每个受支持的
-type+intent 查询都唯一命中。
+默认目录位于 `<plugin-root>/agent-methods/catalog.yaml`，公开 **15 个 workflow 入口**：8 个功能/场景专业入口、5 个通用入口，以及 2 个需求/SPEC 专有作者入口。另有 3 个 operation 入口，总计 18 项；v2 族目录不纳入此 v1 目录计数。
 
 目录还包含 3 个 `kind: operation` 条目（`artifact.help`、`artifact.setup`、
 `artifact.quickstart`），用于只读发现和诊断；它们不是 workflow 入口，下表省略。
@@ -29,6 +26,8 @@ type+intent 查询都唯一命中。
 | `artifact.batch` | artifact-batch | 批处理 |
 | `artifact.audit` | artifact-audit | 审计 / health |
 | `artifact.generate` | artifact-generate | 生成 |
+| `artifact.requirement.manage` | artifact-chain-requirements | 保存、查询、处置需求及迭代承接 |
+| `artifact.spec.author` | spec-author | 前置完成后编写 SPEC 与执行输入 |
 
 ## 单独安装
 
@@ -172,6 +171,10 @@ overrides:
 ```
 
 项目覆盖层还可以通过 `entries` 添加新入口、通过 `disabled` 禁用插件入口。
+
+### 默认 TEST 与替换
+
+`codex` 和 `claude-code` 的测试规划/执行使用 Registry 0.2.0 v1 严格选择：无覆盖时明确采用 TEST 公开包的 `agent-methods/catalog.yaml`，以 `testing`、`skill-family` 和 `plan` 或 `run` 查询唯一候选，再用真实 host 和 `strictProvider:true` 验证入口。项目自有 Skill 使用项目 `entries/overrides` 与真实 `projectRoots`；外部插件使用用户明确选择的不同 ref 目录并禁用原默认 ref。只有 verified 才能调用，禁用、坏覆盖、缺目录/入口/验证根、多候选或同 ref 冲突均不回落 TEST。其他宿主保持原公开合同，不宣称 P1 全宿主支持。
 
 ## 有效索引是生成缓存
 

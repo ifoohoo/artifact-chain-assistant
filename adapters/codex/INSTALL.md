@@ -18,7 +18,7 @@ instructions.
 ## Prerequisites
 
 - Node.js `>=22.22.2 <23`.
-- `artifact-graph` 1.1.0 installed in the target project.
+- `artifact-graph` 1.2.0 installed in the target project.
 - **GitHub SSH key** — Claude Code clones `source: github` entries over SSH by default. If you
   have not configured a GitHub SSH key, set `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` in your shell
   profile, or add the marketplace with an explicit `https://` URL. Codex users can check
@@ -30,20 +30,20 @@ instructions.
 
 | Plugin | Verified Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 1.1.0 | `artifact-graph` 1.1.0 | `pnpm add -D artifact-graph@1.1.0` |
+| `artifact-chain-assistant` 1.2.0 | `artifact-graph` 1.2.0 | `pnpm add -D artifact-graph@1.2.0` |
 
 ### Install The Runtime
 
 The default installation path uses the npm registry with a precise version:
 
 ```bash
-pnpm add -D artifact-graph@1.1.0
+pnpm add -D artifact-graph@1.2.0
 ```
 
 If the npm registry is unavailable, use the explicit GitHub fallback pinned to the verified tag:
 
 ```bash
-pnpm add -D github:ifoohoo/artifact-graph#artifact-graph-v1.1.0
+pnpm add -D github:ifoohoo/artifact-graph#artifact-graph-v1.2.0
 ```
 
 > **Never** install with an unlocked range (`artifact-graph`, `artifact-graph@latest`,
@@ -74,7 +74,7 @@ allowBuilds:
 
 The plugin's `doctor` command validates the installed runtime version before running any
 diagnostic. If it detects a version mismatch or missing CLI, it reports the exact remediation
-command (`pnpm add -D artifact-graph@1.1.0`) and exits non-zero.
+command (`pnpm add -D artifact-graph@1.2.0`) and exits non-zero.
 
 ### CLI Resolution Order
 
@@ -159,7 +159,7 @@ wrappers, and Stop-hook guardrail. These assistant controls do not replace Git h
 
 > **Marketplace note**: `ifoohoo/artifact-skill-set` is an external independent marketplace. The
 > plugin payload is still published from `ifoohoo/artifact-chain-assistant`. The marketplace entry
-> must publish and enable `artifact-chain-assistant` 1.1.0 before the install commands above will
+> must publish and enable `artifact-chain-assistant` 1.2.0 before the install commands above will
 > succeed.
 
 ### Kimi Code
@@ -314,7 +314,7 @@ The plugin should not move these files into the plugin repository.
 
 For a first-time setup, the end-to-end sequence is:
 
-1. **Install the CLI** — `pnpm add -D artifact-graph@1.1.0` (see Prerequisites above). The
+1. **Install the CLI** — `pnpm add -D artifact-graph@1.2.0` (see Prerequisites above). The
    `artifact-chain-setup` skill can run this and the other mechanical install steps for you
    after showing a plan and getting your confirmation.
 2. **Install the plugin** — follow the Codex or Claude Code section above.
@@ -771,10 +771,7 @@ provider verification, and CLI diagnostics.
 
 ### Default Catalog
 
-The default catalog is at `<plugin-root>/agent-methods/catalog.yaml` and registers 13 workflow
-entries: 8 specialized entries across the `prd-feature` and `scenario-script` families, plus 5
-generic review, repair, batch, audit, and generate entries. Generic entries exclude PRD/scenario
-types, so every supported type+intent query remains unique.
+The default catalog is located at `<plugin-root>/agent-methods/catalog.yaml` and registers 15 workflow entries and 3 operation entries: `artifact.help`, `artifact.setup`, and `artifact.quickstart`. The workflows consist of 8 specialized entries under `prd-feature` and `scenario-script`, 5 generic review, repair, batch, audit, and generate entries, and 2 dedicated requirement/SPEC authoring entries. Generic entries exclude PRD and scenario types, ensuring that every supported type+intent query remains uniquely resolved within the catalog.
 
 | Ref | Family | Entry |
 |-----|--------|-------|
@@ -791,6 +788,8 @@ types, so every supported type+intent query remains unique.
 | `artifact.batch` | artifact-batch | Batch |
 | `artifact.audit` | artifact-audit | Audit / health |
 | `artifact.generate` | artifact-generate | Generate |
+| `artifact.requirement.manage` | artifact-chain-requirements | Capture, query, manage and carry requirements into an iteration |
+| `artifact.spec.author` | spec-author | Author SPEC and execution inputs after prerequisites |
 
 ### Standalone Install
 
@@ -934,9 +933,7 @@ agent-method-registry resolve \
 
 ### Closed-Loop Workflow Entries
 
-All 8 specialized entries have `kind: workflow`. A `workflow` entry is a **closed-loop leaf** -- it
-self-completes its own inspect, compose, review, validate, and repair cycle. The outer
-planner should not schedule separate review or repair steps for a workflow entry.
+The 8 specialized `prd-feature` and `scenario-script` entries have `kind: workflow` and provide their declared professional closed-loop flows. Planners should avoid duplicating review or repair work already completed within those flows. The `kind: workflow` classification does not imply closed-loop behavior for all entries. Other entries follow their own contracts, including required independent reviews.
 
 ### Registry Unavailable: Fallback Behavior
 
@@ -1388,7 +1385,7 @@ with append-only behavior; it does not overwrite local rules.
 ### Recovery Steps
 
 ```bash
-# 1. Install dependencies from lockfile (gets artifact-graph@1.1.0)
+# 1. Install dependencies from lockfile (gets artifact-graph@1.2.0)
 pnpm install --frozen-lockfile
 
 # 2. Install plugin per your host (Codex / Claude Code / Kimi Code)
@@ -1455,7 +1452,7 @@ pnpm exec artifact-graph hooks install-git --hook all
 ### Enterprise Mirror
 
 If the corporate environment cannot access the public npm registry or GitHub, mirror both
-`artifact-graph@1.1.0` and the plugin marketplace repository on an internal registry. The mirror
+`artifact-graph@1.2.0` and the plugin marketplace repository on an internal registry. The mirror
 does not change the state ownership model: Git-tracked files remain authoritative, local caches
 remain derived.
 

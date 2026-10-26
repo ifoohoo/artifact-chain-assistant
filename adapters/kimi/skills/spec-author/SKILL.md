@@ -17,6 +17,12 @@ description: 编写或优化 SPEC、执行计划和分层任务输入。核实�
 
 定义适用时直接进入正文检查。无定义或存在阻断缺口时，按授权衔接 `artifact-chain-bootstrap` 或项目已经在用的维护入口，并在返回后重读实际文件。其他流程已经生效的结果直接读取，不强制重跑。旧定义仍然适用就继续沿用。不以定义不足裁掉真实需求。迭代仍不足以表达本次必要内容时，报告具体缺口，不输出 SPEC。
 
+### 0.0 默认测试交接
+
+<!-- @feature ACA27 @scenario S-151 -->
+
+在必要前置制作过程中确定验证范围、接受与停止时，按`references/default-testing.md`实际调用默认plan并读取返回的业务计划；任何方向均不得仅提推荐。不要求尚不存在的未来执行结果，执行阶段条件具备后才实际衔接run。TEST负责测试方法，不代替专业制品作者和独立审阅。
+
 ### 0.1 四项判断分开写
 
 对每个受影响项目分别给出四项结论，每项都写依据：
@@ -106,7 +112,7 @@ SPEC 由两部分组成：来源索引，加上本轮相对基线的增量正文
 
 ## 3.2 标记合同与独立正文审阅
 
-生成或优化完整 `SPEC` 时，先确认目标项目实际采用的合同，再对完整新 `SPEC` 做两层检查。标记通过不等于业务完整；上游 PRD 审阅、已有 `prd-feature/review` 结论、前置专业评审，以及尚未实现的通用 `review` 技能，都不能代替本轮独立的完整 `SPEC` 正文审阅。前置专业评审与完整 SPEC 审阅不能互相补签。独立审阅先复核范围依据，再核对完整正文和必要附件；作者来源表只是导航，不是审阅范围上限，审阅者必须主动查找遗漏的必要来源。
+生成或优化完整 `SPEC` 时，先确认目标项目实际采用的合同，再对完整新 `SPEC` 做两层检查。标记通过不等于业务完整；上游 PRD 审阅、已有 `prd-feature/review` 结论、前置专业评审，以及通用 `review` 的目录或就绪结果，都不能代替本轮独立的完整 `SPEC` 正文审阅。前置专业评审与完整 SPEC 审阅不能互相补签。独立审阅先复核范围依据，再核对完整正文和必要附件；作者来源表只是导航，不是审阅范围上限，审阅者必须主动查找遗漏的必要来源。
 
 官方合同身份是 `artifact.spec@1`，声明源只在 Graph 包 `contracts/spec/schema.json`。`authority` 与 `namespace` 均为 `artifact`。本技能采用该合同，不在助手参考目录复制另一份同身份 schema，也不新增加载器、导出或注册表。
 
@@ -116,7 +122,7 @@ SPEC 由两部分组成：来源索引，加上本轮相对基线的增量正文
 2. 用现有 CLI `artifact-graph contract explain --contract artifact.spec@1 --contracts-dir <contracts> --format json` 读取真实 `identity`、`revisionDigest` 和 `semanticMarkers`。摘要以本次 `explain` / `loadContract` 结果为准，不在技能正文维护平行常量。
 3. 有效机械采用必须看到非空的必需标记集合，覆盖三个业务槽：`changes`（行为变更及完整场景）、`scope`（修改范围与项目边界）、`acceptance`（可观察验收）。`acceptance-record`、`archive-record` 是可选标记，对应正式模板里原有的验收与归档正文；执行草稿不得把未完成项写成 `passed` 或伪造归档。
 4. 对完整新 `SPEC` 调用现有 `artifact-graph contract validate-markers`，提供真实参数：`--contract artifact.spec@1`、`--contracts-dir`、`--revision-digest`（与本次 `explain` 一致）、`--markdown`（完整 SPEC 路径）、`--format json`。不得用 `contract validate` 或 `normalize` 冒充正文验证。`jsonPointer` 只描述同一语义槽，本命令不解引用，也不声称已验证指针映射。
-5. 标记齐全后，交由不同职责方只读审阅完整正文、业务来源和必要附件。两层都通过，才可完成 `SPEC` 验收。
+5. 标记齐全后，交由不同职责方只读审阅完整正文、业务来源和必要附件。两层都通过，才可完成 `SPEC` 验收。 独立职责实际读取 `<plugin-root>/skills/artifact-review/references/type-methods.md` 的 `spec` 方法；采用 `artifact-review spec` 路由时，仍须通过原项目 profile 就绪检查并提交真实独立语义 Review Result。缺少 profile、输入或审阅结果时如实保留缺口，不以通用 worker 补签。
 
 拒绝把下列情况写成机械通过：未知合同；合同未定义或 `semanticMarkers` 为空；只有可选标记、缺少任一必需标记；重复标记；未知标记。内核仍对无标记合同保持兼容（未定义时校验器返回 valid）；宿主必须阅读真实 `explain` 结果再判断，不能把兼容空集当成本轮有效采用。
 

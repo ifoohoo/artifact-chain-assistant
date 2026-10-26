@@ -61,6 +61,12 @@ node <plugin-root>/scripts/requirement-state-check.mjs <entry-path> --from <curr
 
 合并、延期或拒绝不要求改变状态，但必须记录理由。延期还要记录重新评估条件；拒绝要保留原始来源；承接到 SPEC 时记录 `carried_into`。
 
+## 默认测试交接
+
+<!-- @feature ACA27 @scenario S-151 -->
+
+只保存查询条目时不强制TEST。选中条目转迭代并确定验证范围时，先按`<plugin-root>/skills/spec-author/references/default-testing.md` 的共享方法实际交接plan，计划随原要求交spec-author；反向讨论同条件，不要求未来run。
+
 ## 从需求进入增量 SPEC
 
 需要制作、优化或编写 SPEC 时，把规格方法交给 `spec-author`：圈定基线、读取相关制品正文、补全正文与关系、进入已有评审流程；必要正文、关系与适用评审未完成时只返回缺口和补齐安排，不交付 SPEC；完成后再生成 SPEC 与执行输入，并核对双向覆盖。需求登记、状态回写和 add/modify/delete 验收仍由本技能负责。`spec-author` 不替代本技能保存条目。

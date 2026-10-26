@@ -118,6 +118,12 @@ agent-method-registry query \
 
 Registry、有效索引或所需 binding 缺失时，只把动态专业服务标为不可执行。静态 help、普通图查询和已有固定直调入口继续按各自合同工作；不得据此宣布动态 projection 已接入。
 
+## 默认测试交接
+
+<!-- @feature ACA27 @scenario S-151 -->
+
+只读模式只把默认TEST入口及缺口列入下一步；用户继续并授权制作后，按`<plugin-root>/skills/spec-author/references/default-testing.md`实际交接plan，已有计划只更新受影响部分。不因缺TEST停止只读分诊。
+
 ## 后续路由
 
 - 保存、查询、合并、延期、拒绝需求，或建立/验收增量 SPEC：`artifact-chain-requirements`。

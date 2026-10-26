@@ -201,11 +201,11 @@ templates and profile configuration, covering `design-spec`, `link`, `e2e`, `dom
 
 ### Agent Method Registry
 
-The plugin bundles a deterministic agent-method-registry integration covering catalog resolution,
-provider verification, and CLI diagnostics. The default catalog registers 13 workflow entries
-and 3 operation entries (`artifact.help`, `artifact.setup`, `artifact.quickstart`); each
-workflow entry is a closed-loop leaf that self-completes its own review-repair cycle. The
-effective index is a generated cache derived from the catalog plus an optional project overlay.
+The plugin integrates agent-method-registry to support catalog resolution, provider verification, and CLI diagnostics. The default catalog includes 15 workflow entries and 3 operation entries: `artifact.help`, `artifact.setup`, and `artifact.quickstart`. These workflows consist of 8 specialized prd-feature/scenario-script entries, 5 generic review/repair/batch/audit/generate entries, and 2 requirement/SPEC authoring entries. Each entry operates under its own established contract.
+
+`artifact.requirement.manage` maps to `artifact-chain-requirements`, enabling capture, query, and management of requirements, and carryover of selected requirements into an iteration. Capturing a requirement does not mean approval or implementation. `artifact.spec.author` maps to `spec-author`, supporting formal SPEC creation and execution input after prerequisite content, relationships, and applicable reviews are in place; the final SPEC undergoes independent review, and the author does not accept their own work.
+
+Only the 8 specialized prd-feature/scenario-script entries provide declared professional closed-loop flows. Planners should avoid duplicating review or repair work already completed within those flows. The `kind: workflow` classification does not imply closed-loop behavior for all entries. Other entries follow their own contracts, including required independent reviews. The effective index is a generated cache derived from the catalog and an optional project overlay.
 
 For the full catalog table, standalone install, effective index construction, project-level
 override, compact query, fallback behavior, and `PLUGIN_ROOT` discovery, see
@@ -233,13 +233,13 @@ override, compact query, fallback behavior, and `PLUGIN_ROOT` discovery, see
 
 | Plugin | Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 1.1.0 | `artifact-graph` 1.1.0 | `pnpm add -D artifact-graph@1.1.0` |
+| `artifact-chain-assistant` 1.2.0 | `artifact-graph` 1.2.0 | `pnpm add -D artifact-graph@1.2.0` |
 
 ## Install
 
 ```bash
 # Runtime (required)
-npm install --save-dev artifact-graph@1.1.0
+npm install --save-dev artifact-graph@1.2.0
 ```
 
 ```bash
@@ -261,7 +261,7 @@ codex plugin add artifact-chain-assistant@artifact-skill-set
 
 > **Marketplace note**: `ifoohoo/artifact-skill-set` is an external independent marketplace. The
 > plugin payload is still published from `ifoohoo/artifact-chain-assistant`. The marketplace entry
-> must publish and enable `artifact-chain-assistant` 1.1.0 before the install commands above will
+> must publish and enable `artifact-chain-assistant` 1.2.0 before the install commands above will
 > succeed.
 
 ```text
@@ -290,7 +290,7 @@ For the full installation guide, quick start, Agent prompts, and clone onboardin
 
 ## Quick Start
 
-1. Install plugin 1.1.0 (above) and runtime: `pnpm add -D artifact-graph@1.1.0`.
+1. Install plugin 1.2.0 (above) and runtime: `pnpm add -D artifact-graph@1.2.0`.
 2. Run `artifact-graph doctor --root . --format json` to verify the runtime.
 3. For first-time setup, use the bootstrap skill.
 4. For daily work, use the maintainer skill.

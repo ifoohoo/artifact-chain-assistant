@@ -223,10 +223,11 @@ catalog 还包含 `artifact.generate`，用于从模板和 profile 配置生成 
 
 ### Agent Method Registry（代理方法注册表）
 
-插件内置了确定性的 agent-method-registry 集成，提供目录解析、provider 验证和 CLI 诊断。
-默认目录注册了 13 个 workflow 入口和 3 个 operation 入口（`artifact.help`、`artifact.setup`、
-`artifact.quickstart`）；每个 workflow 入口是闭环叶子，自行完成 review-repair 循环。
-有效索引是生成缓存，由目录加上可选的项目覆盖层派生。
+该插件集成 agent-method-registry 以支持目录解析、提供方验证和 CLI 诊断。默认目录包含 15 个工作流（workflow）入口和 3 个操作（operation）入口：`artifact.help`、`artifact.setup` 与 `artifact.quickstart`。这些工作流入口由 8 个 `prd-feature`、`scenario-script` 专业入口、5 个通用审阅、修复、批处理、审计和生成入口，以及 2 个需求管理与 SPEC 编写入口组成，每个入口均遵循各自的合同。
+
+`artifact.requirement.manage` 映射至 `artifact-chain-requirements`，支持收集、查询和管理需求，并将已选条目承接到迭代。收集不等于批准或实施。`artifact.spec.author` 映射至 `spec-author`，在前置内容、关联关系及适用评审就绪后支持正式 SPEC 的创建与执行输入；最终生成的 SPEC 需经独立审阅，作者不得自我接受。
+
+仅有 8 个 `prd-feature`、`scenario-script` 专业入口提供各自声明的专业闭环流程，规划器应避免对这些流程内已完成的同一审阅或修复工作进行重复安排。`kind: workflow` 分类并不意味着所有入口均具备闭环行为，其他入口遵循各自的合同，包括合同要求的独立审阅。有效索引为基于目录与可选项目覆盖层生成的派生缓存。
 
 完整的目录表格、单独安装、有效索引构建、项目级覆盖、紧凑查询、fallback 行为和
 `PLUGIN_ROOT` 发现方式，详见 [AGENT-METHOD-REGISTRY.md](AGENT-METHOD-REGISTRY.md)。
@@ -252,13 +253,13 @@ catalog 还包含 `artifact.generate`，用于从模板和 profile 配置生成 
 
 | 插件 | 运行时 | 安装 |
 | --- | --- | --- |
-| `artifact-chain-assistant` 1.1.0 | `artifact-graph` 1.1.0 | `pnpm add -D artifact-graph@1.1.0` |
+| `artifact-chain-assistant` 1.2.0 | `artifact-graph` 1.2.0 | `pnpm add -D artifact-graph@1.2.0` |
 
 ## 安装
 
 ```bash
 # 运行时（必需）
-npm install --save-dev artifact-graph@1.1.0
+npm install --save-dev artifact-graph@1.2.0
 ```
 
 ```bash
@@ -280,7 +281,7 @@ codex plugin add artifact-chain-assistant@artifact-skill-set
 
 > **市场说明**：`ifoohoo/artifact-skill-set` 是外部独立市场，插件载荷仍由
 > `ifoohoo/artifact-chain-assistant` 发布。市场条目必须先发布并启用
-> `artifact-chain-assistant` 1.1.0，上述安装命令才能生效。
+> `artifact-chain-assistant` 1.2.0，上述安装命令才能生效。
 
 ```text
 # Kimi Code 插件（交互式，user 作用域）
@@ -307,7 +308,7 @@ Qoder 当前承诺的边界是技能安装与发现；不提供 Claude Code 的 
 
 ## 快速开始
 
-1. 安装插件 1.1.0（见上文）和运行时：`pnpm add -D artifact-graph@1.1.0`。
+1. 安装插件 1.2.0（见上文）和运行时：`pnpm add -D artifact-graph@1.2.0`。
 2. 运行 `artifact-graph doctor --root . --format json` 验证运行时。
 3. 首次搭建，进入 bootstrap 技能。
 4. 日常工作，进入 maintainer 技能。

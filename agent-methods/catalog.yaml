@@ -1,7 +1,8 @@
+# @feature ACA27 @scenario S-153
 schemaVersion: 1
 catalog:
   id: artifact-chain-assistant
-  version: "1.1.0"
+  version: "1.2.0"
 entries:
   - ref: artifact.prd-feature.default
     provider:
@@ -155,10 +156,10 @@ entries:
       plugin: artifact-chain-assistant
       skill: artifact-review
     kind: workflow
-    summary: "通用制品审阅路由，按 domain 分派到类型专用 worker"
+    summary: "通用制品独立审阅，按类型方法及项目 profile 完成语义判断和结果关联"
     match:
       domains: [artifact]
-      artifactTypes: [design-spec, link, e2e, domain, contract, blueprint, verification]
+      artifactTypes: [design-spec, design, link, e2e, domain, contract, blueprint, verification, requirement, decision, agent-skill, spec]
       intents: [review]
     accepts:
       - "制品文件或目录路径"
@@ -227,15 +228,15 @@ entries:
       plugin: artifact-chain-assistant
       skill: artifact-generate
     kind: workflow
-    summary: "通用制品生成入口，从模板和 profile 配置生成非 PRD/scenario 类型制品"
+    summary: "通用制品作者入口，初始化模板后完成领域正文与验证并交独立审阅"
     match:
       domains: [artifact]
-      artifactTypes: [design-spec, link, e2e, domain, contract, blueprint, verification]
+      artifactTypes: [design-spec, design, link, e2e, domain, contract, blueprint, verification, decision, agent-skill]
       intents: [generate]
     accepts:
       - "制品类型、目标路径和模板配置"
     produces:
-      - "从模板生成的制品文件"
+      - "完整领域正文、验证记录及待独立审阅的制品"
     sideEffects:
       - write-project-artifacts
 
@@ -295,3 +296,39 @@ entries:
       - "路由建议和目标技能推荐"
     sideEffects:
       - read-only
+
+  - ref: artifact.requirement.manage
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: artifact-chain-requirements
+    kind: workflow
+    summary: "保存、查询、处置需求并把已选条目承接到增量 SPEC"
+    match:
+      domains: [artifact]
+      artifactTypes: [requirement]
+      intents: [author, manage, capture, query, update]
+    accepts:
+      - "用户原始诉求、已有需求条目及本轮授权"
+    produces:
+      - "需求原件、处置与承接引用、分别核实的交付事实"
+    sideEffects:
+      - write-project-artifacts
+
+  - ref: artifact.spec.author
+    provider:
+      scope: plugin
+      plugin: artifact-chain-assistant
+      skill: spec-author
+    kind: workflow
+    summary: "前置正文、关系与适用评审完成后编写 SPEC 和必要执行输入"
+    match:
+      domains: [artifact]
+      artifactTypes: [spec]
+      intents: [author]
+    accepts:
+      - "原始需求、当前制品、已确认裁决与项目定义"
+    produces:
+      - "最终 SPEC、必要执行输入及独立语义审阅结果或具体缺口"
+    sideEffects:
+      - write-project-artifacts

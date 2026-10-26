@@ -4,11 +4,14 @@ description: Use when generating non-PRD, non-scenario artifact types from templ
 argument-hint: "<domain> <target-path> [--run-dir <path>] [--template <path>]"
 ---
 
+
+<!-- @feature ACA27 @scenario S-153 -->
+
 # artifact-generate — 通用制品生成
 
 ## 目的
 
-面向非 PRD、非 scenario 类型的制品生成入口。从 profile 配置的 templates 生成制品文件，并运行 validators 验证生成结果。
+面向非 PRD、非 scenario 类型的制品生成入口。先按项目 profile 初始化模板，再由作者完成领域正文，验证最终目标并交独立审阅；模板生成不等于领域完成。
 
 PRD 和 scenario 的生成由各自的专业 author 技能负责（`prd-feature-author`、`scenario-script-author`），本技能不覆盖这两类类型，避免 intent 重叠。
 
@@ -18,7 +21,11 @@ PRD 和 scenario 的生成由各自的专业 author 技能负责（`prd-feature-
 /artifact-generate <domain> <target-path> [--run-dir <path>] [--template <path>]
 ```
 
-先运行只读检查：
+先按 `<plugin-root>/skills/artifact-review/references/method-selection.md` 完成当前宿主的方法选择。codex/claude-code 的 P1 必须由 Registry 严格查询、解析并验证实际作者；若所选 Skill 不是本入口，立即委派并停止，不能继续公共 worker 或原 profile worker。只有所选入口就是本技能时才继续。
+
+再读取 [分型正文制作方法](references/type-methods.md)，按项目实际类型选择作者。需求沿 `artifact-chain-requirements`；正式 SPEC 与执行输入沿 `spec-author`；专业 `e2e-test` 沿真实已绑定的 0.2.1 提供方及其原 v2/service-runner，不进入公共模板流程。保留已明确采用的 legacy `e2e` 合同，不能冒称专业 E2E。
+
+对其余项目已采用类型，先运行只读检查：
 
 ```bash
 node <plugin-root>/scripts/check-workflow-profile.mjs \
@@ -57,7 +64,9 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
    - `execution_mode: project-worker`：只委派 checker 返回的 `worker_path`，然后停止本入口；不得继续公共模板流程。
    - `execution_mode: public-worker`：委派 checker 返回的内置 `worker_path`，由公共 worker 执行 templates/validators 流程。
    - 其他值、缺失 `worker_path` 或非 `OK`：fail closed，返回 `NEEDS_INPUT`/`BLOCKED`。
-4. **结果验证**：用真实 Review Result validator 验证 worker 结果后写入 run-dir；validator 退出码非零时为 `BLOCKED`。
+4. **初始化结果验证**：用真实 Review Result validator 验证 worker 结果后写入 run-dir；validator 退出码非零时为 `BLOCKED`。script 的 `SUCCEEDED` 仅表示模板初始化及机械验证，不能报告正文完成。
+5. **完成领域正文**：在 `public-worker` 初始化成功后，作者实际按 [分型正文制作方法](references/type-methods.md) 完成项目正文，记录真实来源和未决项。最终目标沿 profile 的真实 validator 入口验证，不重新调用 generate 覆盖正文。
+6. **独立审阅**：将最终正文交不同职责的 `artifact-review`；作者交付决策为 `NOT_APPLICABLE`，不自行 `PASS` 或接受。正文、验证与适用独立审阅各自成立后，才报告领域完成。
 
 ## Fail-closed 规则
 

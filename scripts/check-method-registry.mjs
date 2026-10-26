@@ -116,8 +116,8 @@ function runRegistryExpectFail(args) {
 
   const index = JSON.parse(readFileSync(indexPath, 'utf-8'));
 
-  // ── 3. Exactly 16 entries ──
-  assert(index.entries.length === 16, `expected 16 entries, got ${index.entries.length}`);
+  // ── 3. Exactly 18 entries ──
+  assert(index.entries.length === 18, `expected 18 entries, got ${index.entries.length}`);
   const operationRefs = new Set(['artifact.help', 'artifact.setup', 'artifact.quickstart']);
   for (const entry of index.entries) {
     if (operationRefs.has(entry.ref)) {
@@ -145,6 +145,8 @@ function runRegistryExpectFail(args) {
     'artifact.help',
     'artifact.setup',
     'artifact.quickstart',
+    'artifact.requirement.manage',
+    'artifact.spec.author',
   ];
   const actualRefs = index.entries.map(e => e.ref).sort();
   const sortedExpected = [...expectedRefs].sort();
@@ -284,7 +286,7 @@ function runRegistryExpectFail(args) {
     `scenario review query should return exactly artifact.scenario-script.review`
   );
 
-  // ── 10. Resolve all 13 entries for Codex host (using adapter catalog) ──
+  // ── 10. Resolve all public entries for Codex host (using adapter catalog) ──
   const codexIndexPath = join(tmpDir, 'codex-effective-index.json');
   const codexIndexResult = runRegistry(['index', '--catalog', codexCatalogPath, '--out', codexIndexPath]);
   assert(codexIndexResult.ok === true, 'codex adapter index build should succeed');
@@ -301,7 +303,7 @@ function runRegistryExpectFail(args) {
     );
   }
 
-  // ── 11. Resolve all 13 entries for Claude host (using adapter catalog) ──
+  // ── 11. Resolve all public entries for Claude host (using adapter catalog) ──
   const claudeIndexPath = join(tmpDir, 'claude-effective-index.json');
   const claudeIndexResult = runRegistry(['index', '--catalog', claudeCatalogPath, '--out', claudeIndexPath]);
   assert(claudeIndexResult.ok === true, 'claude adapter index build should succeed');
@@ -473,5 +475,5 @@ if (issues.length > 0) {
   }
   process.exit(1);
 } else {
-  console.log('Method registry check passed: 16 entries (13 workflow + 3 operation), schema/query/resolve/overlay all verified.');
+  console.log('Method registry check passed: 18 entries (15 workflow + 3 operation), schema/query/resolve/overlay all verified.');
 }
