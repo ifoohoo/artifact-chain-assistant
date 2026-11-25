@@ -100,6 +100,8 @@ let drift = false;
 const stalePaths = [
   'adapters/claude/.claude-plugin/marketplace.json',
   '.agents/plugins/marketplace.json',
+  '.agents/skills',
+  '.agents',
   '.claude-plugin/marketplace.json',
   'adapters/codex/commands',
   'adapters/codex/commands/version-lock-audit.sh',
@@ -161,11 +163,13 @@ const rootManifests = [
   { from: 'adapters/claude/.claude-plugin/plugin.json', path: '.claude-plugin/plugin.json', rewriteSkills: false },
   { from: 'adapters/codex/.codex-plugin/plugin.json', path: '.codex-plugin/plugin.json', rewriteSkills: true, skillsPrefix: './adapters/codex/' },
   { from: 'adapters/kimi/.kimi-plugin/plugin.json', path: '.kimi-plugin/plugin.json', rewriteSkills: true, skillsPrefix: './adapters/kimi/' },
+  { template: 'templates/antigravity/plugin.json.tpl', path: 'plugin.json', rewriteSkills: false },
 ];
 for (const manifest of rootManifests) {
   const target = join(root, manifest.path);
-  const sourceContent =
-    generatedContent.get(manifest.from) ?? (await readFile(join(root, manifest.from), 'utf-8'));
+  const sourceContent = manifest.template
+    ? render(await readFile(join(root, manifest.template), 'utf-8'), vars)
+    : generatedContent.get(manifest.from) ?? (await readFile(join(root, manifest.from), 'utf-8'));
   // Root Claude manifest keeps ./skills/ for standard plugin installation at repository root.
   // Root Codex manifest rewrites to ./adapters/codex/skills/ because Codex adapter is self-contained.
   const content = manifest.rewriteSkills

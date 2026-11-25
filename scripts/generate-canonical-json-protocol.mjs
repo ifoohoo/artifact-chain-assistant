@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @feature ACA18 @scenario S-68
 // Generate a self-contained snapshot from agent-method-registry's public
 // canonical-json-v1 protocol. Public packages verify the snapshot digest
 // without reading a sibling checkout; parent integration supplies --authority.

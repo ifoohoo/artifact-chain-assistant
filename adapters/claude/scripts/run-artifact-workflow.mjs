@@ -9,7 +9,7 @@ import {
 } from 'node:fs';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { inspectArtifactGraphRuntime } from './lib/artifact-graph-runtime.mjs';
-import { buildCheckerOutput } from './lib/workflow-profile.mjs';
+import { buildCheckerOutput, checkFormalSpecReview } from './lib/workflow-profile.mjs';
 
 const INTENTS = new Set(['review', 'repair', 'generate']);
 const TASK_FIELDS = ['intent', 'domain', 'target_path', 'run_dir', 'profile_resolution', 'input_result'];
@@ -160,6 +160,7 @@ function executeValidators(entries, { root, target, task }) {
       env: {
         ...process.env,
         ARTIFACT_WORKFLOW_INTENT: task.intent,
+        ARTIFACT_WORKFLOW_PHASE: task.phase ?? 'draft',
         ARTIFACT_WORKFLOW_DOMAIN: task.domain,
         ARTIFACT_WORKFLOW_ROOT: root,
         ARTIFACT_WORKFLOW_TARGET: target,
@@ -202,9 +203,14 @@ function commitStage(stage, target) {
   removeStage(stage);
 }
 
-function runReview(task, context) {
+async function runReview(task, context) {
   const { root, target, cliPath, runDir } = context;
   const targetFile = readableFile(target, root, 'target');
+  if ((task.phase ?? 'draft') !== 'draft') {
+    if (!task.profile_resolution.validators?.length) return blockedResult(task, 'Formal SPEC review requires canonical validators.');
+    const checked = await checkFormalSpecReview({ root, target: targetFile, inputResult: task.input_result });
+    if (checked.status !== 'OK') return { ...baseResult(task, checked.status, checked.status, checked.diagnostics.join('; ')) };
+  }
   const deterministic = executeValidators(task.profile_resolution.validators ?? [], { root, target: targetFile, task });
   const evidence = [
     { type: 'target', path: targetFile, result: 'review scope' },
@@ -225,11 +231,15 @@ function runReview(task, context) {
   if (!source.review || !Array.isArray(source.review.findings)) {
     return blockedResult(task, 'The supplied result is not a semantic review result with review.findings.', [...evidence, validation.evidence]);
   }
+  if ((task.phase ?? 'draft') !== 'draft') {
+    const checked = await checkFormalSpecReview({ root, target: targetFile, inputResult: source });
+    if (checked.status !== 'OK') return { ...baseResult(task, checked.status, checked.status, checked.diagnostics.join('; ')) };
+  }
   return {
     ...source,
     review: {
       ...source.review,
-      source_files: Array.from(new Set([...(source.review.source_files ?? []), targetFile])),
+      ...((task.phase ?? 'draft') !== 'draft' ? {} : { source_files: Array.from(new Set([...(source.review.source_files ?? []), targetFile])) }),
     },
     evidence: [...(source.evidence ?? []), ...evidence, validation.evidence],
   };
@@ -336,10 +346,14 @@ export async function runArtifactWorkflow(input) {
   if (!provenance.ok) {
     return writeValidatedResult(blockedResult(task, `Profile provenance mismatch: ${provenance.problems.join('; ')}`), context);
   }
+  const phase = task.phase === undefined ? 'draft' : task.phase;
+  if (!['draft', 'handoff', 'execute'].includes(phase) || phase !== 'draft' && (task.intent !== 'review' || task.domain !== 'spec' || task.input_result == null)) {
+    return writeValidatedResult(blockedResult(task, 'Formal phase only supports read-only review/spec with the actual SPEC evidence result.'), context);
+  }
   let result;
   try {
     result = task.intent === 'review'
-      ? runReview(task, context)
+      ? await runReview(task, context)
       : task.intent === 'generate'
         ? runGenerate(task, context)
         : runRepair(task, context);

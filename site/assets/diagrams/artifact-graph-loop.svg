@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 272" role="img" aria-label="制品图谱与双锁四态闭环示意图">
+  <defs>
+    <marker id="ag-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 1 1 L 9 5 L 1 9 z" class="ag-arrow-head"/>
+    </marker>
+    <marker id="ag-arrow-return" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 1 1 L 9 5 L 1 9 z" class="ag-return-head"/>
+    </marker>
+  </defs>
+  <style>
+    :root {
+      color-scheme: light dark;
+      color: #0f172a;
+      --ag-frame-bg: rgba(99, 102, 241, 0.04);
+      --ag-frame-stroke: rgba(100, 116, 139, 0.26);
+      --ag-card-bg: rgba(99, 102, 241, 0.07);
+      --ag-card-stroke: rgba(99, 102, 241, 0.34);
+      --ag-lock-bg: rgba(14, 165, 233, 0.08);
+      --ag-lock-stroke: rgba(14, 165, 233, 0.38);
+      --ag-verify-bg: rgba(16, 185, 129, 0.09);
+      --ag-verify-stroke: rgba(16, 185, 129, 0.42);
+      --ag-badge-bg: rgba(99, 102, 241, 0.14);
+      --ag-badge-ink: #4338ca;
+      --ag-verify-badge-bg: rgba(16, 185, 129, 0.16);
+      --ag-verify-ink: #047857;
+      --ag-muted: rgba(51, 65, 85, 0.86);
+      --ag-line: rgba(79, 70, 229, 0.85);
+      --ag-return: rgba(16, 185, 129, 0.82);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        color: #f1f5f9;
+        --ag-frame-bg: rgba(99, 102, 241, 0.07);
+        --ag-frame-stroke: rgba(148, 163, 184, 0.24);
+        --ag-card-bg: rgba(99, 102, 241, 0.14);
+        --ag-card-stroke: rgba(129, 140, 248, 0.44);
+        --ag-lock-bg: rgba(14, 165, 233, 0.14);
+        --ag-lock-stroke: rgba(56, 189, 248, 0.44);
+        --ag-verify-bg: rgba(16, 185, 129, 0.15);
+        --ag-verify-stroke: rgba(52, 211, 153, 0.46);
+        --ag-badge-bg: rgba(129, 140, 248, 0.22);
+        --ag-badge-ink: #c7d2fe;
+        --ag-verify-badge-bg: rgba(52, 211, 153, 0.22);
+        --ag-verify-ink: #6ee7b7;
+        --ag-muted: rgba(203, 213, 225, 0.88);
+        --ag-line: rgba(129, 140, 248, 0.92);
+        --ag-return: rgba(52, 211, 153, 0.88);
+      }
+    }
+    .ag-frame { fill: var(--ag-frame-bg); stroke: var(--ag-frame-stroke); stroke-width: 1.5; }
+    .ag-card { fill: var(--ag-card-bg); stroke: var(--ag-card-stroke); stroke-width: 1.5; }
+    .ag-card-lock { fill: var(--ag-lock-bg); stroke: var(--ag-lock-stroke); stroke-width: 1.5; }
+    .ag-card-verify { fill: var(--ag-verify-bg); stroke: var(--ag-verify-stroke); stroke-width: 1.6; }
+    .ag-pill { fill: var(--ag-badge-bg); }
+    .ag-pill-verify { fill: var(--ag-verify-badge-bg); }
+    .ag-pill-text { fill: var(--ag-badge-ink); font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; font-size: 11.5px; font-weight: 700; }
+    .ag-pill-verify-text { fill: var(--ag-verify-ink); font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; font-size: 11.5px; font-weight: 700; }
+    .ag-title { fill: currentColor; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; font-size: 14.5px; font-weight: 700; }
+    .ag-body { fill: var(--ag-muted); font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; font-size: 12px; }
+    .ag-caption { fill: var(--ag-muted); font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; font-size: 11.5px; font-weight: 600; }
+    .ag-connector { stroke: var(--ag-line); stroke-width: 2; fill: none; }
+    .ag-return-arc { stroke: var(--ag-return); stroke-width: 1.8; stroke-dasharray: 5 4; fill: none; }
+    .ag-arrow-head { fill: var(--ag-line); }
+    .ag-return-head { fill: var(--ag-return); }
+  </style>
+
+  <rect x="2" y="2" width="876" height="268" rx="16" class="ag-frame"/>
+
+  <!-- Stage 1 -->
+  <rect x="24" y="28" width="188" height="164" rx="12" class="ag-card"/>
+  <rect x="38" y="42" width="76" height="22" rx="11" class="ag-pill"/>
+  <text x="76" y="57" class="ag-pill-text" text-anchor="middle">01 制品建图</text>
+  <text x="38" y="88" class="ag-title">需求与设计有向图</text>
+  <text x="38" y="112" class="ag-body">• 需求 → 特性 / 场景</text>
+  <text x="38" y="132" class="ag-body">• 设计 / 决策显式关联</text>
+  <text x="38" y="152" class="ag-body">• allowedEdges 边界约束</text>
+  <text x="38" y="172" class="ag-body">• context 抽取实现上下文</text>
+
+  <line x1="216" y1="110" x2="236" y2="110" class="ag-connector" marker-end="url(#ag-arrow)"/>
+
+  <!-- Stage 2 -->
+  <rect x="240" y="28" width="188" height="164" rx="12" class="ag-card-lock"/>
+  <rect x="254" y="42" width="76" height="22" rx="11" class="ag-pill"/>
+  <text x="292" y="57" class="ag-pill-text" text-anchor="middle">02 代码双锁</text>
+  <text x="254" y="88" class="ag-title">实现认领与测试追溯</text>
+  <text x="254" y="112" class="ag-body">• 公开入口全量归属认领</text>
+  <text x="254" y="132" class="ag-body">• 源码 implements 实现锁</text>
+  <text x="254" y="152" class="ag-body">• 单测 verifies 验证锁</text>
+  <text x="254" y="172" class="ag-body">• 拒绝无断言空壳测试</text>
+
+  <line x1="432" y1="110" x2="452" y2="110" class="ag-connector" marker-end="url(#ag-arrow)"/>
+
+  <!-- Stage 3 -->
+  <rect x="456" y="28" width="188" height="164" rx="12" class="ag-card-lock"/>
+  <rect x="470" y="42" width="76" height="22" rx="11" class="ag-pill"/>
+  <text x="508" y="57" class="ag-pill-text" text-anchor="middle">03 摘要锁定</text>
+  <text x="470" y="88" class="ag-title">版本锁与实测收据</text>
+  <text x="470" y="112" class="ag-body">• 细粒度 SHA-256 关系锁</text>
+  <text x="470" y="132" class="ag-body">• version-lock audit 门禁</text>
+  <text x="470" y="152" class="ag-body">• 审阅结果绑定目标摘要</text>
+  <text x="470" y="172" class="ag-body">• sft-runs 真实执行收据</text>
+
+  <line x1="648" y1="110" x2="668" y2="110" class="ag-connector" marker-end="url(#ag-arrow)"/>
+
+  <!-- Stage 4 -->
+  <rect x="672" y="28" width="184" height="164" rx="12" class="ag-card-verify"/>
+  <rect x="686" y="42" width="84" height="22" rx="11" class="ag-pill-verify"/>
+  <text x="728" y="57" class="ag-pill-verify-text" text-anchor="middle">04 四态闭环</text>
+  <text x="686" y="88" class="ag-title">跨仓双向互锁验收</text>
+  <text x="686" y="112" class="ag-body">• 高阶拆分 ↔ 下游回指</text>
+  <text x="686" y="132" class="ag-body">• 双锁齐备自动识别</text>
+  <text x="686" y="152" class="ag-body">• 凭实测收据升格已验证</text>
+  <text x="686" y="172" class="ag-body">• alignment-audit 阻断漂移</text>
+
+  <!-- Return feedback loop -->
+  <path d="M 764 196 L 764 236 L 118 236 L 118 198" class="ag-return-arc" marker-end="url(#ag-arrow-return)"/>
+  <text x="440" y="255" class="ag-caption" text-anchor="middle">变更回环：impact 定位受影响节点 → 同步修订制品与测试 → 刷新锁并复跑门禁</text>
+</svg>

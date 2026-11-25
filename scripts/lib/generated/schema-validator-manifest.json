@@ -5,16 +5,16 @@
     {
       "name": "family-api",
       "schemaPath": "family-apis/schema/family-api.schema.json",
-      "schemaDigest": "sha256:f6ec0f4ffc4a761214a3b22c909a9e7b89a63064bc2c6dad91a691ff48f6db0d",
+      "schemaDigest": "sha256:8b4e641ba9231ce1d774f58943200a8de062bde6a925ca92551479947a400b50",
       "outputPath": "scripts/lib/generated/family-api-validator.generated.mjs",
-      "outputDigest": "sha256:9f23b1452f19695cef61121e76693bdd470e12b9f06527b87b86c32eb351c464"
+      "outputDigest": "sha256:b504f933c61fc06efb6df20ac137a822b1960e2446579153eea6a598cbc6db3e"
     },
     {
       "name": "project-facts",
       "schemaPath": "schemas/project-facts.schema.json",
-      "schemaDigest": "sha256:67255ae925097eebfe84032bb232cee03e7991c26b39060bb50e5ca34d9930ad",
+      "schemaDigest": "sha256:e128185f3c4e08674a3e8260f272dac98f2b529de732378c6ad76895aad393a5",
       "outputPath": "scripts/lib/generated/project-facts-validator.generated.mjs",
-      "outputDigest": "sha256:e291029c1661cfc3aeeaf07bf820e2d806adc873bef867a8be1aaadb2fc537f7"
+      "outputDigest": "sha256:1f5ba6d5a7c9ef7150ba84389e956655f581873344a09f90d9802c175398c8fd"
     }
   ]
 }

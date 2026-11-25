@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://artifact-graph.dev/schemas/artifact-workflow-profile.schema.json",
   "title": "Artifact Workflow Profile",
-  "description": "Project workflow profile for artifact-chain-assistant",
+  "description": "目标项目的制品工作流配置契约（artifact-profiles/project.yaml），声明各意图与制品领域的审查清单、校验脚本、模板及可选项目私有执行器（worker.skill）。",
   "type": "object",
   "required": ["schema_version", "project", "workflows"],
   "additionalProperties": false,
@@ -60,7 +60,7 @@
                 "skill": {
                   "type": "string",
                   "minLength": 1,
-                  "description": "Project workflow skill name, not a filesystem path"
+                  "description": "目标项目工作流技能逻辑名称（非文件系统路径）。"
                 }
               }
             }

@@ -3,6 +3,10 @@ name: artifact-chain-help
 description: 制品链能力说明入口。当用户询问 artifact-chain-assistant 插件能力或 artifact-graph 制品链/版本锁用法（如"这个项目的制品链怎么用"、"artifact-chain-assistant 有哪些能力"）时，展示 artifact-chain-assistant 的标准 Family API、bundled legacy 方法和安装后采用步骤。Registry 或专业 family 实现未安装时仍可用，诚实显示静态标准能力与尚不可执行的服务。
 ---
 
+<!-- @feature ACA21 @scenario S-86 -->
+<!-- @feature ACA23 @scenario S-91 -->
+<!-- @feature ACA29 @scenario S-159 -->
+
 # artifact-chain-help
 
 ## 目的
@@ -99,9 +103,10 @@ Registry projection: NOT_AVAILABLE (REGISTRY_V2_REQUIRED)
 ## 从需求到交付的公开分工
 
 - **技能负责工作方法**：`artifact-chain-requirements` 保存原始诉求、处置与 SPEC 承接；`spec-author` 在选定需求后，于必要正文、关系与适用评审完成前只输出缺口和补齐安排，完成后再编写 SPEC 与执行输入，并识别遗漏场景、删除与重命名风险；`artifact-chain-where-am-i` 盘点和定位；制作、审阅、修复技能根据可执行 profile 工作。
-- **artifact-graph CLI 负责确定性图操作**：用 `artifact-graph query --from <type>:<id>` 查询关系，用 `artifact-graph context --target <type>:<id> --mode implementation` 组装上下文，用 `artifact-graph validate --root <root> --warning-only` 检查图。需要可复用的图专业证明时，用 `artifact-graph check-professional --root <root> --format json` 做只读扫描，再用 `artifact-graph read-proof --proof-root <root> --proof <relative> --format json` 解释本族证明；不要把 Review Result 或 `scan` 缓存当作该合同。
+- **artifact-graph CLI 负责确定性图操作**：用 `artifact-graph query --from <type>:<id>` 查询关系，用 `artifact-graph context --target <type>:<id> --mode implementation` 组装上下文，用 `artifact-graph validate --root <root> --warning-only` 检查图，用 `artifact-graph alignment-audit` / `alignment-lock` 核查与刷新“高阶拆分 ↔ 子仓详设 ↔ 公开代码与测试入口”的双向一致性。需要可复用的图专业证明时，用 `artifact-graph check-professional --root <root> --format json` 做只读扫描，再用 `artifact-graph read-proof --proof-root <root> --proof <relative> --format json` 解释本族证明；不要把 Review Result 或 `scan` 缓存当作该合同。
 - **制品重组技能只补语义判断**：`artifact-chain-restructure` 调用 `artifact-graph restructure inspect/plan` 生成候选；完整人工映射和纯确定性路径直接使用 CLI。授权覆盖且独立复审通过后，同一入口才路由 `restructure apply`、`recover`、`prune-recovery`：apply 需要操作者给出 `--confirm-cooperative-writers`，recover 需要两项维护确认，prune 的普通路径同样需要合作式声明。文件迁移与锁收尾分别报告；计划阶段结果不得报告为已经迁移。
 - **Node API 负责程序化组合**：从 `artifact-graph` 导入 `loadConfig`、`scanArtifacts` 与 `queryGraph`，读取项目配置后扫描，再按 `{ from: '<type>:<id>', schema }` 查询；调用方负责展示或消费结果。
+- **无头制品图快照与统一控制台委托**：运行 `node "$PLUGIN_ROOT/scripts/artifact-workbench.mjs" snapshot --root <repo-dir> [--scan-roots <dir1,dir2>] [--repo <id>] --json` 可只读导出包含 `artifact-graph.config.yaml` 仓库的标准化制品节点、有向追溯边、`traceability-version-lock.json` 新鲜度与审阅状态快照；运行 `serve` 或 `open --root <repo-dir> [--port 57630]` 时，脚本不再自建网页服务器，而是自动探测并委托独立可视化项目 `skill-family-studio`（转发 `--root`、`--port` 与 `--tab graph` 启动单端口统一控制台），若本机尚未安装则返回中文安装指引与状态码 `STUDIO_NOT_INSTALLED`（退出码 `2`）。
 - **测试与 E2E 负责行为验证**：测试文件或 `verifies` 声明只表明验证意图；只有实际运行结果或验收记录能证明验证事实。
 - **目标项目的发布工具负责发布**：插件不代替 npm、GitHub、应用商店或部署系统。发布事实必须引用工具结果和精确版本。
 

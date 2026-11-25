@@ -1,6 +1,6 @@
 # Artifact Chain Assistant
 
-[中文](README.zh-CN.md)
+[中文](README.zh-CN.md) · **Online Documentation (GitHub Pages):** [https://ifoohoo.github.io/artifact-chain-assistant-site/](https://ifoohoo.github.io/artifact-chain-assistant-site/)
 
 Codex, Claude Code, and Kimi Code assistant plugin for projects that use `artifact-graph`; Qoder
 uses the same shared skills as a skill-compatible host.
@@ -41,10 +41,13 @@ passes.
   migration, or repair with an 11-step flow covering config, AGENTS/CLAUDE patching, validation,
   version lock, and hook installation.
 - **`artifact-chain-maintainer`** — daily maintenance. Covers version-lock refresh/audit, doctor
-  diagnostics, and Git hook updates for projects with an established artifact chain.
+  diagnostics, and Git hook installation or idempotent uninstallation (`hooks uninstall`) for projects with an established artifact chain.
 - **`artifact-chain-requirements`** — demand-to-delivery workflow. Preserves unrefined ideas in a
-  project requirement pool, links selected requirements to an incremental SPEC, and records each
-  accepted change with evidence and its current-artifact destination.
+  project requirement pool (or pairs with `artifact-graph inbox` before choosing a target repository),
+  validates dual-dimensional requirement state (`disposition`: `retained|deferred|merged|abandoned|unknown`
+  and `satisfaction`/`coverage`: `unknown|not_met|partly_met|met` alongside `status`), links selected
+  requirements to an incremental SPEC, and records each accepted change with evidence and its
+  current-artifact destination.
 - **`artifact-chain-restructure`** — artifact restructuring. Turns a natural-language restructuring
   request into a checkable mapping and candidate plan for splits, identity splits, cross-file moves,
   and renumbering, and routes the real apply and recovery steps once authorization and operator
@@ -226,6 +229,14 @@ override, compact query, fallback behavior, and `PLUGIN_ROOT` discovery, see
   marketplace and discovers the shared `skills/**`. It does not expose slash command wrappers or
   the Stop-hook guardrail, and diagnostics still use the plugin root `scripts/doctor.mjs` (there
   is no Qoder adapter doctor).
+- **Google Antigravity** reads the root `plugin.json` manifest (official whitelist fields only),
+  `skills/**`, and root `scripts/**` in plugin installations. It does not use Claude slash command
+  wrappers or hooks, and runs root `scripts/doctor.mjs`.
+- **Bidirectional Alignment & Reading Delivery (`ACA28` / `ACA29`)** — the runtime and plugin scripts
+  provide `artifact-graph alignment-audit` / `alignment-lock` (verifying `implementationSurface`
+  claims and cross-repo lineage locks), read-only offline reading bundle generation
+  (`scripts/lib/artifact-reading.mjs`), and headless graph/lock snapshots plus `skill-family-studio`
+  delegation (`scripts/lib/artifact-workbench.mjs`).
 - Git hook templates and installers are host-independent. Git hooks and CI are the hard gates;
   host-specific skills and hooks only provide assistant guidance.
 
@@ -233,13 +244,13 @@ override, compact query, fallback behavior, and `PLUGIN_ROOT` discovery, see
 
 | Plugin | Runtime | Install |
 | --- | --- | --- |
-| `artifact-chain-assistant` 1.2.0 | `artifact-graph` 1.2.0 | `pnpm add -D artifact-graph@1.2.0` |
+| `artifact-chain-assistant` 1.2.1 | `artifact-graph` 1.2.1 | `pnpm add -D artifact-graph@1.2.1` |
 
 ## Install
 
 ```bash
 # Runtime (required)
-npm install --save-dev artifact-graph@1.2.0
+npm install --save-dev artifact-graph@1.2.1
 ```
 
 ```bash
@@ -261,7 +272,7 @@ codex plugin add artifact-chain-assistant@artifact-skill-set
 
 > **Marketplace note**: `ifoohoo/artifact-skill-set` is an external independent marketplace. The
 > plugin payload is still published from `ifoohoo/artifact-chain-assistant`. The marketplace entry
-> must publish and enable `artifact-chain-assistant` 1.2.0 before the install commands above will
+> must publish and enable `artifact-chain-assistant` 1.2.1 before the install commands above will
 > succeed.
 
 ```text
@@ -285,12 +296,14 @@ the Stop hook are not provided. Use `qodercli plugin list --json` to check the i
 `enabled`, `installPath`, and `skills`. Diagnostics still use the plugin root
 `scripts/doctor.mjs`; there is no Qoder adapter doctor.
 
+For **Google Antigravity**, install the full plugin directory into `~/.gemini/config/plugins/artifact-chain-assistant/` (using the root `plugin.json`, `skills/**`, and `scripts/**`).
+
 For the full installation guide, quick start, Agent prompts, and clone onboarding, see
 [INSTALL.md](INSTALL.md).
 
 ## Quick Start
 
-1. Install plugin 1.2.0 (above) and runtime: `pnpm add -D artifact-graph@1.2.0`.
+1. Install plugin 1.2.1 (above) and runtime: `pnpm add -D artifact-graph@1.2.1`.
 2. Run `artifact-graph doctor --root . --format json` to verify the runtime.
 3. For first-time setup, use the bootstrap skill.
 4. For daily work, use the maintainer skill.

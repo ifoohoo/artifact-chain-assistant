@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ifoohoo/artifact-chain-assistant/schemas/artifact-reading.schema.json",
+  "title": "制品阅读包装配输入合同",
+  "description": "定义 artifact-reading 静态阅读包装配入口的两类输入结构：项目级阅读包总配置（config）与单批文档及原生图表投影清单（projection）。所有路径均相对项目根目录解析，修订摘要须使用 sha256:<64位小写十六进制>。",
+  "$defs": {
+    "config": {
+      "type": "object",
+      "description": "阅读包装配总配置，指定包标题、投影清单文件列表、输出目录及渲染形态。",
+      "additionalProperties": false,
+      "properties": {
+        "schemaVersion": {
+          "const": 1,
+          "description": "阅读包配置协议版本，当前固定为 1。"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "阅读包站点主标题，展示于生成阅读页顶部导航。"
+        },
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "参与装配的投影描述文件（projection JSON）相对路径列表，至少包含一项且不重复。",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "description": "单个投影描述文件相对项目根目录的路径。"
+          }
+        },
+        "output": {
+          "type": "string",
+          "minLength": 1,
+          "description": "阅读包静态产物默认输出目录（相对项目根目录），不得与任何输入源路径重叠。"
+        },
+        "productKind": {
+          "const": "library",
+          "description": "委托 skill-family-doc-render 渲染时的产品类型标识，固定为 \"library\"。"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "title",
+        "inputs",
+        "output",
+        "productKind"
+      ]
+    },
+    "projection": {
+      "type": "object",
+      "description": "阅读文档与关联原生图表投影清单，记录每篇阅读文稿与上游制品原件的双重内容摘要绑定。",
+      "additionalProperties": false,
+      "properties": {
+        "schemaVersion": {
+          "const": 1,
+          "description": "阅读投影描述协议版本，当前固定为 1。"
+        },
+        "documents": {
+          "type": "array",
+          "minItems": 1,
+          "description": "选入本次阅读包的文档条目列表，pageId 与 target 在整个阅读包内均须全局唯一。",
+          "items": {
+            "type": "object",
+            "description": "单篇阅读文稿与对应制品原件、覆盖说明及交互图表的装配绑定。",
+            "additionalProperties": false,
+            "properties": {
+              "target": {
+                "type": "string",
+                "pattern": "^[^:]+:.+$",
+                "description": "关联制品在 Artifact Graph 中的唯一标识（格式为 <type>:<id>，原件路径由图索引解析）。"
+              },
+              "sourceRevision": {
+                "type": "string",
+                "pattern": "^sha256:[a-f0-9]{64}$",
+                "description": "制作该阅读稿时所依据的原件内容摘要（sha256:<64位小写十六进制>），原件变更后构建将拒绝静默放行。"
+              },
+              "pageId": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+                "description": "阅读页面稳定路由标识（生成 articles/<pageId>.html），仅允许字母、数字、下划线与连字符。"
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "description": "阅读目录与页面头部展示的中文或业务标题。"
+              },
+              "markdown": {
+                "type": "string",
+                "minLength": 1,
+                "description": "经作者核收后的阅读文稿 Markdown 相对项目根目录路径。"
+              },
+              "markdownRevision": {
+                "type": "string",
+                "pattern": "^sha256:[a-f0-9]{64}$",
+                "description": "经核收阅读文稿的精确内容摘要（sha256:<64位小写十六进制>），用于校验落盘正文未被未审改动。"
+              },
+              "coverage": {
+                "type": "string",
+                "minLength": 1,
+                "description": "可选的范围或语义覆盖核对记录文件相对路径；提供时随阅读包原件一并归档。"
+              },
+              "figures": {
+                "type": "array",
+                "description": "与当前阅读文稿关联的原生交互图表及图节点锚点绑定列表。",
+                "items": {
+                  "type": "object",
+                  "description": "单张原生图表（如 Archify 独立 HTML / SVG）的资源闭包与正文锚点映射。",
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+                      "description": "图表在当前阅读包内的唯一标识，用于导航切换与父子图关联。"
+                    },
+                    "title": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "图表导航列表展示的标题。"
+                    },
+                    "html": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "原生交互图 HTML 页面相对项目根目录路径。"
+                    },
+                    "svg": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "可选的配套静态 SVG 文件相对项目根目录路径。"
+                    },
+                    "resources": {
+                      "type": "array",
+                      "description": "该图表及正文显式选入的附加静态资源（如本地 CSS、JS、assets/<name>.svg）相对路径列表，不允许外链或未声明依赖。",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "单个静态资源相对项目根目录的路径。"
+                      },
+                      "uniqueItems": true
+                    },
+                    "parent": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+                      "description": "局部详图所属的上级总图 id；不得指向自身或形成循环。"
+                    },
+                    "bindings": {
+                      "type": "array",
+                      "description": "图表元素节点到阅读页章节锚点的定位映射列表。",
+                      "items": {
+                        "type": "object",
+                        "description": "单个图节点与阅读页面锚点的跳转绑定。",
+                        "additionalProperties": false,
+                        "properties": {
+                          "nodeId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "description": "图表 DOM/SVG 中的目标元素 id。"
+                          },
+                          "pageId": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+                            "description": "跳转目标阅读页面的 pageId（须在本次阅读包已选文档内）。"
+                          },
+                          "anchor": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+                            "description": "目标阅读页面内已存在的章节标题锚点（不含 # 前缀）。"
+                          }
+                        },
+                        "required": [
+                          "nodeId",
+                          "pageId",
+                          "anchor"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "title",
+                    "html",
+                    "resources",
+                    "bindings"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "target",
+              "sourceRevision",
+              "pageId",
+              "title",
+              "markdown",
+              "markdownRevision"
+            ]
+          }
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "documents"
+      ]
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/config"
+    },
+    {
+      "$ref": "#/$defs/projection"
+    }
+  ]
+}

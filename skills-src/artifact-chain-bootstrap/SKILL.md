@@ -423,51 +423,51 @@ fail-closed (unchanged from before D-ACA-31).
 
 仅当项目形态或采用阶段实际变化时才重新分类。已有定义仍然适用时继续沿用，不强制升级。已有且有效的项目内模板路径不搬迁。只有新采用的类型或选定后仍然缺失的模板，才从含分类层的真实来源初始化。
 
-### Handoff to Maintainer
+### 向 Maintainer 交接
 
-After bootstrap completes successfully, the project transitions to **maintainer** for ongoing operations:
+Bootstrap 成功完成后，项目转入 **maintainer**（`artifact-chain-maintainer`）开展日常维护：
 
-1. **Bootstrap completion signals**:
-   - `artifact-graph.config.yaml` has correct `types`, `paths`, and `idPatterns`
-   - `AGENTS.md` and `CLAUDE.md` contain project-local artifact-chain instructions
-   - `artifact-graph validate --root . --warning-only` passes
-   - `artifact-graph version-lock audit --root . --strict-missing-lock` passes
-   - Git hooks are installed (if requested)
+1. **Bootstrap 完成信号**：
+   - `artifact-graph.config.yaml` 已具备准确的 `types`、`paths` 与 `idPatterns`
+   - `AGENTS.md` 与 `CLAUDE.md` 已包含项目本地制品链说明
+   - `artifact-graph validate --root . --warning-only` 校验通过
+   - `artifact-graph version-lock audit --root . --strict-missing-lock` 审计通过
+   - Git hooks 已安装（若用户请求安装）
 
-2. **Handoff documentation**:
-   - Report which artifact types are enabled and which are deferred
-   - Document the evidence conditions for future profile expansion
-   - Record the exact validation and audit commands for the project
+2. **交接记录**：
+   - 说明当前已启用哪些制品类型、暂缓了哪些类型
+   - 记录未来扩充 profile 的触发依据
+   - 记录本项目的精确校验与版本锁审计命令
 
-3. **Post-bootstrap workflow**:
-   - Daily development: use `artifact-chain-maintainer` for version-lock refresh/audit
-   - Profile expansion: re-invoke `artifact-chain-bootstrap` when adding new artifact types
-   - Configuration issues: re-invoke `artifact-chain-bootstrap` if `artifact-graph.config.yaml` needs major restructuring
+3. **后续日常工作流**：
+   - 日常研发：使用 `artifact-chain-maintainer` 刷新与审计版本锁
+   - 类型扩充：新增制品类型时重新调用 `artifact-chain-bootstrap`
+   - 配置重构：当 `artifact-graph.config.yaml` 需要做大幅结构调整时重新调用 `artifact-chain-bootstrap`
 
-### When to Re-invoke Bootstrap
+### 何时重新调用 Bootstrap
 
-**Re-invoke bootstrap** (not maintainer) when:
-- Adding new artifact types to `artifact-graph.config.yaml` (profile expansion)
-- Changing project shape classification (e.g., from CLI to API service)
-- Major restructuring of artifact directories or ID patterns
-- `artifact-graph doctor` reports configuration corruption
-- Migrating from one artifact-chain setup to another
+在以下情形下**重新调用 bootstrap**（而非 maintainer）：
+- 向 `artifact-graph.config.yaml` 新增制品类型（profile 扩充）
+- 项目形态分类发生变化（例如从 CLI 演进为 API 服务）
+- 制品目录结构或 ID 模式做整体调整
+- `artifact-graph doctor` 报告配置损坏
+- 从旧制品链配置迁移到新结构
 
-**Do NOT re-invoke bootstrap** for:
-- Daily version-lock refresh/audit (use maintainer)
-- Git hook updates (use maintainer)
-- Fixing stale locks or orphan artifacts (use maintainer)
-- Adding traceability annotations to code (use maintainer)
+以下日常事项**不要重新调用 bootstrap**：
+- 日常版本锁刷新与审计（使用 maintainer）
+- Git hook 更新（使用 maintainer）
+- 修复过期锁或孤立制品（使用 maintainer）
+- 在代码中补充追溯注释（使用 maintainer）
 
-### Collaboration with artifact-chain-where-am-i
+### 与 artifact-chain-where-am-i 协同
 
-The `artifact-chain-where-am-i` skill routes to bootstrap when:
-- Project has no `artifact-graph.config.yaml`
-- Configuration is severely inconsistent with actual project structure
-- Project shape has changed significantly
-- Profile expansion is needed
+当出现以下情况时，`artifact-chain-where-am-i` 会将请求路由到 bootstrap：
+- 项目尚无 `artifact-graph.config.yaml`
+- 现有配置与项目实际目录结构严重脱节
+- 项目形态已发生显著变化
+- 需要扩充制品类型集合
 
-Bootstrap should confirm the routing was correct by:
-1. Running `artifact-graph doctor --root <root> --format json`
-2. Comparing existing config with actual project structure
-3. Reporting whether this is a fresh setup, migration, or repair
+Bootstrap 接手后应按以下步骤核实路由合理性：
+1. 运行 `artifact-graph doctor --root <root> --format json`
+2. 比对现有配置与实际项目结构
+3. 明确向用户说明本次属于首次初始化、迁移接入还是配置修复

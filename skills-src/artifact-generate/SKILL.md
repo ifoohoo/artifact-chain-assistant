@@ -96,3 +96,7 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
 - checker 退出 `2`：补齐 project config/profile/template 后重试。
 - 模板渲染失败：检查模板语法和变量引用。
 - Validator 非零：查看 validator stdout/stderr 中的具体错误。
+
+### 正式 SPEC 的交接边界
+
+正式SPEC及执行输入沿spec-author的显式handoff/execute检查和目标项目完整验证门消费，默认生成/审阅输出不自动升级为正式批准。公共生成只初始化草稿；不得重跑generate覆盖现稿。已采用合同的正式worker只读review/spec，并比较SPEC evidence中的实际独立结果及当前输入绑定；未采用项目保持原流程。

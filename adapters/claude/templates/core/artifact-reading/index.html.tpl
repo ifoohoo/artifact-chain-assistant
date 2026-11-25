@@ -1,0 +1,7 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{TITLE}}</title><link rel="stylesheet" href="assets/reading.css"></head>
+<body><header><h1>{{TITLE}}</h1><p>这里只呈现本次选中的资料。图的连线含义以原文为准；浏览或定位不表示已经接受。</p></header>
+<main><aside><label for="search">按标题或稳定身份查找</label><input id="search" type="search"><p class="hint">文字匹配只查本次标题和身份。没有命中不等于没有相关需求；可将原问题及已查范围交给有资料访问权的维护者继续查找。</p><nav id="documents" aria-label="完整资料"></nav><h2>逻辑图</h2><nav id="figures" aria-label="原生图"></nav><a href="READING.md">阅读与转交说明</a></aside>
+<section id="workspace"><div class="toolbar"><button id="back" type="button">返回上一图</button><label for="steps">图中步骤与正文位置</label><select id="steps"></select><a id="native" target="_blank" rel="noopener">打开原生图</a></div><p id="graph-note" role="status"></p><iframe id="diagram" title="原生逻辑图" sandbox="allow-same-origin"></iframe><nav id="node-links" aria-label="当前节点的正文对应"></nav><div class="toolbar"><a id="article-link" target="_blank" rel="noopener">独立打开完整文章</a><a id="source" target="_blank" rel="noopener">查看对应原件</a><button id="locator" type="button">整理定位文本</button></div><p id="identity"></p><textarea id="location-text" aria-label="可转交的定位文本" readonly hidden></textarea><iframe id="article" title="完整文章"></iframe></section></main>
+<noscript><p>脚本未启用时，请从 articles 目录打开文章，从 visual 目录打开原生图；READING.md说明阅读范围。</p></noscript>
+<script id="reading-model" type="application/json">{{MODEL}}</script><script src="assets/reading.js"></script></body></html>

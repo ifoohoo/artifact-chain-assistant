@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://artifact-chain.dev/schemas/project-facts.schema.json",
   "title": "Project Facts Evidence Envelope",
-  "description": "Structured envelope capturing project identity, configuration, graph state, and evidence for registry/planner consumption",
+  "description": "供方法注册表与规划入口消费的项目事实证据信封（v1），记录项目根身份、配置与契约摘要、制品图规模、证明与版本锁状态及确定性证据哈希。",
   "type": "object",
   "required": ["schemaVersion", "projectRoot", "configDigest", "artifactGraphSummary", "targetArtifact", "contractRevisionDigest", "proofStatus", "versionLockStatus", "sourcesFreshness", "bindingFreshness", "evidenceDigest"],
   "additionalProperties": false,
@@ -14,17 +14,17 @@
     "projectRoot": {
       "type": "string",
       "minLength": 1,
-      "description": "Project root identity (path or canonical identifier)"
+      "description": "目标项目根路径或规范化根标识。"
     },
     "configDigest": {
       "type": "string",
       "pattern": "^sha256:[a-f0-9]{64}$",
-      "description": "SHA-256 digest of artifact-graph.config.yaml content"
+      "description": "artifact-graph.config.yaml 配置文件内容的 SHA-256 摘要。"
     },
     "policyDigest": {
       "type": ["string", "null"],
       "pattern": "^sha256:[a-f0-9]{64}$",
-      "description": "SHA-256 digest of project policy overlay, or null if none"
+      "description": "项目策略覆盖层内容的 SHA-256 摘要；未配置策略覆盖时为 null。"
     },
     "artifactGraphSummary": {
       "type": "object",
@@ -51,7 +51,7 @@
     "contractRevisionDigest": {
       "type": "string",
       "pattern": "^sha256:[a-f0-9]{64}$",
-      "description": "SHA-256 digest of the contract revision content"
+      "description": "当前生效契约修订内容的 SHA-256 摘要。"
     },
     "proofStatus": {
       "type": "string",
@@ -64,17 +64,17 @@
     "sourcesFreshness": {
       "type": "string",
       "enum": ["fresh", "stale", "missing"],
-      "description": "Freshness of the adopted catalog source set"
+      "description": "已采用方法目录来源集合的新鲜度状态。"
     },
     "bindingFreshness": {
       "type": "string",
       "enum": ["fresh", "stale", "missing"],
-      "description": "Freshness of the project provider binding"
+      "description": "项目提供方绑定配置的新鲜度状态。"
     },
     "evidenceDigest": {
       "type": "string",
       "pattern": "^sha256:[a-f0-9]{64}$",
-      "description": "SHA-256 digest of the envelope content excluding this field, using stable key serialization"
+      "description": "剔除本字段后按稳定键序序列化信封内容计算得到的 SHA-256 摘要。"
     }
   }
 }

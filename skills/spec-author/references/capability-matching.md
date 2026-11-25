@@ -94,9 +94,11 @@ CLI `scan`、`init` 与 `version-lock refresh` 会写项目。只读请求不得
 
 补充缺失制品时使用已有入口，不另建制作链：
 
-- 需求保存、查询与承接到 SPEC：`artifact-chain-requirements`
-- 功能制品：`prd-feature` 的 author 与 review
-- 场景制品：`scenario-script` 的 author 与 review
+补充缺失制品时，按 `<plugin-root>/skills/artifact-review/references/method-selection.md` 从同一原选择查询专有作者：需求为 `requirement / author`，功能为 `prd-feature / author`，场景为 `scenario-script / author`。`artifact-chain-requirements`、`prd-feature/author`、`scenario-script/author` 仅为默认入口；以唯一 `verified` 结果实际委派，失败保留缺口，不继续固定作者。审阅仍走各入口既有专业闭环与 `Review Result` 合同。
+
+- 需求保存、查询：`artifact-chain-requirements`；专业需求正文和 SPEC 按上述选择转交。
+- 功能制品：按上述选择委派 author，保留 `prd-feature` 的 review。
+- 场景制品：按上述选择委派 author，保留 `scenario-script` 的 review。
 - 其他已配置类型：`artifact-generate` 与 `artifact-review`
 - 盘点与无配置：`artifact-chain-where-am-i`；项目配置决策：`artifact-chain-bootstrap`
 

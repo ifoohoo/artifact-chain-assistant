@@ -4,6 +4,8 @@ description: Use when checking artifact-chain health, traceability, version-lock
 argument-hint: "<target> [--root <path>] [--format json|markdown]"
 ---
 
+<!-- @feature ACA16 @scenario S-50 @scenario S-54 -->
+
 # artifact-audit — 制品类型能力审计
 
 ## 目的

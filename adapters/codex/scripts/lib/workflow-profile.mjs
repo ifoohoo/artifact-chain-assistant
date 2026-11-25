@@ -21,6 +21,9 @@ import {
   resolve,
   sep,
 } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { isDeepStrictEqual } from 'node:util';
+import { inspectArtifactGraphRuntime } from './artifact-graph-runtime.mjs';
 import { parseMinimalYaml } from './inline-yaml-parser.mjs';
 
 const PLUGIN_ROOT = resolve(import.meta.dirname, '..', '..');
@@ -463,7 +466,7 @@ function publicSkillPath(intent, domain) {
   }
 }
 
-function runValidators(paths, { root, intent, domain, target }) {
+function runValidators(paths, { root, intent, domain, target, phase = 'draft' }) {
   const results = [];
   const diagnostics = [];
   const exitCodes = [];
@@ -481,6 +484,7 @@ function runValidators(paths, { root, intent, domain, target }) {
       env: {
         ...process.env,
         ARTIFACT_WORKFLOW_INTENT: intent,
+        ARTIFACT_WORKFLOW_PHASE: phase,
         ARTIFACT_WORKFLOW_DOMAIN: domain ?? '',
         ARTIFACT_WORKFLOW_ROOT: root,
         ARTIFACT_WORKFLOW_TARGET: target ?? '',
@@ -524,8 +528,12 @@ function fixedOutput({ status, profile, executionMode, workerPath, checklistPath
 }
 
 /** The single readiness resolver used by source and both adapters. */
-export async function buildCheckerOutput({ root, profilePath, intent = 'review', domain, runValidatorCommands = true, target }) {
+export async function buildCheckerOutput({ root, profilePath, intent = 'review', domain, runValidatorCommands = true, target, phase = 'draft' }) {
   const projectRoot = resolve(root);
+  const formal = phase !== 'draft';
+  if (!['draft', 'handoff', 'execute'].includes(phase) || formal && (intent !== 'generate' || domain !== 'spec' || !target || !runValidatorCommands || profilePath)) {
+    return fixedOutput({ status: 'BLOCKED', profile: null, executionMode: null, workerPath: null, checklistPaths: [], validators: [], templatePaths: [], diagnostics: ['Invalid formal request: requires generate/spec, target, canonical profile and actual validator execution.'] });
+  }
   if (!VALID_ACTIONS.has(intent)) {
     return fixedOutput({
       status: 'BLOCKED', profile: null, executionMode: null, workerPath: null,
@@ -566,6 +574,7 @@ export async function buildCheckerOutput({ root, profilePath, intent = 'review',
   let templatePaths = [];
   let validators = [];
   let needsInputExit = false;
+  let formalBlocked = false;
 
   if (domainConfig || noProfileAudit) {
     executionMode = domainConfig?.worker?.skill ? 'project-worker' : 'public-worker';
@@ -609,8 +618,14 @@ export async function buildCheckerOutput({ root, profilePath, intent = 'review',
       if (intent === 'audit' && domain === 'release-gate' && checklistPaths.length === 0) {
         problems.push('Audit release-gate requires at least one readable checklist; validator or worker declarations are not reviewable release material');
       }
-      if (runValidatorCommands && intent !== 'audit') {
-        const validatorRun = runValidators(validatorPaths, { root: executionRoot, intent, domain, target });
+      if (formal && validatorPaths.length === 0) problems.push('Formal SPEC requires at least one validator in the canonical profile');
+      if (formal && problems.length === 0) {
+        const checked = await checkFormalSpecReview({ root: executionRoot, target });
+        problems.push(...checked.diagnostics);
+        formalBlocked = checked.status === 'BLOCKED';
+      }
+      if (runValidatorCommands && intent !== 'audit' && (!formal || problems.length === 0)) {
+        const validatorRun = runValidators(validatorPaths, { root: executionRoot, intent, domain, target, phase });
         validators = validatorRun.results;
         problems.push(...validatorRun.diagnostics);
         needsInputExit = validatorRun.exitCodes.some(code => code === 2);
@@ -626,12 +641,18 @@ export async function buildCheckerOutput({ root, profilePath, intent = 'review',
     }
   }
 
+  if (formal && problems.length === 0) {
+    const checked = await checkFormalSpecReview({ root: executionRoot, target });
+    problems.push(...checked.diagnostics);
+    formalBlocked = checked.status === 'BLOCKED';
+  }
+
   // @feature ACA17
   // @decision D-ACA-17
   // BLOCKED issues (non-0/2 exit, signal, timeout, security, path) always override exit 2 (NEEDS_INPUT).
-  const isBlocked = problems.some(item => BLOCKED_PATTERN.test(item));
+  const isBlocked = formalBlocked || problems.some(item => BLOCKED_PATTERN.test(item));
   const status = problems.length === 0 ? 'OK' : isBlocked ? 'BLOCKED' : needsInputExit ? 'NEEDS_INPUT' : 'NEEDS_INPUT';
-  return fixedOutput({
+  const output = fixedOutput({
     status,
     profile,
     executionMode,
@@ -641,4 +662,68 @@ export async function buildCheckerOutput({ root, profilePath, intent = 'review',
     templatePaths,
     diagnostics: [...warnings, ...problems],
   });
+  if (formal && status === 'OK') output.next = `Run the project's existing complete verification gate, then continue ${phase === 'execute' ? 'implementation' : 'the approved handoff'}; do not generate or overwrite the SPEC.`;
+  return output;
+}
+
+// Formal consumption binds existing review evidence to current bytes. Domain
+// prerequisites and the necessary semantic read set remain project-owned.
+export async function checkFormalSpecReview({ root, target, inputResult }) {
+  const diagnostics = [];
+  try {
+    const { resolveContained, readFileContained, digestBytes } = await import('skill-family-harness-node');
+    const canonicalRoot = realpathSync(root);
+    async function localPath(value) {
+      if (typeof value !== 'string' || !value || hasTraversalSegment(value)) throw new Error('Invalid review input path');
+      const rel = isAbsolute(value) ? relative(canonicalRoot, realpathSync(value)) : value;
+      const absolute = await resolveContained(canonicalRoot, rel);
+      const real = realpathSync(absolute);
+      if (!contained(canonicalRoot, real)) throw new Error('Review input path escapes project root');
+      return relative(canonicalRoot, real).split(sep).join('/');
+    }
+    const targetPath = await localPath(target);
+    const runtime = await inspectArtifactGraphRuntime({ projectRoot: canonicalRoot });
+    if (!runtime.ok) throw new Error('Official Graph runtime unavailable');
+    const pkg = JSON.parse(readFileSync(runtime.packagePath, 'utf8'));
+    const api = await import(pathToFileURL(join(dirname(runtime.packagePath), pkg.exports['.'].import.default)).href);
+    const graph = await api.scanArtifacts(canonicalRoot, await api.loadConfig(canonicalRoot));
+    const nodes = graph.nodes.filter(n => n.type === 'spec' && n.path === targetPath);
+    if (nodes.length !== 1) throw new Error('Formal target must resolve to one registered SPEC');
+    const refs = nodes[0].attrs?.rawFrontmatter?.evidence;
+    if (!Array.isArray(refs) || refs.length === 0) return { status: 'NEEDS_INPUT', diagnostics: ['SPEC evidence has no independent result references'] };
+    const candidates = [];
+    for (const ref of refs) {
+      if (typeof ref !== 'string' || extname(ref) !== '.json') continue;
+      const path = await localPath(ref);
+      const value = JSON.parse(await readFileContained(canonicalRoot, path, { encoding: 'utf8' }));
+      if (value.schema_version !== '1.0' || !value.review) continue;
+      const errors = api.validateReviewResult(value);
+      if (errors.length) throw new Error(`Invalid official Review Result: ${ref}`);
+      const sources = await Promise.all((value.review.source_files ?? []).map(localPath));
+      const files = await Promise.all((value.review.files ?? []).map(localPath));
+      if (files.some(p => !sources.includes(p))) throw new Error('Review target scope is missing from source_files');
+      if (sources.includes(targetPath)) candidates.push({ value, sources, primary: files.includes(targetPath) });
+    }
+    const primary = candidates.filter(c => c.primary);
+    const selected = primary;
+    if (selected.length !== 1) return { status: 'NEEDS_INPUT', diagnostics: ['SPEC evidence must identify one complete SPEC review scope'] };
+    const { value, sources } = selected[0];
+    if (inputResult !== undefined && !isDeepStrictEqual(value, inputResult)) throw new Error('input_result does not match the actual SPEC evidence result');
+    if (value.status !== 'SUCCEEDED' || value.decision !== 'PASS') return { status: 'NEEDS_INPUT', diagnostics: ['SPEC independent result has not passed'] };
+    if (!sources.length || new Set(sources).size !== sources.length) throw new Error('Invalid or duplicate reviewed source_files');
+    const bindings = new Map();
+    for (const e of value.evidence ?? []) if (e?.type === 'reviewed-input') {
+      const path = await localPath(e.path);
+      if (bindings.has(path) || !/^sha256:[a-f0-9]{64}$/.test(e.result)) throw new Error('Invalid or duplicate reviewed-input binding');
+      bindings.set(path, e.result);
+    }
+    if (bindings.size !== sources.length || sources.some(p => !bindings.has(p))) throw new Error('reviewed-input bindings do not match the actual review scope');
+    for (const path of sources) {
+      const current = 'sha256:' + digestBytes(await readFileContained(canonicalRoot, path));
+      if (current !== bindings.get(path)) throw new Error(`Reviewed input revision changed: ${path}`);
+    }
+    return { status: 'OK', diagnostics };
+  } catch (error) {
+    return { status: error.code === 'ENOENT' ? 'NEEDS_INPUT' : 'BLOCKED', diagnostics: [error.message] };
+  }
 }

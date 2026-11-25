@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://artifact-chain.dev/schemas/family-api.schema.json",
   "title": "Skill Family API",
-  "description": "Schema for standard Skill Family API definitions owned by artifact-chain-assistant",
+  "description": "由 artifact-chain-assistant 统一维护的标准技能族 API（Skill Family API）接口定义契约。",
   "type": "object",
   "required": ["schemaVersion", "api", "services"],
   "additionalProperties": false,
@@ -19,17 +19,17 @@
         "id": {
           "type": "string",
           "pattern": "^artifact\\.[a-z][a-z0-9-]*-family$",
-          "description": "Canonical family API identity in the artifact.* namespace"
+          "description": "位于 artifact.* 命名空间下的规范技能族 API 标识。"
         },
         "major": {
           "type": "integer",
           "minimum": 1,
-          "description": "Major version indicating compatibility family"
+          "description": "标识接口兼容世代的主版本号。"
         },
         "revisionDigest": {
           "type": "string",
           "pattern": "^sha256:[a-f0-9]{64}$",
-          "description": "Immutable SHA-256 digest of canonical API content excluding this field"
+          "description": "剔除本字段后对规范化 API 定义内容计算得到的不可变 SHA-256 摘要。"
         },
         "displayName": {
           "type": "string",
@@ -43,7 +43,7 @@
           "type": "array",
           "items": { "type": "string", "minLength": 1 },
           "uniqueItems": true,
-          "description": "Artifact types this family operates on"
+          "description": "本技能族负责处理的制品类型标识列表。"
         }
       }
     },
@@ -59,7 +59,7 @@
       "items": {
         "$ref": "#/definitions/capability"
       },
-      "description": "Optional public capabilities (no implementation state)"
+      "description": "可选公开能力声明列表（不包含实现侧运行状态）。"
     },
     "dataTransferObjects": {
       "type": "array",
@@ -82,16 +82,16 @@
         "id": {
           "type": "string",
           "pattern": "^artifact\\.[a-z][a-z0-9-]+\\.[a-z][a-z0-9-]+$",
-          "description": "Canonical service identity: artifact.<family>.<intent>"
+          "description": "规范服务标识，格式为 artifact.<family>.<intent>。"
         },
         "required": {
           "type": "boolean",
-          "description": "Whether this service is required for API conformance"
+          "description": "实现该技能族 API 时是否必须提供此服务。"
         },
         "kind": {
           "type": "string",
           "enum": ["workflow", "operation"],
-          "description": "workflow = stateful multi-step; operation = stateless single-step"
+          "description": "服务执行形态：workflow 表示有状态多步工作流，operation 表示无状态单步操作。"
         },
         "intents": {
           "type": "array",
@@ -110,7 +110,7 @@
               { "$ref": "#/definitions/protocolRef" }
             ]
           },
-          "description": "Input contract references or natural language descriptions"
+          "description": "输入契约引用或自然语言输入要求说明。"
         },
         "produces": {
           "type": "array",
@@ -120,17 +120,17 @@
               { "$ref": "#/definitions/protocolRef" }
             ]
           },
-          "description": "Output contract references or natural language descriptions"
+          "description": "输出契约引用或自然语言产出物说明。"
         },
         "sideEffectCeiling": {
           "type": "string",
           "enum": ["none", "read-only", "write-authorized-artifacts", "write-review-result", "write-project-artifacts"],
-          "description": "Maximum side effect level this service may produce"
+          "description": "该服务允许产生的最高副作用边界级别。"
         },
         "mixSafe": {
           "type": "boolean",
           "default": false,
-          "description": "Whether this service can be bound to a different family implementation than other services in the same family"
+          "description": "该服务是否允许与同一技能族下的其他服务绑定到不同的实现提供方。"
         },
         "discoverable": {
           "type": "object",
@@ -138,11 +138,11 @@
           "properties": {
             "default": {
               "type": "boolean",
-              "description": "Whether this is the default entry point"
+              "description": "是否作为该技能族的默认发现入口。"
             },
             "help": {
               "type": "boolean",
-              "description": "Whether this is the help entry point"
+              "description": "是否作为该技能族的帮助与能力概览入口。"
             }
           }
         },
@@ -208,7 +208,7 @@
     "contractRef": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9-]*\\.[a-z][a-z0-9-]*@[0-9]+$",
-      "description": "Artifact Contract major identity reference (e.g., artifact.e2e-test@1)"
+      "description": "制品契约主版本身份引用（例如 artifact.e2e-test@1）。"
     },
     "protocolRef": {
       "type": "object",
@@ -218,16 +218,16 @@
         "protocol": {
           "type": "string",
           "minLength": 1,
-          "description": "Protocol name when no formal Artifact Contract exists"
+          "description": "尚无正式制品契约时引用的协议名称。"
         },
         "version": {
           "type": "string",
           "minLength": 1,
-          "description": "Protocol version"
+          "description": "所引用协议的版本号。"
         },
         "input": {
           "type": "string",
-          "description": "Describes what the protocol accepts or produces"
+          "description": "说明该协议所接收或产出的载荷用途。"
         }
       }
     }

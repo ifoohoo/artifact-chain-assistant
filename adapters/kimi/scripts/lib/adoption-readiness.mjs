@@ -1,3 +1,4 @@
+// @feature ACA24 @scenario S-113 @scenario S-138c @scenario S-138d
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { loadArtifactGraphConfig, loadProjectArtifactProfiles } from './artifact-graph-runtime.mjs';

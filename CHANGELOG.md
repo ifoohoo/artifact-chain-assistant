@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.2.1
+
+### Changed
+
+- Wired the standalone public documentation site (`ifoohoo/artifact-chain-assistant-site`, published at `https://ifoohoo.github.io/artifact-chain-assistant-site/`) with explicit first-screen GitHub Pages links across public READMEs and package `homepage` metadata.
+- Synchronize assistant and Graph installation coordinates at 1.2.1. Graph runtime, CLI, API, and contract semantics are unchanged from 1.1.0.
+
 ## 1.2.0
 
 ### Added

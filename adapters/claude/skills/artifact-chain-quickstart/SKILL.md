@@ -3,6 +3,9 @@ name: artifact-chain-quickstart
 description: artifact-chain-assistant 插件内的统一路由入口。用户用自然语言描述制品链/artifact-graph 相关需求（如"这个项目的制品链怎么用"、"帮我刷新版本锁"、"这个项目的制品链下一步该做什么"）但不知道用哪个技能时，按确定性路由表推荐正确的入口技能和最小调用提示词。只响应制品链领域信号，不认领无领域限定的裸全局输入。
 ---
 
+<!-- @feature ACA21 @scenario S-88 -->
+<!-- @feature ACA23 @scenario S-96 -->
+
 # artifact-chain-quickstart
 
 ## 目的

@@ -3,6 +3,8 @@ name: artifact-chain-restructure
 description: 分析和规划 artifact-chain 制品拆分、身份拆分、跨文件移动与重编号，并在授权与操作者确认齐备后路由真实应用与恢复收尾。用于把自然语言重组请求编译为 artifact-graph restructure 映射和候选计划，发生业务语义判断时安排独立只读复审；完整人工映射或纯确定性迁移可直接走 CLI。
 ---
 
+<!-- @feature ACA26 @scenario S-125 @scenario S-131 -->
+
 # artifact-chain-restructure
 
 本技能把制品重组请求转换成可检查的映射和候选计划，并在授权覆盖时路由真实应用。`artifact-graph restructure` 负责检查、确定性编译与文件集合应用；语义作者只判断脚本无法可靠决定的功能边界、共同约束、验收项和关系去向。只有计划 `applicable`、独立复审通过、授权覆盖写入且操作者给出相应确认时才能应用；计划阶段结果不得表述为已经应用。

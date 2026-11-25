@@ -46,6 +46,7 @@ evidence: []
 ## 处置与承接
 
 - disposition: retained
+- satisfaction: unknown
 - reason: <保留或处置理由>
 - carried_into: none
 - merged_into: none

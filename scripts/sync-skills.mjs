@@ -48,13 +48,15 @@ for (const host of hosts) {
   }
 }
 
-// Root skills/** is the Claude-semantic distribution copy for standard plugin installation.
+// Root skills/** shares the Claude-semantic distribution copy
+// for standard plugin installation (Qoder / Antigravity / Claude root).
 const claudeHost = hosts.find((h) => h.id === 'claude');
 for (const source of sources) {
   const content = await readFile(source.sourcePath, 'utf-8');
+  const rendered = renderGeneratedSkill(source.template ? render(content, claudeHost) : content, source.name);
   outputs.push({
     path: join(root, `skills/${source.name}/SKILL.md`),
-    content: renderGeneratedSkill(source.template ? render(content, claudeHost) : content, source.name),
+    content: rendered,
   });
 }
 
@@ -85,10 +87,10 @@ for (const host of hosts) {
   }
 }
 
-// Root skills stale check
-{
+// Root skills stale checks
+for (const rootDirRel of ['skills']) {
   const expected = new Set(sources.map((source) => source.name));
-  const skillsRoot = join(root, 'skills');
+  const skillsRoot = join(root, rootDirRel);
   const actual = await skillNames(skillsRoot);
   const missing = [...expected].filter((name) => !actual.has(name));
   const extra = [...actual].filter((name) => !expected.has(name));
@@ -96,11 +98,11 @@ for (const host of hosts) {
   if (check) {
     for (const name of missing) {
       drift = true;
-      console.error(`Generated skill missing: skills/${name}`);
+      console.error(`Generated skill missing: ${rootDirRel}/${name}`);
     }
     for (const name of extra) {
       drift = true;
-      console.error(`Generated skill stale: skills/${name}`);
+      console.error(`Generated skill stale: ${rootDirRel}/${name}`);
     }
   } else {
     for (const name of extra) {

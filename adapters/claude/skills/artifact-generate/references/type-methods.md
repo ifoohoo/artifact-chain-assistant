@@ -4,7 +4,7 @@
 
 先明确项目实际采用的制品类型（feature/scenario/agent_skill/e2e_test等）及其对应原要求来源，识别使用者角色与本轮可观察变更范围，读取完整需求链、场景设计、接口定义、本地模板/checklist，不因目录存在模板而强制采用。类型别名映射规则为：feature → prd-feature, scenario → scenario-script, agent_skill → agent-skill, e2e_test → e2e-test；保持原项目Graph类型/ID不变，不改写或重命名。
 
-需求作者沿 artifact-chain-requirements 路径推进；正式 SPEC 及执行输入由 spec-author 负责生成；功能/场景类制品走现有专业 author 流程，不叠加封装层。
+需求、正式 SPEC、功能与场景均使用 `<plugin-root>/skills/artifact-review/references/method-selection.md` 中相应的 `author` 查询，不套用通用 `generate`，也不固定执行原默认作者。选择自身时继续原专业方法；选择其他真实 Skill 时，交接原要求、模板、必要上下文及权限并停止当前默认制作。保留原必要正文、关系与独立评审；专业 E2E 仍沿下述 v2 整族合同。
 
 专业 E2E（e2e-test/artifact.e2e-test@1）必须使用项目已绑定的 e2e-test0.2.1 整族 v2 与 service-runner：
 - binding 必须由 Registry producer 产生，projectFacts 使用 Registry/Assistant producer 产生且摘要有效的完整 ProjectFactsEvidenceEnvelope；
@@ -36,3 +36,11 @@
 完成正文后，使用 profile 实际 validator 入口验证最终目标，保留输入版本、命令、stdout/stderr、退出码；沿 checker 解析路径与真实命令参数执行，遵守 ARTIFACT_WORKFLOW_TARGET 约定；不再次调用 generate 覆盖已写正文。
 
 按现有协议报告作者及输出，decision NOT_APPLICABLE；不自行 PASS 或接受；交由不同职责按真实类型方法与项目 checklist 独立审阅；发现集中返工后复核影响部分；仅当实际正文与适用审核成立时，方可报告领域完成；无审核则保留未评审状态，不以模板/索引/validator 退出 0 顶替。
+
+## 交付可持续维护的阅读资料
+
+<!-- @feature ACA28 @scenario S-154 -->
+
+需要文章与原生图的阅读交付时，由实际作者先准备完整、经核对的 Docs 兼容正文和通用阅读投影，沿 `<plugin-root>/templates/core/artifact-reading/starter.md` 接入 `<plugin-root>/scripts/artifact-reading.mjs`。专业方法保留业务原件、成员、覆盖与接受语义；普通 Markdown 的阅读源也由作者核对，不让 build 猜删正文。新增与修订后重新核对本次应交范围，不能从旧投影推断集合齐全。
+
+四命令只装配、检查、导出和预览，不调用模型、不回填源与文章绑定、不刷新 Graph 锁。日常表达修改保留当前文章及认可手改；业务反馈先核源再更新受影响资料；明确重写实验另存候选。阅读包与维护包分别验证，构建通过不表示业务、表达、图文、实现或发布已接受。

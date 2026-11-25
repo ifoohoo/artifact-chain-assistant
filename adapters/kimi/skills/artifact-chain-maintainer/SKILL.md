@@ -1,6 +1,6 @@
 ---
 name: artifact-chain-maintainer
-description: 维护 artifact-graph 项目的制品链版本锁、诊断、hook 安装和刷新流程。用于代码或制品变更后检查 traceability-version-lock 是否新鲜，执行 changed-only refresh，或安装 Git/助手 hook。
+description: 维护 artifact-graph 项目的制品链版本锁、环境诊断与 Git Hook 装卸流程。用于代码或制品变更后审计 traceability-version-lock 新鲜度、执行 changed-only 增量刷新，以及安装或幂等卸载受管 Git Hook。
 ---
 
 # artifact-chain-maintainer
@@ -21,12 +21,13 @@ description: 维护 artifact-graph 项目的制品链版本锁、诊断、hook �
 - Git hooks 是硬门禁；助手 hooks 只做提醒、检查和辅助。
 - 项目本地的 `artifacts/**`、`artifact-graph.config.yaml` 和 lock 文件不进入插件。
 
-## Git Hook 安装契约
+## Git Hook 安装与卸载契约
 
-- 使用 `artifact-graph hooks install-git --hook all` 安装可选 Git hook。安装器通过 Git 解析真实
-  hook 路径，支持普通仓库、linked worktree 和 `core.hooksPath`；不要自行假定 `.git/hooks` 路径。
-- 缺失或空 hook 安装后第一行必须是 `#!/bin/sh` 并可被 Git 执行。已有 shell hook 没有任何 execute
-  bit 时只增加 owner execute；卸载必须恢复安装前的 bytes、mode 和存在性。
+- 使用 `artifact-graph hooks install-git --hook all` 安装可选 Git hook；停用或解绑时使用
+  `artifact-graph hooks uninstall --hook all`（兼容 `hooks install-git --uninstall`）幂等移除受管片段。
+  安装器通过 Git 解析真实 hook 路径，兼容普通仓库、linked worktree 和 `core.hooksPath`；不要硬编码假定 `.git/hooks` 路径。
+- 缺失或空 hook 安装后第一行必须是 `#!/bin/sh` 并具备执行权限。已有 shell hook 缺执行位时仅补齐
+  owner execute；执行 `hooks uninstall` 时必须精确移除受管块并完整保留用户原有的或事后追加的自定义脚本内容与权限，重复卸载保持幂等（返回 `unchanged`，退出码 `0`）。
 - `--hook all` 必须先预检两个目标，再按事务应用；任一目标的解释器、symlink、快照或写入失败时，不能
   留下只安装一个 hook 的部分状态。
 - 有效或 dangling symlink 都必须结构化拒绝，不能跟随或用 rename 替换 link；保留 link、target、mode
@@ -67,8 +68,26 @@ description: 维护 artifact-graph 项目的制品链版本锁、诊断、hook �
 2. 运行 `artifact-graph doctor --format json` 确认 CLI、Node、配置和 lock 路径。
 3. 对 staged 变更运行 `artifact-graph version-lock refresh --changed-only --staged --format markdown`。
 4. 运行 `artifact-graph version-lock audit --strict-missing-lock`。
-5. 如果配置文件变化，改用 `artifact-graph version-lock refresh --all`。
-6. 如果出现 orphan lock，默认保留并让人审阅；只有明确清理时才加 `--remove-orphans`。
+5. 运行 `artifact-graph alignment-audit --root <project-root>` 核对双向一致性（包括单仓 `implementationSurface` 公开入口认领、高阶规划 `portfolio-allocations.json` 与子项目 `upstream-bindings.json` 互锁）；若出现摘要漂移，确认两侧设计语义已人工对齐后运行 `artifact-graph alignment-lock --root <project-root>` 同步锁定。
+6. 如果配置文件变化，改用 `artifact-graph version-lock refresh --all`。
+7. 如果出现 orphan lock，默认保留并让人审阅；只有明确清理时才加 `--remove-orphans`。
+
+## 跨仓与单仓双向对齐检查（`alignment-audit` / `alignment-lock`）
+
+<!-- @feature ACA29 @scenario S-159 @scenario S-160 @scenario S-161 -->
+
+在单仓、多仓高阶规划或子项目协同研发中，使用以下入口防止“改了代码丢下设计”、“只派单未落地”或“上下游两张皮”：
+
+- **只读检查**：
+  - 本地或高阶仓检查：`artifact-graph alignment-audit --root . [--strict] [--json]`
+  - 子项目独立核对高阶来源：`artifact-graph alignment-audit --root . --portfolio-root <高阶规划仓目录> [--strict] [--json]`
+- **双向摘要刷新（前提：上下游文件均存在且已在清单中声明对称绑定）**：
+  - `artifact-graph alignment-lock --root . [--portfolio-root <高阶规划仓目录>] [--json]`
+- **常见阻断项与处置方式**：
+  - `UNCLAIMED_IMPLEMENTATION_ENTRY` / `MISSING_CODE_LOCKS`：新增源码或技能入口未关联详细设计。先补齐 `feature` / `design` 制品，在入口文件添加 `// @feature <ID>`（或 `<!-- @feature <ID> -->`），再运行 `version-lock refresh --all`。
+  - `UNALLOCATED_ACTIVE_DEMAND` / `MISSING_DISPOSITION_REASON`：高阶需求为 `allocated` 却未派发给任何下游仓，或延迟/合并/放弃条目缺少说明理由。需在 `artifacts/portfolio-allocations.json` 补齐分配或说明。
+  - `UPSTREAM_DESIGN_CHANGED` / `DOWNSTREAM_DESIGN_EVOLVED` / `LOCAL_DESIGN_UNSYNCED`：上游或下游设计正文发生变化。必须先对比两侧差异并完成内容对齐，再执行 `alignment-lock`。
+  - `UNRECIPROCATED_ALLOCATION`：单边分配未互认。先在下游 `artifacts/upstream-bindings.json` 或上游 `artifacts/portfolio-allocations.json` 建立对称条目，不能靠刷锁自动伪造。
 
 ## 技能协作边界
 

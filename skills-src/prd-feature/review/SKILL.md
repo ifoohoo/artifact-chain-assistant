@@ -3,6 +3,9 @@ name: prd-feature-review
 description: Use when a user wants to review or evaluate an existing PRD feature artifact for quality and completeness.
 ---
 
+<!-- @feature ACA12 @scenario S-36 -->
+<!-- @feature ACA27 @scenario S-152 -->
+
 # prd-feature review
 
 ## 目的

@@ -4,6 +4,8 @@ description: Use when repairing open findings for non-PRD, non-scenario artifact
 argument-hint: "<domain> <target-path> --review-result <path> [--run-dir <path>]"
 ---
 
+<!-- @feature ACA16 @scenario S-47 -->
+
 # artifact-repair — 通用制品修复
 
 ## 目的

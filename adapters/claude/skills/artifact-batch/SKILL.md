@@ -4,6 +4,8 @@ description: Use when a non-PRD, non-scenario artifact workflow needs determinis
 argument-hint: "<action> <domain> <target-path> [--batch-size N] [--max-concurrency N] [--run-dir <path>]"
 ---
 
+<!-- @feature ACA16 @scenario S-49 -->
+
 # artifact-batch — 通用批处理编排
 
 ## 目的

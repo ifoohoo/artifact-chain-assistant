@@ -1,6 +1,6 @@
 {
   "name": "artifact-chain-assistant",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Codex, Claude Code, and Kimi Code assistant plugin for artifact-chain projects",
   "license": "Apache-2.0",
   "type": "module",
@@ -27,7 +27,7 @@
     "check:family-api": "node scripts/check-family-api.mjs",
     "check:schema-validators": "node scripts/generate-schema-validators.mjs --check",
     "check:canonical-json": "node scripts/generate-canonical-json-protocol.mjs --check",
-    "typecheck": "node --check runtime/claude/version-lock-stop.mjs && node --check scripts/build-adapters.mjs && node --check scripts/build-runtime-bundles.mjs && node --check scripts/generate-schema-validators.mjs && node --check scripts/generate-canonical-json-protocol.mjs && node --check scripts/check-templates.mjs && node --check scripts/doctor.mjs && node --check scripts/install-git-hooks.mjs && node --check scripts/sync-skills.mjs && node --check scripts/check-method-registry.mjs && node --check scripts/check-compatibility.mjs && node --check scripts/lib/compatibility-policy.mjs && node --check scripts/lib/artifact-graph-runtime.mjs && node --check scripts/lib/inline-yaml-parser.mjs && node --check scripts/lib/workflow-profile.mjs && node --check scripts/lib/adoption-readiness.mjs && node --check scripts/lib/generated/canonical-json-v1.generated.mjs && node --check scripts/lib/generated/family-api-validator.generated.mjs && node --check scripts/lib/generated/project-facts-validator.generated.mjs && node --check scripts/batch-split.mjs && node --check scripts/batch-merge.mjs && node --check scripts/check-workflow-profile.mjs && node --check scripts/requirement-state-check.mjs && node --check scripts/run-artifact-workflow.mjs && node --check scripts/lib/family-api-validator.mjs && node --check scripts/lib/method-query.mjs && node --check scripts/check-family-api.mjs && node --check scripts/family-compile.mjs && node --check scripts/family-help-render.mjs && node --check scripts/method-query.mjs && node --check scripts/setup-checks.mjs",
+    "typecheck": "node --check runtime/claude/version-lock-stop.mjs && node --check scripts/build-adapters.mjs && node --check scripts/build-runtime-bundles.mjs && node --check scripts/generate-schema-validators.mjs && node --check scripts/generate-canonical-json-protocol.mjs && node --check scripts/check-templates.mjs && node --check scripts/doctor.mjs && node --check scripts/install-git-hooks.mjs && node --check scripts/sync-skills.mjs && node --check scripts/check-method-registry.mjs && node --check scripts/check-compatibility.mjs && node --check scripts/lib/compatibility-policy.mjs && node --check scripts/lib/artifact-graph-runtime.mjs && node --check scripts/lib/inline-yaml-parser.mjs && node --check scripts/lib/workflow-profile.mjs && node --check scripts/lib/adoption-readiness.mjs && node --check scripts/lib/generated/canonical-json-v1.generated.mjs && node --check scripts/lib/generated/family-api-validator.generated.mjs && node --check scripts/lib/generated/project-facts-validator.generated.mjs && node --check scripts/batch-split.mjs && node --check scripts/batch-merge.mjs && node --check scripts/check-workflow-profile.mjs && node --check scripts/requirement-state-check.mjs && node --check scripts/run-artifact-workflow.mjs && node --check scripts/lib/family-api-validator.mjs && node --check scripts/lib/method-query.mjs && node --check scripts/check-family-api.mjs && node --check scripts/family-compile.mjs && node --check scripts/family-help-render.mjs && node --check scripts/method-query.mjs && node --check scripts/setup-checks.mjs && node --check scripts/artifact-reading.mjs && node --check scripts/lib/artifact-reading.mjs && node --check scripts/artifact-workbench.mjs && node --check scripts/lib/artifact-workbench.mjs && node --check templates/core/artifact-reading/reading.js",
     "sync:skills": "node scripts/sync-skills.mjs",
     "sync:skills:check": "node scripts/sync-skills.mjs --check",
     "build:adapters": "node scripts/build-adapters.mjs",
@@ -56,23 +56,20 @@
     ".claude-plugin",
     ".codex-plugin",
     ".kimi-plugin",
+    "plugin.json",
     "adapters",
     "site/.nojekyll",
-    "site/00-matrix.html",
-    "site/01-what.html",
-    "site/02-architecture.html",
-    "site/03-concepts.html",
-    "site/04-cli.html",
-    "site/05-scenarios.html",
-    "site/06-method-registry.html",
-    "site/07-glossary.html",
-    "site/08-maintainer.html",
-    "site/09-troubleshoot.html",
-    "site/10-roadmap.html",
-    "site/assets/editorial/mark.svg",
-    "site/assets/editorial/site.js",
-    "site/assets/editorial/style.css",
+    "site/assets/diagrams/artifact-graph-loop.svg",
+    "site/assets/mark.svg",
+    "site/assets/search-index.json",
+    "site/assets/site.js",
+    "site/assets/theme.css",
+    "site/cli-reference.html",
+    "site/concepts-and-profiles.html",
     "site/index.html",
+    "site/quickstart.html",
+    "site/troubleshooting.html",
+    "site/workflows-and-methods.html",
     "skills",
     "skills-src",
     "templates",
@@ -90,17 +87,21 @@
   "bugs": {
     "url": "https://github.com/ifoohoo/artifact-chain-assistant/issues"
   },
-  "homepage": "https://github.com/ifoohoo/artifact-chain-assistant#readme",
+  "homepage": "https://ifoohoo.github.io/artifact-chain-assistant-site/",
   "author": "广州市风荷科技有限公司",
   "contributors": [
     "mzdbxqh"
   ],
   "dependencies": {
-    "agent-method-registry": "0.2.0"
+    "acorn": "8.17.0",
+    "agent-method-registry": "0.2.0",
+    "skill-family-contracts": "0.39.0",
+    "skill-family-doc-render": "0.7.0",
+    "skill-family-harness-node": "0.39.0"
   },
   "devDependencies": {
     "ajv": "^8.20.0",
-    "artifact-graph": "1.2.0"
+    "artifact-graph": "1.2.1"
   },
   "artifactChainManagedResources": {
     "expression-outbound.mjs": {

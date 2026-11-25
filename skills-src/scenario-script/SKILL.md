@@ -3,11 +3,18 @@ name: scenario-script
 description: Use when a user wants to write, review, or repair a scenario-script artifact for an artifact-graph project, routing to the appropriate sub-flow based on intent.
 ---
 
+<!-- @feature ACA12 @scenario S-36 -->
+<!-- @feature ACA27 @scenario S-152 -->
+
 # scenario-script
 
 ## 目的
 
 为场景剧本制品提供编写、审阅和修复的统一入口。根据用户意图路由到对应的子流程，实现场景剧本从起草到终态的完整闭环。
+
+## 制作分支的方法选择
+
+仅在 `author` 分支转交前，按 `<plugin-root>/skills/artifact-review/references/method-selection.md` 查询 `artifact / scenario-script / author`。将原业务目标、项目模板、关联制品与权限交付唯一 `verified` 作者。`scenario-script/author` 为默认入口，选择不同 Skill 时停止默认作者，不再运行公共或项目 worker。查询失败保留诊断并停止依赖制作。`review/repair` 分支沿原专业合同执行。
 
 ## 路由决策树
 
@@ -58,11 +65,11 @@ description: Use when a user wants to write, review, or repair a scenario-script
 
 ## 通用质量维度
 
-场景剧本是结构化的发现级场景：时序上先于、并驱动 PRD 与功能特性——场景是需求发现的载体，功能特性是场景的派生物；表达形式是结构化的（字段块 + Given/When/Then），作为实现与验收的依据。一个文件可含多个场景节点。具体字段、ID 格式、status 枚举、章节结构必须从目标项目的 artifact-graph.config.yaml、同类制品、项目模板和治理文档中派生：
+场景剧本是结构化的发现级场景：时序上先于、并驱动 PRD 与功能特性——场景是需求发现的载体，功能特性是场景的派生物；表达形式是结构化的（字段块 + `### 前提条件` / `### 触发动作` / `### 预期结果`），作为实现与验收的依据。一个文件可含多个场景节点。具体字段、ID 格式、status 枚举、章节结构必须从目标项目的 artifact-graph.config.yaml、同类制品、项目模板和治理文档中派生：
 
 - **节点结构**：主场景 `## S-NN：<名>`（H2），变体 `### S-NNa：<名>`（H3，字母后缀）；编号匹配 `^S-\d+[a-z]?$`，允许前导零；冒号半/全角由项目模板统一。节点标题是制品图的解析锚点（CLI 按 `^#{2,3}\s+(S-\d+[a-z]?)\s*[:：]` 识别节点，H2/H3 均可），不得随意变更形式。
 - **字段块完整性**：节点标题下是加粗字段块——`**关联功能**` 与 `**关联决策**` 是机器锚点、必需（CLI 从含"关联功能/关联决策"字样的行内提取 ID 成边）；`**场景代码**` 是稳定交叉引用 slug、推荐。字段集允许项目模板扩展（如入口编号），技能族只强制上述三项。
-- **Given/When/Then 可验证性**：`### Given` 写可构造的具体前置状态；`### When` 写用户或外部动作，编号步骤；`### Then` 写可观察、可验证的结果（输出、退出码、状态、记录）。小节标题形式从项目模板派生。
+- **前提/动作/结果可验证性**：`### 前提条件` 写可构造的具体前置状态；`### 触发动作` 写用户或外部动作，编号步骤；`### 预期结果` 写可观察、可验证的结果（输出、退出码、状态、记录）。小节标题形式从项目模板派生。
 - **变体覆盖**：关键分支、边界、异常写成紧随主场景的变体节点，复用主场景语境、只写差异，每个变体同样声明字段块。
 - **追溯一致（暂缺不判 fail）**：场景允许先于功能制品存在——发现级场景尚未挂接功能时，按项目模板约定处理 `关联功能` 行（省略或标注"尚无功能制品"），如实报告，不编造 ID，不判 fail；关联功能存在时，`关联功能` 只引用图中已存在的功能 ID，且功能制品 frontmatter 的 `scenarios` 字段必须回列本场景（双向一致，CLI 校验强制）。CLI 的 `ORPHAN_SCENARIO` 是对无功能关联场景的 warning、不阻断（exit 0）：发现级场景下该警告属预期，review 可按 warning 接受，不强制消灭。注意：场景→决策边只对 `D-XXX-数字` 形式的决策 ID 成边（CLI 硬编码），`ADR-\d{4}` 类编号只做文档级追溯，不得承诺其成边。
 - **语体**：写可构造的状态、具体的动作、可观察的事实；不写口号、不写宣传、不写设计理由。场景正文不得出现机器私有路径：用项目相对路径或占位符表达。检查和验证细则见 `references/inspect.md` 与 `references/validate.md`；去 AI 味行文规则见 `references/writing-style.md`；项目无模板时的默认格式见 `references/compose.md` 与 `references/default-template.md`。

@@ -1,95 +1,54 @@
 # Artifact Chain Assistant
 
-[English](README.md)
+[English](README.md) · **在线文档站（GitHub Pages）：** [https://ifoohoo.github.io/artifact-chain-assistant-site/](https://ifoohoo.github.io/artifact-chain-assistant-site/)
 
-Artifact Chain Assistant 是面向 `artifact-graph` 项目的 Codex / Claude Code / Kimi Code 助手插件；
-Qoder 以技能兼容宿主身份复用同一套共享技能。
+`artifact-chain-assistant` 是配套 `artifact-graph` 使用的多宿主制品链助手插件，原生支持 Codex、Claude Code 与 Kimi Code，并可供 Qoder 等技能兼容宿主共享复用同一套技能目录。
 
-它打包了可复用的 skill、按宿主划分的 adapter manifest 和安装指引，帮助 agent 找到正确的
-制品上下文、初始化项目本地配置，并维护追溯版本锁（traceability version lock）。
+它把从“随口提出想法、整理需求池、盘点项目现状、编写增量规格（SPEC）到日常刷新追溯版本锁”的工作方法封装成可组合的技能、宿主适配器清单与配置校验脚本，让智能体在动手改代码之前先看清现有制品、上下游关系与责任边界。
 
 <!-- release-skill:capability:external-write-boundary -->
-> **外部写入边界：** 安装插件只会增加助手能力，不会修改目标项目、安装 Git hook、
-> 刷新版本锁、发布包或写入远端。项目初始化以及任何写入或发布动作都需要单独明确授权。
+> **外部写入边界：** 安装本插件仅向宿主注册助手技能与辅助脚本，不会修改目标项目文件、不会自动安装 Git Hook、不会刷新版本锁，也不会执行任何发布或远端写入动作。目标项目初始化以及一切本地写入或发布操作，都必须先获得用户的明确授权。
 
 <!-- release-skill:capability:safe-first-command -->
-> **安全的第一步：** 安装后先使用只读的 `artifact-chain-help` 技能查看 Family API 和采用步骤；
-> 用 `artifact-chain-setup` 做只读环境诊断；不确定该用哪个技能时用 `artifact-chain-quickstart`。
+> **安全的第一步：** 安装完成后，先使用只读技能 `artifact-chain-help` 查看可用的标准能力与接入顺序；用 `artifact-chain-setup` 做默认只读的环境体检；不确定该调用哪个入口时，先走纯路由入口 `artifact-chain-quickstart`。
 
-最小安全示例——把下面这句话发送给已安装插件的助手：
+最小安全探针——向已安装插件的宿主发送以下提示词：
 
 ```text
 请使用 artifact-chain-help 展示可用的 Family API 和采用步骤，不要修改项目。
 ```
 
-如果这项只读检查失败，先确认当前宿主已安装并启用 `artifact-chain-assistant`，再按照
-[安装恢复步骤](INSTALL.md#recovery-steps)解析 `PLUGIN_ROOT` 并运行插件自带的 doctor；doctor
-通过前不要授权初始化写入。
+若该只读检查未能正常返回，请先确认当前宿主已安装并启用 `artifact-chain-assistant`，再按 [安装恢复步骤](INSTALL.md#recovery-steps) 定位 `PLUGIN_ROOT` 并运行插件自带的 `scripts/doctor.mjs`；在诊断通过前，不要授权执行项目初始化写入。
 
-## 提供什么
+## 核心能力与职责分工
 
-### 技能
+### 1. 主线公开技能
 
-- **`artifact-chain-where-am-i`** — 入口分诊与路由。开始实现前先检索项目制品图，再路由到 bootstrap、
-  maintainer 或直接实现。
-- **`artifact-chain-bootstrap`** — 显式调用的项目初始化。引导首次搭建、迁移或修复，
-  11 步流程覆盖配置、AGENTS/CLAUDE 补丁、验证、版本锁和 hook 安装。
-- **`artifact-chain-maintainer`** — 日常维护。面向已建成制品链的项目，覆盖版本锁
-  刷新/审计、doctor 诊断和 Git hook 更新。
-- **`artifact-chain-requirements`** — 从需求到交付。把未细化想法保存在项目需求池中，
-  将选中的需求承接到增量 SPEC，并逐项记录验收证据与当前制品去向。
-- **`artifact-chain-restructure`** — 制品重组。把自然语言重组请求编译成可检查的映射与候选计划，
-  覆盖记录拆分、编号身份拆分、跨文件移动与重编号，并在授权与操作者确认齐备后路由真实应用与恢复。
-- **`spec-author`** — 规格编写。需求选定后匹配上游能力，补全相关制品缺口，进入已有评审流程。
-  必要正文、关系与适用评审未实际完成时，不命名、不交付 SPEC。完成后再生成 SPEC 与执行输入。修改以完整需求及全部相关场景为单位，分别检查删除与重命名；遗漏场景、
-  空材料或勾选无证据不得报完成。插件自带与 `skill-family-docs` 0.6.6 字节一致的
-  `expression-outbound.mjs`，运行时不依赖 Docs 已安装。个人技能目录不是本插件入口。公共写作流程参考与公共配置参考已按已发布 `skill-family-docs` 0.6.7 原字节采用。
+- **`artifact-chain-where-am-i`（搜索优先分诊与盘点）**：在修改代码或文档前检索项目制品图与目录证据，回答“现在有什么、缺什么、下一步走哪条路径”，区分新功能、缺文档、缺陷修复与续接任务，全程保持只读。
+- **`artifact-chain-bootstrap`（按需初始化与裁剪）**：经用户授权后引导首次接入、配置迁移或修复，结合项目形态裁剪 `artifact-graph.config.yaml`、模板、`AGENTS.md`/`CLAUDE.md` 触发块、初始版本锁与可选 Git Hook。
+- **`artifact-chain-maintainer`（日常版本锁与钩子维护）**：面向已建立制品链的项目，负责 `--changed-only` 增量刷锁、严格锁审计、`doctor` 体检以及 Git Hook 安装与幂等卸载（`hooks uninstall`）。
+- **`artifact-chain-requirements`（需求池与双维状态跟进）**：支持在不依赖图配置或注册表的前提下收集原始想法（尚未选定仓库时可配合 `artifact-graph inbox`）、查重关联、维护**交付状态**（`captured` 至 `released`）与**处置安排 / 目标满足程度**双维状态（`disposition`: `retained|deferred|merged|abandoned|unknown`；`satisfaction`/`coverage`: `unknown|not_met|partly_met|met`），并将选定需求承接到增量 SPEC 与逐项验收回写。
+- **`artifact-chain-restructure`（制品拆分、迁移与重编号）**：把自然语言重组诉求整理为可核验的映射与候选计划，交由 `artifact-graph restructure` 确定性编译；语义拆分须经独立只读复审，并在写入授权与操作者并发前提确认齐备后路由 `apply`、`recover` 与 `prune-recovery`。
+- **`spec-author`（增量规格与执行输入编写）**：需求选定后先完成上游能力正向匹配、关联制品补齐与适用专业评审；在必要正文、关系与适用评审实际完成前，不命名也不交付本轮 SPEC。前置齐备后生成包含来源版本索引与本轮增量快照的 SPEC 及分层执行输入，以完整需求及全部关联场景为修改单位，分别核查删除与重命名风险，拒绝把遗漏场景、空附件或无证据勾选算作完成（注：`1.0.0` 已正式移除旧名 `spec-converger`，请统一使用 `spec-author`，详见 [迁移说明](INSTALL.md#100-spec-author-migration)）。
 
-  采用 `artifact.spec@1` 前，需确认当前实际安装的 Graph 包是否提供该合同。正式发布的 Graph 0.16.0 已包含该合同，使用该正式包时按正式身份采用；仅当使用开发候选包或显式指定候选 `contracts` 目录时，才标明来源为候选。若实际安装包未提供合同，须明确报告合同缺口，不得声称已有效采用，亦不得进行隐式回退、复制或虚称提供。
+#### `spec-author` 合同与表达资源边界
 
-  通过 `contract explain` 命令获取真实合同身份信息，包括 `identity`、`revisionDigest` 和 `semanticMarkers`。确认必需标记定义集合非空，且覆盖 `changes`、`scope`、`acceptance` 三项；`acceptance-record` 和 `archive-record` 为可选。使用本次 `explain` 返回的 `revisionDigest`，对完整 SPEC 文档执行 `contract validate-markers` 检查。需注意，JSON 格式的 `contract validate` 不能替代对 Markdown 正文的标记校验。
+- **随包表达辅助资源**：插件内置与已发布 `skill-family-docs` `0.6.6` 字节一致的 `expression-outbound.mjs`，并原字节纳入 `skill-family-docs` `0.6.7` 的公共写作流程参考与公共配置参考；运行期不依赖目标机器另装 Docs，也不读取个人技能目录。
+- **`artifact.spec@1` 合同采用规则**：采用 `artifact.spec@1` 前须核实当前安装的 Graph 包是否提供该合同。正式发布的 Graph 0.16.0 已包含该合同，消费正式包时按正式身份记录；仅当使用开发候选包或显式指定候选 `contracts` 目录时，才将来源标为候选。若实际安装包未提供合同，须明确报告缺口，不得声称已有效采用，也不得静默回退、私自复制或虚称可用。
+- **标记校验与独立全文审阅**：通过 `contract explain` 读取真实的 `identity`、`revisionDigest` 和 `semanticMarkers`，确认非空必需标记覆盖 `changes`、`scope`、`acceptance`（`acceptance-record` 与 `archive-record` 为可选），再用该次返回的 `revisionDigest` 对完整 SPEC 运行 `contract validate-markers`（JSON `contract validate` 不能替代 Markdown 正文标记校验）。标记校验通过后，仍须由不同职责方独立审阅完整 SPEC 正文及业务来源；上游 PRD 的历史评审不能替代本轮 SPEC 审阅。
 
-  标记校验通过后，仍须由不同职责方独立审阅完整 SPEC 正文及业务来源。上游 PRD 的审阅结果不能替代本轮 SPEC 正文的独立审阅。
+#### 制品链各环节的事实边界
 
-SPEC 保留本轮变更与验收正文的完整可独立执行快照，并索引实际来源版本。详细说明请参见 [SPEC authoring](INSTALL.md#requirement-pool-and-iteration-spec)。
+- **目录与权威归属**：需求条目与增量 SPEC 默认位于 `artifacts/requirements/` 和 `artifacts/specs/`，在 `artifact-graph.config.yaml` 显式登记后方可被图查询发现。插件 `templates/` 下的 starter 仅作起点，复制到项目后的本地模板与配置文件才是权威真源。
+- **重组写入边界**：`artifact-chain-restructure` 本身不直接改写业务文件；只有 `applicable` 为真且授权覆盖写入的计划才能进入 `artifact-graph restructure apply`（当前写入成熟度为 `candidate`，仅限 `Darwin / arm64 / APFS` 且须操作者显式确认合作式写者前提，恢复材料默认保留，详见 [重组说明](INSTALL.md#restructuring-artifacts)）。
+- **四类交付事实分离**：批准（`approved`）、实现（`implemented`）、验证（`verified`）与发布（`released`）须分别依据各自权威记录判定；图边、源码注释、测试文件存在或版本锁新鲜只属于声明证据，缺执行或发布结果时一律记为 `unknown`。
 
-1.0.0 版本已移除 `spec-converger`，无兼容别名；当前调用与项目路由需改为 `spec-author`，历史 SPEC、证据与 CHANGELOG 保持原名不变。迁移指南请查阅 [migration guide](INSTALL.md#100-spec-author-migration)。
+### 2. 治理职责与按证据启用
 
-重组技能判断能力边界、共同约束、验收项去向与模糊关系目标，自己不写文件；`artifact-graph
-restructure` 负责确定性地编译完整映射并应用文件集合。候选必须经过一次独立只读复审；
-结构合法的复审结果不等于候选已被接受。计划不等于已应用：只有 `applicable` 为真且授权覆盖写入
-时才能应用，仅到"分析并生成迁移计划"的授权不得创建或修改目标文件。写入能力成熟度为
-`candidate`，资格环境仅为 Darwin / arm64 / APFS，以合作式写者为前提，需要操作者显式确认，
-恢复材料默认保留。命令序列与限制见 [INSTALL.md](INSTALL.md#restructuring-artifacts)。
+- **三方治理边界**：Audit 定义跨技能族规范，本插件协助项目裁剪采用，`artifact-graph` 执行通用图结构、关系、版本锁与影响面检查。治理审计只消费静态清单、项目制品与既有结果记录，不在审计过程中偷偷运行目标项目的构建、测试、validator 或业务脚本。`artifact-audit health` 路由至 `artifact-graph check-professional` 与 `read-proof`；规范缺失或公共合同未发布时，将受影响判断如实记为 `unknown` 或待采用，不误判目标违规。
+- **扩展制品目录**：除核心类型（`feature`、`scenario`、`decision`、`design`、`test`、`e2e_test`）外，支持按需启用五层扩展类型：
 
-需求条目、需求池、当前制品、迭代 SPEC、ADR 和验证证据各自承担不同职责。默认目录是
-`artifacts/requirements/` 与 `artifacts/specs/`；项目必须在 `artifact-graph.config.yaml`
-中显式登记两个自定义类型，图查询才能发现它们。插件 starter 只提供采用起点，复制后的项目模板
-与项目配置才是权威来源。
-
-工作流分别报告批准、实现、验证与发布。图边、追溯注释、测试文件、新鲜锁和发布输入清单只构成
-声明证据，不能证明行为已经成功执行或版本已经发布；缺少权威执行或发布结果时保持 `unknown`。
-
-### 治理分工与判定边界
-
-Audit 定义技能族制品规范，助手帮助项目采用适用的类型、路径、引用和模板，`artifact-graph`
-只检查通用的图结构、关系、版本、新鲜度与影响范围。配置可以读取、目录存在或 Registry 可用，
-只说明对应入口具备运行前提，不代表图健康、专业规范通过或发布就绪；发布事实仍由目标项目的
-发布工具和结果材料证明。
-
-治理检查只读取静态清单、项目制品和已有结果材料，不运行目标项目的测试、构建、validator、hook
-或业务工作流。`artifact-audit health` 路由到 `artifact-graph check-professional` 和 `read-proof`
-做图专业扫描与读证；capability 和 release-gate 仍走原范围。图检查 `pass` 不能证明内容语义、
-方法执行或已经发布。规范来源缺失、不可读，或所需公共合同尚未发布时，只把相应专业判断记为
-`unknown` 或待采用，不把目标判为违规。项目已经明确授权同一目标和动作时可以沿用该授权；范围
-扩大时仍需重新确认。
-
-### 扩展制品目录
-
-在核心类型（`feature`、`scenario`、`decision`、`design`、`test`、`e2e_test`）之外，
-还提供由配置驱动、可按需开启的制品类型：
-
-| 层级 | 类型 |
+| 层级 | 可选制品类型 |
 | --- | --- |
 | 设计与契约 | `api_contract`、`data_contract`、`integration_contract`、`cli_contract`、`ui_contract`、`ipc_contract` |
 | 实现与验证 | `batch_job_contract`、`database_migration` |
@@ -97,69 +56,20 @@ Audit 定义技能族制品规范，助手帮助项目采用适用的类型、�
 | 部署与运维 | `deployment_manifest`、`runbook`、`migration_plan` |
 | Agent 与治理 | `agent_skill`、`hook_policy`、`prompt_packet`、`release_policy`、`publish_skill`、`oss_compliance` |
 
-各类型的推荐路径、ID 模式、生命周期规则和审查检查点，详见
-[扩展制品目录](EXTENDED-ARTIFACT-CATALOG.zh-CN.md)。
+各类型的推荐路径、编号模式与审查要点见 [扩展制品目录](EXTENDED-ARTIFACT-CATALOG.zh-CN.md)。
 
-### 按证据启用
+- **按证据判定就绪度**：项目形态（涵盖文档规划仓、TypeScript 库/CLI、API 服务、Java/JVM、桌面/全栈应用、Agent 插件工具包、父工程发布治理仓、成熟存量制品仓与小型试水项目九类画像）与采用阶段只产出候选集合 `candidate_types`；唯有落入有效图配置、已有 Workflow Profile 或 `--types` 显式选择的条目才会进入 `enabled_types`，随后分别核验类型登记、模板与可执行方法。助手直接读取已安装 `artifact-graph/project-artifact-profiles` 公开清单，未采用的标准项单列于 `missing_standard_types`（不混入 `gaps`），详见 [安装说明](INSTALL.md#project-shape-and-stage-readiness)。
 
-项目形态与采用阶段只生成 `candidate_types`，不证明每项候选能力都已存在。`enabled_types`
-只包含有效图配置、已有 workflow profile 或 `--types` 显式选择支持的候选。随后分别检查
-类型登记、模板与可执行方法。插件自带的需求/SPEC 技能可以满足制作入口；没有实际配置审阅方法时，
-review 仍报告缺口。助手从已解析的 `artifact-graph` 包读取公开清单，入口是
-`artifact-graph/project-artifact-profiles`，不另存一份真源。尚未采用的共同最小或技能族标准项
-记在 `missing_standard_types`，该字段不是 `gaps`。完整解释见[安装说明](INSTALL.md#project-shape-and-stage-readiness)。
+### 3. 专业技能族、通用审阅工作流与方法注册表
 
-### 项目形态分类
-
-九种项目画像各自对应一套推荐的 starter 集合，以及一份"条件成熟前暂缓启用"的类型列表：
-
-- 文档/规划仓库 · TypeScript 库或 CLI · API 服务 · 企业级 Java/Spring/JVM ·
-  桌面/全栈应用 · Agent/插件工具包 · Parent/发布治理仓库 ·
-  已有成熟制品仓库 · 首次尝试的小型项目
-
-bootstrap 技能会先对目标项目分类，再按上述证据确定哪些候选类型已启用。
-
-### Starter 模板与采用指南
-
-`templates/extended/` 为扩展类型提供入门指引。bootstrap 完成后，延迟启用的类型及其
-证据条件会记录在项目的制品目录中，将来扩展 profile 时有据可查，而不是临时起意补加。
-
-### 专业技能族
-
-两个与制品绑定的技能族，提供专业的编写、审阅和修复工作流：
-
-- **`prd-feature`** — 编写、审阅或修复 PRD 特性制品。每个流程自成闭环：进入后自行走完
-  inspect → compose/review → validate → repair 循环并结束，不需要外层规划器再拆出
-  独立的 review/repair 步骤。
-- **`scenario-script`** — 编写、审阅或修复场景剧本制品，闭环约定与 `prd-feature` 相同。
-
-每个技能族对外暴露四个入口：默认路由入口、`author`、`review` 和 `repair`。
-内部工序（`inspect`、`compose`、`validate`）不注册为 catalog method。
-
-项目级配置和项目本地 provider 优先；项目没有覆盖 provider 时，才回落到插件自带的
-默认技能族。
-
-### 通用审阅工作流
-
-四个与具体项目无关的入口，覆盖 PRD/场景之外的制品：
-
-- **`artifact-review`** — 解析项目的审阅 worker，输出 Review Result Protocol v1.0。
-- **`artifact-repair`** — 修复全部 open findings，并要求提供 re-review 证据。
-- **`artifact-batch`** — 确定性地切分输入，并合并通过协议校验的批次结果。
-- **`artifact-audit`** — 只读检查 health、capability 与 release gate，消费静态材料和已有结果，不运行目标项目脚本。
-
-先按安装章节的说明解析当前宿主的 `PLUGIN_ROOT`，再运行
-`node "$PLUGIN_ROOT/scripts/check-workflow-profile.mjs"`。缺少项目标记或 worker 映射时
-返回 `NEEDS_INPUT`；checker 不会创建文件，也不会谎报成功。
-
-### Workflow Profile
-
-插件附带 JSON Schema（`schemas/artifact-workflow-profile.schema.json`）和共享验证库
-（`scripts/lib/workflow-profile.mjs`），用于校验项目的 workflow profile，两者都会同步到
-Codex、Claude Code 和 Kimi Code adapter 根目录。运行通用制品工作流之前，先用
-`check-workflow-profile.mjs` 校验项目的 workflow profile。
-
-完整的最小 project-worker profile 如下：
+- **专业闭环技能族（`prd-feature`、`scenario-script`）**：各自暴露默认路由、`author`、`review` 与 `repair` 四个公开入口，内部完成 `inspect → compose/review → validate → repair` 闭环，外层规划器无需再重复拆分审阅/修复轮次；项目本地覆盖优先于插件默认实现。
+- **通用制品工作流（覆盖 PRD/场景之外的类型）**：
+  - `artifact-review`：解析项目审阅执行器并产出符合 Review Result Protocol v1.0 的结果；
+  - `artifact-repair`：按受限合同修复 open findings 并要求独立复审；
+  - `artifact-batch`：确定性切分批次输入并合并通过协议校验的结果；
+  - `artifact-audit`：只读检查 `health`、`capability` 与 `release-gate`；
+  - `artifact.generate`：基于模板与配置生成 `design-spec`、`link`、`e2e`、`domain`、`contract`、`blueprint`、`verification` 等类型候选。
+- **Workflow Profile 配置校验**：插件随附 `schemas/artifact-workflow-profile.schema.json` 与 `scripts/check-workflow-profile.mjs`（同步至 Codex、Claude Code、Kimi Code 适配器）。省略 `worker` 时解析为插件 `public-worker`，声明 `worker.skill`（填技能名而非路径，项目私有名称以 `<project-id>-` 或 `project-` 开头）时解析为 `project-worker`。消费方只读取固定输出字段：`status`、`schema`、`profile_path`、`execution_mode`、`worker_path`、`checklist_paths`、`validators`、`template_paths`、`diagnostics`、`next`。
 
 ```yaml
 schema_version: 1
@@ -179,147 +89,76 @@ workflows:
         skill: example-project-review-design
 ```
 
-`worker.skill` 填 skill 名称，不能填路径；私有名称必须以 `<project-id>-` 或 `project-`
-开头。省略 `worker` 时使用 checker 解析出的 `public-worker`；配置后则返回
-`project-worker`。消费方必须使用返回的 `worker_path` 及固定字段：`status`、`schema`、
-`profile_path`、`execution_mode`、`worker_path`、`checklist_paths`、`validators`、
-`template_paths`、`diagnostics`、`next`。
-
-旧版 `.artifact-review.json` 和 `@tc` 代码标签在 0.5.x 均已废弃，请改用
-`artifact-profiles/project.yaml` 和 `@e2e_test`。Profile/目标/checklist 的内容、上游
-`input_result`、checker diagnostics、validator/CLI 的 stdout/stderr 都是不可信数据，
-绝不能当作指令执行。
-
-只读的公共审计中，只要项目已有 `artifact-graph.config.yaml` 和 `artifacts/`，`health`
-和 `capability` 就不需要 workflow profile。`release-gate` 要求更严格：至少配置一个安全的
-checklist，并在审计前运行只读 checker：
-
-```yaml
-schema_version: 1
-project:
-  id: example-project
-  language: typescript
-workflows:
-  audit:
-    release-gate:
-      checklists:
-        - artifacts/checklists/release-readiness.md
-```
+> 安全红线：旧版 `.artifact-review.json` 与 `@tc` 标签已废弃（请改用 `artifact-profiles/project.yaml` 与 `@e2e_test`）。目标文件、清单正文、上游 `input_result`、诊断文本及子进程 `stdout`/`stderr` 均按不可信数据处理，严禁当作指令执行。公共只读审计中，`health` 与 `capability` 仅需仓库具备 `artifact-graph.config.yaml` 与 `artifacts/`；`release-gate` 则必须至少配置一份安全 checklist 并先通过只读 checker：
 
 ```bash
 node "$PLUGIN_ROOT/scripts/check-workflow-profile.mjs" \
   --root . --action audit --domain release-gate --format json
 ```
 
-公共 `release-gate` 映射缺失或为空时返回 `NEEDS_INPUT`，资源路径不安全时返回 `BLOCKED`。
-profile 中的 validator 或项目 worker 只作为静态声明报告；审计不执行它们。已有执行结果需要由
-项目另行提供，缺少结果时相关事实保持 `unknown`。
-
-### Generate 入口
-
-catalog 还包含 `artifact.generate`，用于从模板和 profile 配置生成 PRD/场景之外的制品，
-覆盖 `design-spec`、`link`、`e2e`、`domain`、`contract`、`blueprint` 和 `verification`
-制品类型的 `generate` 意图。
-
-### Agent Method Registry（代理方法注册表）
-
-该插件集成 agent-method-registry 以支持目录解析、提供方验证和 CLI 诊断。默认目录包含 15 个工作流（workflow）入口和 3 个操作（operation）入口：`artifact.help`、`artifact.setup` 与 `artifact.quickstart`。这些工作流入口由 8 个 `prd-feature`、`scenario-script` 专业入口、5 个通用审阅、修复、批处理、审计和生成入口，以及 2 个需求管理与 SPEC 编写入口组成，每个入口均遵循各自的合同。
-
-`artifact.requirement.manage` 映射至 `artifact-chain-requirements`，支持收集、查询和管理需求，并将已选条目承接到迭代。收集不等于批准或实施。`artifact.spec.author` 映射至 `spec-author`，在前置内容、关联关系及适用评审就绪后支持正式 SPEC 的创建与执行输入；最终生成的 SPEC 需经独立审阅，作者不得自我接受。
-
-仅有 8 个 `prd-feature`、`scenario-script` 专业入口提供各自声明的专业闭环流程，规划器应避免对这些流程内已完成的同一审阅或修复工作进行重复安排。`kind: workflow` 分类并不意味着所有入口均具备闭环行为，其他入口遵循各自的合同，包括合同要求的独立审阅。有效索引为基于目录与可选项目覆盖层生成的派生缓存。
-
-完整的目录表格、单独安装、有效索引构建、项目级覆盖、紧凑查询、fallback 行为和
-`PLUGIN_ROOT` 发现方式，详见 [AGENT-METHOD-REGISTRY.md](AGENT-METHOD-REGISTRY.md)。
-
-### 其他资产
-
-- **Codex** 暴露 `.codex-plugin/plugin.json`、`skills/**` 和受管脚本（`doctor.mjs`、
-  `check-workflow-profile.mjs`、`run-artifact-workflow.mjs`、`batch-split.mjs`、`batch-merge.mjs`），不暴露插件命令、hook 和
-  settings。
-- **Claude Code** 暴露 `.claude-plugin/plugin.json`、`skills/**`、受管脚本（`doctor.mjs`、
-  `check-workflow-profile.mjs`、`run-artifact-workflow.mjs`、`batch-split.mjs`、`batch-merge.mjs`）、slash command 包装器和
-  Stop hook 防护。
-- **Kimi Code** 暴露 `.kimi-plugin/plugin.json`、`skills/**` 和受管脚本（`doctor.mjs`、
-  `check-workflow-profile.mjs`、`run-artifact-workflow.mjs`、`batch-split.mjs`、`batch-merge.mjs`），不暴露插件命令、hook 和
-  settings。
-- **Qoder** 是技能兼容宿主：从同一个 `artifact-skill-set` 市场安装并发现共享
-  `skills/**`，不暴露 slash command 包装器和 Stop hook 防护；诊断仍使用插件根
-  `scripts/doctor.mjs`（不存在 Qoder adapter doctor）。
-- Git hook 模板和安装器与宿主无关。真正的硬门禁是 Git hook 和 CI；各宿主的 skill 和
-  hook 只为 assistant 提供指引。
+- **Agent Method Registry 集成**：默认目录注册 15 个工作流入口（8 个专业闭环入口 + 5 个通用工作流入口 + `artifact.requirement.manage` 与 `artifact.spec.author`）及 3 个只读操作入口（`artifact.help`、`artifact.setup`、`artifact.quickstart`）。有效索引由目录与可选项目相对路径覆盖层生成，完整规格见 [AGENT-METHOD-REGISTRY.zh-CN.md](AGENT-METHOD-REGISTRY.zh-CN.md)。
+- **多宿主交付边界**：
+  - **Codex / Kimi Code**：暴露对应 `.codex-plugin/plugin.json` 或 `.kimi-plugin/plugin.json`、`skills/**` 及受管脚本（`doctor.mjs`、`check-workflow-profile.mjs`、`run-artifact-workflow.mjs`、`batch-split.mjs`、`batch-merge.mjs`、`requirement-state-check.mjs`）。
+  - **Claude Code**：除上述技能与脚本外，额外提供斜杠命令包装器与 Stop-hook 守护。
+  - **Qoder**：从 `artifact-skill-set` 市场安装并发现共享 `skills/**`，诊断统一调用插件根 `scripts/doctor.mjs`。
+  - **Google Antigravity**：全局插件目录安装读取根 `plugin.json`（仅官方白名单字段）、`skills/**` 与配套受管脚本，同样调用插件根 `scripts/doctor.mjs`。
+  - **双向一致性、阅读交付与工作台委托**：配套 `artifact-graph` 的 `implementationSurface` 入口认领以及 `alignment-audit` / `alignment-lock` 跨仓互锁检查；同时提供纯静态离线阅读装配工具（`scripts/lib/artifact-reading.mjs`）和只读快照导出及 `skill-family-studio` 外部工作台委托入口（`scripts/lib/artifact-workbench.mjs`）。
+  - **硬门禁归属**：真正的提交与发布硬门禁始终是仓库自身的 Git Hook 与 CI，宿主侧技能与钩子仅提供引导与辅助校验。
 
 ## 兼容矩阵
 
 | 插件 | 运行时 | 安装 |
 | --- | --- | --- |
-| `artifact-chain-assistant` 1.2.0 | `artifact-graph` 1.2.0 | `pnpm add -D artifact-graph@1.2.0` |
+| `artifact-chain-assistant` 1.2.1 | `artifact-graph` 1.2.1 | `pnpm add -D artifact-graph@1.2.1` |
 
 ## 安装
 
 ```bash
-# 运行时（必需）
-npm install --save-dev artifact-graph@1.2.0
+# 1. 安装确定性图运行时（必需）
+npm install --save-dev artifact-graph@1.2.1
 ```
 
 ```bash
-# Codex 插件
+# 2a. Codex 插件安装
 codex plugin marketplace add ifoohoo/artifact-skill-set
 codex plugin add artifact-chain-assistant@artifact-skill-set
 ```
 
 ```text
-# Claude Code 插件（交互式）
+# 2b. Claude Code 插件安装（交互式命令）
 /plugin marketplace add ifoohoo/artifact-skill-set
 /plugin install artifact-chain-assistant@artifact-skill-set
 ```
 
-> **SSH 前置条件：** Claude Code 默认通过 SSH 克隆 `source: github` 条目。如果未配置
-> GitHub SSH key，请设置 `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` 或使用显式 `https://` URL
-> 添加市场。详见
-> [使用 HTTPS 代替 SSH](https://github.com/ifoohoo/artifact-skill-set#using-https-instead-of-ssh)。
-
-> **市场说明**：`ifoohoo/artifact-skill-set` 是外部独立市场，插件载荷仍由
-> `ifoohoo/artifact-chain-assistant` 发布。市场条目必须先发布并启用
-> `artifact-chain-assistant` 1.2.0，上述安装命令才能生效。
+> **SSH 与市场说明：** Claude Code 默认通过 SSH 拉取 GitHub 市场条目；若本机未配置 GitHub SSH 密钥，请设置 `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` 或使用 `https://` 地址添加市场（见 [使用 HTTPS 代替 SSH](https://github.com/ifoohoo/artifact-skill-set#using-https-instead-of-ssh)）。`ifoohoo/artifact-skill-set` 为独立公开市场，需该市场已上架并启用 `artifact-chain-assistant` 1.2.1 后上述市场安装命令方可拉取。
 
 ```text
-# Kimi Code 插件（交互式，user 作用域）
+# 2c. Kimi Code 插件安装（交互式，安装或升级后执行 /reload 或重开会话生效）
 /plugins install https://github.com/ifoohoo/artifact-chain-assistant
 ```
 
-在 Kimi Code 中安装或升级后，运行 `/reload`（或新开会话）让插件技能生效。Kimi Code
-没有非交互式安装 CLI。
-
 ```bash
-# Qoder 插件（技能兼容宿主；示意命令——
-# 具体命令以执行时 qodercli plugin ... --help 为准）
+# 2d. Qoder 插件安装（示意命令，具体参数以执行时 qodercli plugin ... --help 为准）
 qodercli plugin marketplace add ifoohoo/artifact-skill-set --scope user
 qodercli plugin install artifact-chain-assistant@artifact-skill-set --scope user --json
 qodercli plugin list --json
 ```
 
-Qoder 当前承诺的边界是技能安装与发现；不提供 Claude Code 的 slash commands 和 Stop hook。
-使用 `qodercli plugin list --json` 检查安装版本、`enabled`、`installPath` 和 `skills`。
-诊断仍使用插件根 `scripts/doctor.mjs`，不存在 Qoder adapter doctor。
+> **Google Antigravity 安装**：将完整插件包克隆或复制到 `~/.gemini/config/plugins/artifact-chain-assistant/`（读取根 `plugin.json`、`skills/**` 与 `scripts/**`）。
 
-完整的安装指南、快速开始、Agent 提示词和团队成员 clone 接入，请参阅
-[INSTALL.md](INSTALL.md)。
+完整的宿主根路径定位、快速上手与团队成员克隆恢复说明见 [INSTALL.md](INSTALL.md)。
 
 ## 快速开始
 
-1. 安装插件 1.2.0（见上文）和运行时：`pnpm add -D artifact-graph@1.2.0`。
-2. 运行 `artifact-graph doctor --root . --format json` 验证运行时。
-3. 首次搭建，进入 bootstrap 技能。
-4. 日常工作，进入 maintainer 技能。
-5. 团队成员接入，请参阅 [INSTALL.md 的 Clone Onboarding 一节](INSTALL.md#clone-onboarding-second-developer-setup)。
+1. 安装插件 1.2.1（见上节）并在目标仓库安装精确版本运行时：`pnpm add -D artifact-graph@1.2.1`。
+2. 运行 `artifact-graph doctor --root . --format json` 验证运行时与原生模块绑定正常。
+3. 首次接入项目时调用 `artifact-chain-setup` 体检，再按需授权 `artifact-chain-bootstrap` 初始化。
+4. 日常收集需求与双维状态核查调用 `artifact-chain-requirements`；代码或制品改动后调用 `artifact-chain-maintainer` 刷新并审计版本锁。
+5. 团队新成员克隆仓库后的环境恢复流程见 [INSTALL.md Clone Onboarding](INSTALL.md#clone-onboarding-second-developer-setup)。
 
-## Agent 提示词
+## 常用 Agent 提示词
 
-> 接入时先确认代码追溯范围：bootstrap 和 maintainer 管理已声明关系的版本锁，
-> 严格审计通过不代表发布文件与制品已全部覆盖。技能 Markdown 需要配置扫描路径和追溯注释，
-> 详见运行时的[代码追溯接入说明](https://github.com/ifoohoo/artifact-graph/blob/main/INSTALL.md#code-traceability-and-coverage-boundaries)。
-> 发布清单覆盖与显式豁免仍由项目既有验收负责。
+> 提示：版本锁审计只覆盖已声明并纳入扫描范围的关系，不等同于全部发布文件覆盖证明；代码与技能注释的扫描边界见运行时 [代码追溯接入说明](https://github.com/ifoohoo/artifact-graph/blob/main/INSTALL.md#code-traceability-and-coverage-boundaries)。
 
 ```text
 请使用 artifact-chain-bootstrap，为当前项目初始化制品链。

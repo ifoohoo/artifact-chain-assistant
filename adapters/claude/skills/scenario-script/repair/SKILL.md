@@ -3,6 +3,9 @@ name: scenario-script-repair
 description: Use when a user wants to fix issues found in a scenario-script artifact after a review.
 ---
 
+<!-- @feature ACA12 @scenario S-36 -->
+<!-- @feature ACA27 @scenario S-152 -->
+
 # scenario-script repair
 
 ## 目的
@@ -47,10 +50,10 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
 - 正文出现本机绝对路径（SS-F-015）时改为项目相对路径或占位符
 - 决策 ID 形式注意：只有 `D-XXX-数字` 形式能成边；`ADR-\d{4}` 类编号保留为文档级追溯，不得当作图边修复目标
 
-#### Given/When/Then 修复（SS-F-005 至 SS-F-007）
-- 把 Given 改写成可构造的具体前置状态
-- 把 When 改写成编号步骤的具体动作
-- 把 Then 中的口号和模糊词换成可观察、可验证的事实（输出、退出码、状态、记录）
+#### 前提条件 / 触发动作 / 预期结果修复（SS-F-005 至 SS-F-007）
+- 把 `### 前提条件` 改写成可构造的具体前置状态
+- 把 `### 触发动作` 改写成编号步骤的具体动作
+- 把 `### 预期结果` 中的口号和模糊词换成可观察、可验证的事实（输出、退出码、状态、记录）
 
 #### 变体修复（SS-F-008）
 - 为缺失的关键分支、边界、异常补变体节点，只写与主场景的差异，并同样声明字段块
@@ -66,7 +69,7 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
 - 写作惯性修复（SS-F-017，细则见 `references/writing-style.md` 的"写作惯性约束"节）：
   只改表达——统一称呼、去口语、拆并列、删插入语、把连续否定改成正向状态划边界——
   不改变任何行为断言的事实内容
-- 无据断言（SS-F-013）不得靠"写得模糊"蒙混：使 Given/Then 与关联功能/决策制品对齐，
+- 无据断言（SS-F-013）不得靠"写得模糊"蒙混：使前提条件/预期结果与关联功能/决策制品对齐，
   或在 `suggested_fix` 中提请人工裁决差异
 - 可读性修复（SS-F-014）优先改写节点标题与场景代码，不新增章节
 - 修复后重查：`关联功能` 仍只引用图中已存在的 ID；关联功能存在时双向回列仍一致；暂缺挂接未被误修成编造引用
@@ -112,7 +115,7 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
 检查、编写、默认结构和验证细则见 `references/inspect.md`、`references/compose.md`、`references/default-template.md` 与 `references/validate.md`；语言修复继续遵循 `references/writing-style.md`。
 
 - **可自动修复**：项目规则明确且不改变业务语义的结构、格式和表述问题
-- **需人工决策**：验收口径内容补充（Given 前置状态、Then 预期结果、变体覆盖范围）、关联制品是否应创建（含发现级暂态下是否补齐功能挂接）、status 变更
+- **需人工决策**：验收口径内容补充（`### 前提条件` 前置状态、`### 预期结果` 断言内容、变体覆盖范围）、关联制品是否应创建（含发现级暂态下是否补齐功能挂接）、status 变更
 - **不自动修改**：代码文件、需求制品、设计文档
 
 ## 质量要求

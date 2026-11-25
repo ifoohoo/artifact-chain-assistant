@@ -9,7 +9,7 @@
 P1读取项目原选择记录与`agent-methods/project.yaml`的entries/overrides/disabled。无覆盖时明确采用用户所选TEST公开包的`agent-methods/catalog.yaml`，不自动加入其他目录。使用Registry 0.2.0公开`buildEffectiveIndex`、`queryEffectiveIndex`、`resolveEntry`与`verifyProvider`，以testing/skill-family及所需plan/run查询唯一候选，带实际host和`strictProvider:true`解析；只有verified才按返回的真实Skill入口加载正文及同目录方法。pluginRoots来自实际插件技能目录根，projectRoots来自获准项目Skill根。项目自有Skill使用项目entries/overrides，外部插件使用用户明确选择的不同ref目录并禁用原默认ref。禁用、坏覆盖、缺目录/入口/验证根、多候选或同ref冲突均保留原诊断且不回落TEST。两流读取同一原选择，不从派生effective-index反推意图。
 
 ## 两个方向同一条件
-正向按项目真实依赖补需求、功能、场景、设计与适用审核；在需要定义验收与停止时调用plan。反向允许先讨论SPEC主体、澄清目标与取舍，但必要正文、关系、适用专业评审及测试方案尚未齐备时，只保留讨论和补齐安排，不命名正式SPEC，不把补齐放到正式SPEC之后。两条路径最后都由spec-author核对前置并生成正式SPEC和必要执行输入，交不同职责集中审阅最终全文。未来开发执行结果不是写SPEC的前置，不能为此等待run。
+正向按项目真实依赖补需求、功能、场景、设计与适用审核；在需要定义验收与停止时调用plan。反向允许先讨论SPEC主体、澄清目标与取舍，但必要正文、关系、适用专业评审及测试方案尚未齐备时，只保留讨论和补齐安排，不命名正式SPEC，不把补齐放到正式SPEC之后。在需求转为正式规格前，按 `<plugin-root>/skills/artifact-review/references/method-selection.md` 查询 `artifact / spec / author`。`spec-author` 仅为默认入口，不得无视项目选择。将原条目、实际测试方案、模板、必要前置与授权交付唯一 `verified` 作者。若解析失败，保留需求与具体缺口，不创建正式 SPEC。原正文、关系与独立审阅要求不变。 两条路径均由选中的规格作者核对前置、生成正式 SPEC 与必要执行输入，并交不同职责集中审阅最终全文。未来开发执行结果不是写SPEC的前置，不能为此等待run。
 
 ## 把原要求交给plan
 传入实际阶段、本轮变更、业务承诺、原要求与接受方、已有证据及其对象/版本/环境/范围、资产原路径、权限和预算。原判据及接受方不改；既有唯一测试计划存在时沿用更新其受影响部分，不平行复制一份。计划必须是实际业务内容，包括测试对象、普通用户输入、真实入口、预期现象、原判据持有人、六类材料状态及理由、覆盖和停止。状态语义由TEST方法持有，不在本方法另定义；不能在规划时宣布通过。原始要求中的未映射、缺判据或冲突需保持可见并回交原持有人，诊断不自行新增测试义务。

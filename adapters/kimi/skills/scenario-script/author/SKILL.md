@@ -3,11 +3,18 @@ name: scenario-script-author
 description: Use when a user wants to write or draft a new scenario-script artifact for an artifact-graph project.
 ---
 
+<!-- @feature ACA12 @scenario S-36 -->
+<!-- @feature ACA27 @scenario S-152 -->
+
 # scenario-script author
 
 ## 目的
 
 从零编写场景剧本制品。遵循 inspect → compose → validate → review 的完整闭环流程，确保产出的制品达到终态。
+
+## 先选择本次作者
+
+在 `readiness check` 前，按 `<plugin-root>/skills/artifact-review/references/method-selection.md` 查询 `artifact / scenario-script / author`。若选中本入口，继续原 profile 与 `inspect → compose → validate → review` 闭环，不重复自身委派；若选中其他真实 Skill，交接原要求、模板、关联上下文与授权并停止默认作者。查询失败保留诊断，不回落公共 worker；独立 `review` 与既有 `repair` 闭环保留。
 
 ## 流程
 
@@ -36,9 +43,9 @@ node <plugin-root>/scripts/check-workflow-profile.mjs \
 
 场景剧本是结构化的发现级场景（先于/驱动 PRD 与功能特性，功能是场景的派生物），应覆盖通用质量维度：
 - 字段块完整：`**场景代码**`（稳定 slug）、`**关联决策**`、`**关联功能**`（后两项为机器锚点、必需；字段集允许项目模板扩展）
-- Given：可构造的具体前置状态
-- When：用户或外部动作的编号步骤
-- Then：可观察、可验证的结果（输出、退出码、状态、记录）
+- `### 前提条件`：可构造的具体前置状态
+- `### 触发动作`：用户或外部动作的编号步骤
+- `### 预期结果`：可观察、可验证的结果（输出、退出码、状态、记录）
 - 变体：关键分支、边界、异常写成变体节点，只写与主场景的差异，同样声明字段块
 - 追溯：关联功能存在时只引用图中已存在的 ID，功能制品 frontmatter `scenarios` 回列本场景；场景先于功能制品时按项目模板约定省略或标注 `关联功能` 行，暂缺不判 fail，不编造 ID
 - 正文不出现机器私有路径：用项目相对路径或占位符
@@ -90,7 +97,7 @@ quality_dimensions:
 ## 质量要求
 
 - 字段块三项齐全：`关联决策`、`关联功能` 为机器锚点、必需；`场景代码` 为稳定 slug、推荐
-- Given 写可构造的具体前置状态；When 用编号步骤写具体动作；Then 写可观察、可验证的结果（输出、退出码、状态、记录），不写口号
+- `### 前提条件` 写可构造的具体前置状态；`### 触发动作` 用编号步骤写具体动作；`### 预期结果` 写可观察、可验证的结果（输出、退出码、状态、记录），不写口号
 - 关键分支、边界、异常写成变体节点，并同样声明字段块
 - `关联功能` 只引用图中已存在的 ID，不编造关联 ID；功能制品存在时其 frontmatter `scenarios` 回列本场景，保持双向一致；功能制品暂缺时按项目模板约定省略或标注 `关联功能` 行，暂缺不判 fail
 - 行文遵循 `references/writing-style.md` 的去 AI 味规则

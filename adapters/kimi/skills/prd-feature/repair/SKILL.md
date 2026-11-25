@@ -3,6 +3,9 @@ name: prd-feature-repair
 description: Use when a user wants to fix issues found in a PRD feature artifact after a review.
 ---
 
+<!-- @feature ACA12 @scenario S-36 -->
+<!-- @feature ACA27 @scenario S-152 -->
+
 # prd-feature repair
 
 ## 目的

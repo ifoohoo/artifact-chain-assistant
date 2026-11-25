@@ -6,8 +6,23 @@ import { spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { inspectArtifactGraphRuntime } from './lib/artifact-graph-runtime.mjs';
 
+const DOCTOR_HELP_TEXT = `artifact-chain-assistant doctor —— 检查 artifact-graph 运行时安装、版本一致性与工程健康状态
+
+用法：
+  node scripts/doctor.mjs [--root <project-dir>] [--format json|markdown] [--help | -h]
+
+选项：
+  --root <dir>              指定待检查的目标项目根目录（默认当前目录）
+  --format <json|markdown>  透传给 artifact-graph doctor 的输出格式
+  --help, -h                显示本帮助说明并退出 0
+`;
+
 // Parse --root from args (same as artifact-graph CLI convention)
 const args = process.argv.slice(2);
+if (args.includes('--help') || args.includes('-h')) {
+  process.stdout.write(DOCTOR_HELP_TEXT);
+  process.exit(0);
+}
 let projectRoot = process.cwd();
 const rootIdx = args.indexOf('--root');
 if (rootIdx !== -1 && args[rootIdx + 1]) {

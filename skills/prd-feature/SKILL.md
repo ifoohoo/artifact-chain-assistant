@@ -3,6 +3,9 @@ name: prd-feature
 description: Use when a user wants to write, review, or repair a PRD feature artifact for an artifact-graph project, routing to the appropriate sub-flow based on intent.
 ---
 
+<!-- @feature ACA12 @scenario S-36 -->
+<!-- @feature ACA27 @scenario S-152 -->
+
 # prd-feature
 
 编写、检查和验收细则分别见 `references/compose.md`、`references/inspect.md`、`references/validate.md`。
@@ -10,6 +13,10 @@ description: Use when a user wants to write, review, or repair a PRD feature art
 ## 目的
 
 为 artifact-graph 项目的 PRD 功能特性制品提供编写、审阅和修复的统一入口。根据用户意图路由到对应的子流程，确保 PRD 制品从起草到终态的完整闭环。
+
+## 制作分支的方法选择
+
+仅在 `author` 分支转交前，按 `<plugin-root>/skills/artifact-review/references/method-selection.md` 查询 `artifact / prd-feature / author`。将原业务目标、项目模板、关联制品与权限交付唯一 `verified` 作者。`prd-feature/author` 为默认入口，选择不同 Skill 时停止默认作者，不再运行公共或项目 worker。查询失败保留诊断并停止依赖制作。`review/repair` 分支沿原专业合同执行。
 
 ## 路由决策树
 

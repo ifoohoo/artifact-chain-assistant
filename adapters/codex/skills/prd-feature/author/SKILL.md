@@ -3,11 +3,18 @@ name: prd-feature-author
 description: Use when a user wants to write or draft a new PRD feature artifact for an artifact-graph project.
 ---
 
+<!-- @feature ACA12 @scenario S-36 -->
+<!-- @feature ACA27 @scenario S-152 -->
+
 # prd-feature author
 
 ## 目的
 
 从零编写 PRD 功能特性制品。遵循 inspect → compose → validate → review 的完整闭环流程，确保产出的制品达到终态。
+
+## 先选择本次作者
+
+在 `readiness check` 前，按 `<plugin-root>/skills/artifact-review/references/method-selection.md` 查询 `artifact / prd-feature / author`。若选中本入口，继续原 profile 与 `inspect → compose → validate → review` 闭环，不重复自身委派；若选中其他真实 Skill，交接原要求、模板、关联上下文与授权并停止默认作者。查询失败保留诊断，不回落公共 worker；独立 `review` 与既有 `repair` 闭环保留。
 
 ## 流程
 

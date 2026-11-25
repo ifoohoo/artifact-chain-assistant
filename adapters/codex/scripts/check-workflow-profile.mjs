@@ -12,7 +12,7 @@ import { checkAdoptionReadiness } from './lib/adoption-readiness.mjs';
 
 export { checkAdoptionReadiness };
 
-export async function checkWorkflowProfile({ root = process.cwd(), action = 'review', domain, profilePath, target } = {}) {
+export async function checkWorkflowProfile({ root = process.cwd(), action = 'review', domain, profilePath, target, phase = 'draft' } = {}) {
   const projectRoot = resolve(root);
   const checker = await buildCheckerOutput({
     root: projectRoot,
@@ -20,7 +20,8 @@ export async function checkWorkflowProfile({ root = process.cwd(), action = 'rev
     intent: action,
     domain,
     target,
-    runValidatorCommands: false,
+    runValidatorCommands: phase !== 'draft',
+    phase,
   });
   return {
     ...checker,
@@ -29,7 +30,8 @@ export async function checkWorkflowProfile({ root = process.cwd(), action = 'rev
     domain,
     profile: checker.profile_path,
     worker: checker.worker_path ? checker.worker_path.split('/').slice(-2, -1)[0] : null,
-    dry_run: true,
+    dry_run: phase === 'draft',
+    ...(phase !== 'draft' ? { phase } : {}),
   };
 }
 
@@ -41,11 +43,19 @@ if (isMain) {
     return index >= 0 ? args[index + 1] : undefined;
   };
   if (args.includes('--help')) {
-    console.log('Usage:\n  node check-workflow-profile.mjs --root <path> --action <generate|review|repair|audit|batch> --domain <type> [--profile <json|yaml>] [--target <path>] [--format json|text]\n  node check-workflow-profile.mjs --root <path> --project-shape <cli-library|web|desktop|skill-plugin> --adoption-stage <initial|legacy-backfill|daily-iteration> [--types <type,...>] [--profile <json|yaml>] [--format json|text]');
+    console.log('Usage:\n  node check-workflow-profile.mjs --root <path> --action <generate|review|repair|audit|batch> --domain <type> [--profile <json|yaml>] [--target <path>] [--phase draft|handoff|execute] [--format json|text]\n  node check-workflow-profile.mjs --root <path> --project-shape <cli-library|web|desktop|skill-plugin> --adoption-stage <initial|legacy-backfill|daily-iteration> [--types <type,...>] [--profile <json|yaml>] [--format json|text]');
     process.exit(0);
   }
   let result;
+  let requestedPhase = 'draft';
   try {
+    const phaseFlags = args.filter(arg => arg === '--phase' || arg.startsWith('--phase='));
+    if (phaseFlags.length > 1) throw new Error('Duplicate phase argument');
+    if (phaseFlags.length) {
+      requestedPhase = phaseFlags[0] === '--phase' ? value('--phase') : phaseFlags[0].slice('--phase='.length);
+      if (!['draft', 'handoff', 'execute'].includes(requestedPhase)) throw new Error('phase requires draft, handoff or execute');
+    }
+    if (requestedPhase !== 'draft' && (value('--project-shape') || value('--adoption-stage'))) throw new Error('Formal phase cannot use the read-only adoption discovery branch');
     result = value('--project-shape') || value('--adoption-stage')
       ? await checkAdoptionReadiness({
           root: value('--root') ?? process.cwd(),
@@ -60,6 +70,7 @@ if (isMain) {
           domain: value('--domain'),
           profilePath: value('--profile'),
           target: value('--target'),
+          phase: requestedPhase,
         });
   } catch (error) {
     result = {

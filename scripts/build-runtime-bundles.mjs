@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @feature ACA5 @scenario S-05 @scenario S-56
 import { chmod, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -13,6 +14,8 @@ const sharedFiles = [
   'templates/README.md',
   'compatibility.json',
   'scripts/doctor.mjs',
+  'scripts/artifact-reading.mjs',
+  'scripts/artifact-workbench.mjs',
   'scripts/check-workflow-profile.mjs',
   'scripts/run-artifact-workflow.mjs',
   'scripts/batch-split.mjs',
