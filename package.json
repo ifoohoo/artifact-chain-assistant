@@ -1,6 +1,6 @@
 {
   "name": "artifact-chain-assistant",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Codex, Claude Code, and Kimi Code assistant plugin for artifact-chain projects",
   "license": "Apache-2.0",
   "type": "module",
@@ -95,13 +95,13 @@
   "dependencies": {
     "acorn": "8.17.0",
     "agent-method-registry": "0.2.0",
-    "skill-family-contracts": "0.39.0",
+    "skill-family-contracts": "0.39.2",
     "skill-family-doc-render": "0.7.0",
-    "skill-family-harness-node": "0.39.0"
+    "skill-family-harness-node": "0.39.2"
   },
   "devDependencies": {
     "ajv": "^8.20.0",
-    "artifact-graph": "1.2.1"
+    "artifact-graph": "1.2.2"
   },
   "artifactChainManagedResources": {
     "expression-outbound.mjs": {

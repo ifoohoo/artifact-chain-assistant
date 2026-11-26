@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.2.2
+
+### Changed
+
+- Upgraded `skill-family-contracts` and `skill-family-harness-node` from `0.39.0` to `0.39.2` (`Contracts 1.23.0`) and synchronized `artifact-chain-assistant` and `artifact-graph` installation coordinates at `1.2.2`. Graph runtime, CLI, API, and contract semantics are unchanged.
+
 ## 1.2.1
 
 ### Changed
