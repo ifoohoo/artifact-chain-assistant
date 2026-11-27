@@ -109,13 +109,13 @@ node "$PLUGIN_ROOT/scripts/check-workflow-profile.mjs" \
 
 | 插件 | 运行时 | 安装 |
 | --- | --- | --- |
-| `artifact-chain-assistant` 1.2.2 | `artifact-graph` 1.2.2 | `pnpm add -D artifact-graph@1.2.2` |
+| `artifact-chain-assistant` 1.2.3 | `artifact-graph` 1.2.3 | `pnpm add -D artifact-graph@1.2.3` |
 
 ## 安装
 
 ```bash
 # 1. 安装确定性图运行时（必需）
-npm install --save-dev artifact-graph@1.2.2
+npm install --save-dev artifact-graph@1.2.3
 ```
 
 ```bash
@@ -130,7 +130,7 @@ codex plugin add artifact-chain-assistant@artifact-skill-set
 /plugin install artifact-chain-assistant@artifact-skill-set
 ```
 
-> **SSH 与市场说明：** Claude Code 默认通过 SSH 拉取 GitHub 市场条目；若本机未配置 GitHub SSH 密钥，请设置 `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` 或使用 `https://` 地址添加市场（见 [使用 HTTPS 代替 SSH](https://github.com/ifoohoo/artifact-skill-set#using-https-instead-of-ssh)）。`ifoohoo/artifact-skill-set` 为独立公开市场，需该市场已上架并启用 `artifact-chain-assistant` 1.2.2 后上述市场安装命令方可拉取。
+> **SSH 与市场说明：** Claude Code 默认通过 SSH 拉取 GitHub 市场条目；若本机未配置 GitHub SSH 密钥，请设置 `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` 或使用 `https://` 地址添加市场（见 [使用 HTTPS 代替 SSH](https://github.com/ifoohoo/artifact-skill-set#using-https-instead-of-ssh)）。`ifoohoo/artifact-skill-set` 为独立公开市场，需该市场已上架并启用 `artifact-chain-assistant` 1.2.3 后上述市场安装命令方可拉取。
 
 ```text
 # 2c. Kimi Code 插件安装（交互式，安装或升级后执行 /reload 或重开会话生效）
@@ -150,7 +150,7 @@ qodercli plugin list --json
 
 ## 快速开始
 
-1. 安装插件 1.2.2（见上节）并在目标仓库安装精确版本运行时：`pnpm add -D artifact-graph@1.2.2`。
+1. 安装插件 1.2.3（见上节）并在目标仓库安装精确版本运行时：`pnpm add -D artifact-graph@1.2.3`。
 2. 运行 `artifact-graph doctor --root . --format json` 验证运行时与原生模块绑定正常。
 3. 首次接入项目时调用 `artifact-chain-setup` 体检，再按需授权 `artifact-chain-bootstrap` 初始化。
 4. 日常收集需求与双维状态核查调用 `artifact-chain-requirements`；代码或制品改动后调用 `artifact-chain-maintainer` 刷新并审计版本锁。

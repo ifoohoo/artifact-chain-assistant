@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.2.3
+
+### Changed
+
+- Synchronized `artifact-chain-assistant` and `artifact-graph` installation coordinates at `1.2.3` to pair with fine-grained prompt and knowledge-pack `assetLocks` (`CAP-P4-01`) in `artifact-graph` 1.2.3.
+
 ## 1.2.2
 
 ### Changed
